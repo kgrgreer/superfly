@@ -56,6 +56,24 @@ var PLUS = CLASS({
   ]
 });
 
+var LET = CLASS({
+  properties: [ 'key', 'value' ],
+  methods: [
+    function eval(x) {
+      return x.set(this.key.eval(x), this.value.eval(x));
+    }
+  ]
+});
+
+var VAR = CLASS({
+  properties: [ 'key' ],
+  methods: [
+    function eval(x) {
+      return x.get(this.key.eval(x));
+    }
+  ]
+});
+
 var PRINT = CLASS({
   properties: [ 'expr' ],
   methods: [
@@ -65,6 +83,22 @@ var PRINT = CLASS({
   ]
 });
 
+var FRAME = CLASS({
+  methods: [
+    function subFrame() {
+      return Object.create(this);
+    },
+    function get(name) {
+      return this[name];
+    },
+    function set(name, value) {
+      return this[name] = value;
+    }
+  ]
+});
+
+var frame = FRAME();
+
 console.log(LITERAL(5).eval());
 
 console.log(EQ(LITERAL(5), LITERAL(4)).eval());
@@ -72,3 +106,7 @@ console.log(EQ(LITERAL(5), LITERAL(4)).eval());
 console.log(PLUS(LITERAL(5), LITERAL(4)).eval());
 
 PRINT(PLUS(LITERAL(5), LITERAL(4))).eval();
+
+LET(LITERAL('x'), LITERAL(42)).eval(frame);
+
+PRINT(VAR(LITERAL('x'))).eval(frame);
