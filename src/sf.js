@@ -244,6 +244,7 @@ CLASS({
   properties: [ 'fn', 'args' ],
   methods: [
     function eval(x) {
+      console.log('APPLY ', this.args.eval(x));
       return this.fn.eval(x)(this.args.eval(x));
     }
   ]
@@ -255,7 +256,14 @@ CLASS({
   properties: [ 'args', 'expr' ],
   methods: [
     function eval(x) {
-      return this.fn.eval(x)(this.args.eval(x));
+      var self = this;
+      return function() {
+        var y = x.subFrame();
+        for ( var i = 0 ; i < self.args.length ; i++ ) {
+          y.set(self.args[i], arguments[i]);
+        }
+        return self.expr.eval(y);
+      }
     }
   ]
 });
@@ -274,6 +282,7 @@ CLASS({
     }
   ]
 });
+
 
 CLASS({
   name: 'PRINT',
@@ -310,6 +319,7 @@ function test(expr) {
   console.log(expr.toString(), '->', expr.partialEval(frame).toString(), '->', expr.eval(frame));
 }
 
+/*
 test(LITERAL(5));
 
 test(EQ(LITERAL(5), LITERAL(4)));
@@ -347,6 +357,9 @@ PRINT(APPLY(
   LITERAL(2)
 )).eval();
 
+console.log('Test Minus');
+test(MINUS(LITERAL(10), LITERAL(1)));
+
 // Test If
 PRINT(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
 PRINT(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
@@ -363,7 +376,8 @@ test(OR(LITERAL(false), LITERAL(true)));
 test(OR(LITERAL(true), LITERAL(false)));
 test(OR(LITERAL(true), LITERAL(true)));
 
-// Test TIMES
+console.log('Test TIMES');
+test(TIMES(LITERAL(5), LITERAL(5)));
 test(TIMES(LITERAL(1), LITERAL(42)));
 test(TIMES(LITERAL(0), LITERAL(42)));
 test(TIMES(LITERAL(42), LITERAL(1)));
@@ -373,5 +387,22 @@ test(TIMES(VAR(LITERAL('x')), LITERAL(1)));
 test(TIMES(VAR(LITERAL('x')), LITERAL(0)));
 test(TIMES(LITERAL(1), VAR(LITERAL('x'))));
 test(TIMES(LITERAL(0), VAR(LITERAL('x'))));
+*/
+var square = FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))));
+test(APPLY(square, LITERAL(5)));
+
+test(LET(LITERAL('SQUARE'),
+  FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))))));
+test(APPLY(VAR(LITERAL('SQUARE')), LITERAL(5)));
+
+test(LET(LITERAL('FACT'), FN(['I'],
+  IF(EQ(VAR(LITERAL('I')), LITERAL('1')),
+    LITERAL('1'),
+    TIMES(
+      VAR(LITERAL('I')),
+      APPLY(VAR(LITERAL('FACT')), MINUS(VAR(LITERAL('I')), LITERAL(1))))))));
+
+test(APPLY(VAR(LITERAL('FACT')), LITERAL(1)));
+test(APPLY(VAR(LITERAL('FACT')), LITERAL(5)));
 
 console.log('done');
