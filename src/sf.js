@@ -53,6 +53,9 @@ CLASS({
   methods: [
     function eval(x) {
       return this.value;
+    },
+    function toJS(x) {
+      return this.value.toString();
     }
   ]
 });
@@ -64,6 +67,9 @@ CLASS({
   methods: [
     function eval(x) {
       return this.arg1.eval(x) == this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} == ${this.arg2.toJS(x)}`;
     }
   ]
 });
@@ -94,6 +100,10 @@ CLASS({
       }
 
       return AND(arg1, arg2);
+    },
+
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} && ${this.arg2.toJS(x)}`;
     }
   ]
 });
@@ -123,6 +133,9 @@ CLASS({
       }
 
       return OR(arg1, arg2);
+    },
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} || ${this.arg2.toJS(x)}`;
     }
   ]
 });
@@ -134,6 +147,9 @@ CLASS({
   methods: [
     function eval(x) {
       return ! this.expr.eval(x);
+    },
+    function toJS(x) {
+      return `! ( ${this.expr.toJS(x)} )`;
     }
   ]
 });
@@ -156,6 +172,9 @@ CLASS({
       }
 
       return PLUS(arg1, arg2);
+    },
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} + ${this.arg2.toJS(x)}`;
     }
   ]
 });
@@ -190,6 +209,9 @@ CLASS({
       }
 
       return TIMES(arg1, arg2);
+    },
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} * ${this.arg2.toJS(x)}`;
     }
   ]
 });
@@ -212,6 +234,10 @@ CLASS({
       }
 
       return MINUS(arg1, arg2);
+    },
+
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} - ${this.arg2.toJS(x)}`;
     }
   ]
 });
@@ -223,6 +249,9 @@ CLASS({
   methods: [
     function eval(x) {
       return x.set(this.key.eval(x), this.value.eval(x));
+    },
+    function toJS(x) {
+      return `var ${this.key.toJS(x)} = ${this.value.toJS(x)};`
     }
   ]
 });
@@ -234,6 +263,9 @@ CLASS({
   methods: [
     function eval(x) {
       return x.get(this.key.eval(x));
+    },
+    function toJS(x) {
+      return this.key.toJS(x);
     }
   ]
 });
@@ -244,8 +276,10 @@ CLASS({
   properties: [ 'fn', 'args' ],
   methods: [
     function eval(x) {
-      console.log('APPLY ', this.args.eval(x));
       return this.fn.eval(x)(this.args.eval(x));
+    },
+    function toJS(x) {
+      return `(${this.fn.toJS(x)})(${this.args.toJS(x)})`;
     }
   ]
 });
@@ -264,6 +298,9 @@ CLASS({
         }
         return self.expr.eval(y);
       }
+    },
+    function toJS(x) {
+      return `function(${this.args.join(',')}) { return ${this.expr.toJS(x)} }`;
     }
   ]
 });
@@ -279,6 +316,12 @@ CLASS({
       if ( b ) return this.ifBlock.eval(x);
 
       return this.elseBlock && this.elseBlock.eval(x);
+    },
+    function toJS(x) {
+      // TODO: Are the if/else cases blocks or expressions?  This
+      // assumes that they are expression.
+      
+      return `( ( ${this.expr.toJS(x)} ) ? ( ${this.ifBlock.toJS(x)} ) : ( ${this.elseBlock.toJS(x)} ) )`;
     }
   ]
 });
@@ -290,6 +333,9 @@ CLASS({
   methods: [
     function eval(x) {
       console.log(this.expr.eval(x));
+    },
+    function toJS(x) {
+      return `console.log(${this.expr.toJS(x)})`;
     }
   ]
 });
@@ -308,15 +354,27 @@ CLASS({
     },
     function set(name, value) {
       return this[name] = value;
+    },
+    function toJS(x) {
     }
   ]
 });
 
-
 var frame = FRAME();
+var jsFrame = eval(FRAME().toJS());
 
 function test(expr) {
   console.log(expr.toString(), '->', expr.partialEval(frame).toString(), '->', expr.eval(frame));
+
+  // JS testing
+  var result;
+  try {
+    result = eval(expr.toJS());
+  } catch(e) {
+    result = e;
+  }
+
+  console.log('JS', expr.toString(), '->', expr.toJS(), '->', result);
 }
 
 test(LITERAL(5));
@@ -327,23 +385,28 @@ test(NOT(EQ(LITERAL(5), LITERAL(4))));
 
 test(PLUS(LITERAL(5), LITERAL(4)));
 
-test(PLUS(LITERAL(5), LITERAL(4)));
-
 PRINT(PLUS(LITERAL(5), LITERAL(4))).eval();
 
-PRINT(EQ(
+test(PRINT(PLUS(LITERAL(5), LITERAL(4))));
+
+test(PRINT(EQ(
   PLUS(LITERAL(5), LITERAL(4)),
   MINUS(LITERAL(10), LITERAL(1))
-)).eval();
+)));
 
 console.log(EQ(
   PLUS(LITERAL(5), LITERAL(4)),
   MINUS(LITERAL(10), LITERAL(1))
 ).toString());
 
+console.log(EQ(
+  PLUS(LITERAL(5), LITERAL(4)),
+  MINUS(LITERAL(10), LITERAL(1))
+).toJS());
+
 console.log('Test Variables');
-LET(LITERAL('x'), LITERAL(42)).eval(frame);
-PRINT(VAR(LITERAL('x'))).eval(frame);
+test(LET(LITERAL('x'), LITERAL(42)));
+test(PRINT(VAR(LITERAL('x'))));
 
 // Test Partial-Eval
 console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
@@ -351,17 +414,16 @@ console.log('partialEval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().toString
 console.log('partialEval + eval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().eval());
 
 console.log('Test Apply');
-PRINT(APPLY(
+test(APPLY(
   LITERAL(function(n) { return n*2; }),
-  LITERAL(2)
-)).eval();
+  LITERAL(2)));
 
 console.log('Test Minus');
 test(MINUS(LITERAL(10), LITERAL(1)));
 
 console.log('Test If');
-PRINT(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
-PRINT(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
+test(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4))));
+test(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4))));
 
 console.log('Test And');
 test(AND(LITERAL(false), LITERAL(false)));
@@ -386,6 +448,8 @@ test(TIMES(VAR(LITERAL('x')), LITERAL(1)));
 test(TIMES(VAR(LITERAL('x')), LITERAL(0)));
 test(TIMES(LITERAL(1), VAR(LITERAL('x'))));
 test(TIMES(LITERAL(0), VAR(LITERAL('x'))));
+
+console.log('Test functions');
 
 var square = FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))));
 test(APPLY(square, LITERAL(5)));
