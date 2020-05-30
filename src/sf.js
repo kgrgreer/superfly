@@ -251,7 +251,7 @@ CLASS({
       return x.set(this.key.eval(x), this.value.eval(x));
     },
     function toJS(x) {
-      return `var ${this.key.toJS(x)} = ${this.value.toJS(x)};`
+      return `var ${this.key.toJS(x)} = ${this.value.toJS(x)}`
     }
   ]
 });
@@ -340,6 +340,26 @@ CLASS({
   ]
 });
 
+CLASS({
+  name: 'SEQ',
+  properties: [
+    'steps'
+  ],
+  methods: [
+    function eval(x) {
+      var result;
+      for ( var i = 0 ; i < this.steps.length ; i++ ) {
+	result = this.steps[i].eval(x);
+      }
+      return result;
+    },
+    function toJS(x) {
+      var steps = this.steps.map(s => s.toJS(x));
+      steps[steps.length - 1] = steps[steps.length - 1];
+      return steps.join(';\n');
+    }
+  ]
+});
 
 CLASS({
   name: 'FRAME',
@@ -356,12 +376,12 @@ CLASS({
       return this[name] = value;
     },
     function toJS(x) {
+      
     }
   ]
 });
 
 var frame = FRAME();
-var jsFrame = eval(FRAME().toJS());
 
 function test(expr) {
   console.log(expr.toString(), '->', expr.partialEval(frame).toString(), '->', expr.eval(frame));
@@ -406,7 +426,12 @@ console.log(EQ(
 
 console.log('Test Variables');
 test(LET(LITERAL('x'), LITERAL(42)));
-test(PRINT(VAR(LITERAL('x'))));
+PRINT(VAR(LITERAL('x'))).eval(frame);
+
+test(SEQ([
+  LET(LITERAL('x'), LITERAL(42)),
+  VAR(LITERAL('x'))
+]));
 
 // Test Partial-Eval
 console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
@@ -444,28 +469,36 @@ test(TIMES(LITERAL(0), LITERAL(42)));
 test(TIMES(LITERAL(42), LITERAL(1)));
 test(TIMES(LITERAL(42), LITERAL(0)));
 test(TIMES(LITERAL(2), LITERAL(4)));
-test(TIMES(VAR(LITERAL('x')), LITERAL(1)));
-test(TIMES(VAR(LITERAL('x')), LITERAL(0)));
-test(TIMES(LITERAL(1), VAR(LITERAL('x'))));
-test(TIMES(LITERAL(0), VAR(LITERAL('x'))));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(VAR(LITERAL('x')), LITERAL(1))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(VAR(LITERAL('x')), LITERAL(0))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(LITERAL(1), VAR(LITERAL('x')))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(LITERAL(0), VAR(LITERAL('x')))]));
 
 console.log('Test functions');
 
 var square = FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))));
 test(APPLY(square, LITERAL(5)));
 
-test(LET(LITERAL('SQUARE'),
-  FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))))));
-test(APPLY(VAR(LITERAL('SQUARE')), LITERAL(5)));
 
-test(LET(LITERAL('FACT'), FN(['I'],
+test(SEQ([
+  LET(LITERAL('SQUARE'), FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
+  APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
+]));
+     
+test(SEQ([
+  LET(LITERAL('SQUARE'), FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
+  APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
+]));
+
+var FACT = LET(LITERAL('FACT'), FN(['I'],
   IF(EQ(VAR(LITERAL('I')), LITERAL('1')),
     LITERAL('1'),
     TIMES(
       VAR(LITERAL('I')),
-      APPLY(VAR(LITERAL('FACT')), MINUS(VAR(LITERAL('I')), LITERAL(1))))))));
+	  APPLY(VAR(LITERAL('FACT')), MINUS(VAR(LITERAL('I')), LITERAL(1)))))));
 
-test(APPLY(VAR(LITERAL('FACT')), LITERAL(1)));
-test(APPLY(VAR(LITERAL('FACT')), LITERAL(5)));
+
+test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))]));
+test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))]));
 
 console.log('done');
