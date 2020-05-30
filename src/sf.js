@@ -8,7 +8,7 @@ function CLASS(model) {
 
       for ( var i = 0 ; i < model.properties.length ; i++ ) {
         var val = this[model.properties[i]];
-        if ( ! val ) break;
+        if ( val === undefined ) break;
         if ( i ) s += ', ';
         s = s + val.toString();
       }
@@ -16,7 +16,8 @@ function CLASS(model) {
       s = s + ')';
 
       return s;
-    }
+    },
+    partialEval() { return this; }
   };
   var cls = function() {
     var o = Object.create(proto_);
@@ -52,9 +53,6 @@ CLASS({
   methods: [
     function eval(x) {
       return this.value;
-    },
-    function partialEval() {
-      return this;
     }
   ]
 });
@@ -66,6 +64,65 @@ CLASS({
   methods: [
     function eval(x) {
       return this.arg1.eval(x) == this.arg2.eval(x);
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'AND',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) && this.arg2.eval(x);
+    },
+
+    function partialEval(x) {
+      var arg1 = this.arg1.partialEval();
+      var arg2 = this.arg2.partialEval();
+
+      if ( LITERAL.isInstance(arg1) ) {
+        var v1 = arg1.eval(x);
+        if ( ! v1 ) return LITERAL(false);
+        return arg2;
+      }
+
+      if ( LITERAL.isInstance(arg2) ) {
+        var v2 = arg2.eval(x);
+        if ( ! v2 ) return LITERAL(false);
+        return arg1;
+      }
+
+      return AND(arg1, arg2);
+    }
+  ]
+});
+
+CLASS({
+  name: 'OR',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) || this.arg2.eval(x);
+    },
+
+    function partialEval(x) {
+      var arg1 = this.arg1.partialEval();
+      var arg2 = this.arg2.partialEval();
+
+      if ( LITERAL.isInstance(arg1) ) {
+        var v1 = arg1.eval(x);
+        if ( v1 ) return LITERAL(true);
+        return arg2;
+      }
+
+      if ( LITERAL.isInstance(arg2) ) {
+        var v2 = arg2.eval(x);
+        if ( v2 ) return LITERAL(true);
+        return arg1;
+      }
+
+      return OR(arg1, arg2);
     }
   ]
 });
@@ -193,7 +250,7 @@ CLASS({
 var frame = FRAME();
 
 function test(expr) {
-  console.log(expr.toString(), '->', expr.eval(frame));
+  console.log(expr.toString(), '->', expr.partialEval(frame).toString(), '->', expr.eval(frame));
 }
 
 test(LITERAL(5));
@@ -236,5 +293,17 @@ PRINT(APPLY(
 // Test If
 PRINT(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
 PRINT(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
+
+// Test And
+test(AND(LITERAL(false), LITERAL(false)));
+test(AND(LITERAL(false), LITERAL(true)));
+test(AND(LITERAL(true), LITERAL(false)));
+test(AND(LITERAL(true), LITERAL(true)));
+
+// Test Or
+test(OR(LITERAL(false), LITERAL(false)));
+test(OR(LITERAL(false), LITERAL(true)));
+test(OR(LITERAL(true), LITERAL(false)));
+test(OR(LITERAL(true), LITERAL(true)));
 
 console.log('done');
