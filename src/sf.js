@@ -28,6 +28,8 @@ function CLASS(model) {
     return o;
   };
 
+  cls.isInstance = function(o) { return o.__proto__ == proto_; }
+
   if ( model.methods ) {
     for ( i = 0 ; i < model.methods.length ; i++ ) {
       var m = model.methods[i];
@@ -50,6 +52,9 @@ CLASS({
   methods: [
     function eval(x) {
       return this.value;
+    },
+    function partialEval() {
+      return this;
     }
   ]
 });
@@ -72,6 +77,17 @@ CLASS({
   methods: [
     function eval(x) {
       return this.arg1.eval(x) + this.arg2.eval(x);
+    },
+
+    function partialEval(x) {
+      var arg1 = this.arg1.partialEval();
+      var arg2 = this.arg2.partialEval();
+
+      if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
+        return LITERAL(arg1.eval(x) + arg2.eval(x));
+      }
+
+      return PLUS(arg1, arg2);
     }
   ]
 });
@@ -164,3 +180,7 @@ console.log(EQ(
 LET(LITERAL('x'), LITERAL(42)).eval(frame);
 
 PRINT(VAR(LITERAL('x'))).eval(frame);
+
+console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
+console.log('partialEval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().toString());
+console.log('partialEval + eval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().eval());
