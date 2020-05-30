@@ -319,7 +319,6 @@ function test(expr) {
   console.log(expr.toString(), '->', expr.partialEval(frame).toString(), '->', expr.eval(frame));
 }
 
-/*
 test(LITERAL(5));
 
 test(EQ(LITERAL(5), LITERAL(4)));
@@ -342,7 +341,7 @@ console.log(EQ(
   MINUS(LITERAL(10), LITERAL(1))
 ).toString());
 
-// Test Variables
+console.log('Test Variables');
 LET(LITERAL('x'), LITERAL(42)).eval(frame);
 PRINT(VAR(LITERAL('x'))).eval(frame);
 
@@ -351,7 +350,7 @@ console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
 console.log('partialEval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().toString());
 console.log('partialEval + eval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().eval());
 
-// Test Apply
+console.log('Test Apply');
 PRINT(APPLY(
   LITERAL(function(n) { return n*2; }),
   LITERAL(2)
@@ -360,17 +359,17 @@ PRINT(APPLY(
 console.log('Test Minus');
 test(MINUS(LITERAL(10), LITERAL(1)));
 
-// Test If
+console.log('Test If');
 PRINT(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
 PRINT(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
 
-// Test And
+console.log('Test And');
 test(AND(LITERAL(false), LITERAL(false)));
 test(AND(LITERAL(false), LITERAL(true)));
 test(AND(LITERAL(true), LITERAL(false)));
 test(AND(LITERAL(true), LITERAL(true)));
 
-// Test Or
+console.log('Test Or');
 test(OR(LITERAL(false), LITERAL(false)));
 test(OR(LITERAL(false), LITERAL(true)));
 test(OR(LITERAL(true), LITERAL(false)));
@@ -387,7 +386,7 @@ test(TIMES(VAR(LITERAL('x')), LITERAL(1)));
 test(TIMES(VAR(LITERAL('x')), LITERAL(0)));
 test(TIMES(LITERAL(1), VAR(LITERAL('x'))));
 test(TIMES(LITERAL(0), VAR(LITERAL('x'))));
-*/
+
 var square = FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))));
 test(APPLY(square, LITERAL(5)));
 
