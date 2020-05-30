@@ -72,6 +72,17 @@ CLASS({
 
 
 CLASS({
+  name: 'NOT',
+  properties: [ 'expr' ],
+  methods: [
+    function eval(x) {
+      return ! this.expr.eval(x);
+    }
+  ]
+});
+
+
+CLASS({
   name: 'PLUS',
   properties: [ 'arg1', 'arg2' ],
   methods: [
@@ -181,13 +192,19 @@ CLASS({
 
 var frame = FRAME();
 
-console.log(LITERAL(5).eval());
+function test(expr) {
+  console.log(expr.toString(), '->', expr.eval(frame));
+}
 
-console.log(EQ(LITERAL(5), LITERAL(4)).eval());
+test(LITERAL(5));
 
-console.log(PLUS(LITERAL(5), LITERAL(4)).eval());
+test(EQ(LITERAL(5), LITERAL(4)));
 
-console.log(PLUS(LITERAL(5), LITERAL(4)).eval());
+test(NOT(EQ(LITERAL(5), LITERAL(4))));
+
+test(PLUS(LITERAL(5), LITERAL(4)));
+
+test(PLUS(LITERAL(5), LITERAL(4)));
 
 PRINT(PLUS(LITERAL(5), LITERAL(4))).eval();
 
