@@ -127,6 +127,17 @@ CLASS({
 
 
 CLASS({
+  name: 'APPLY',
+  properties: [ 'fn', 'args' ],
+  methods: [
+    function eval(x) {
+      return this.fn.eval(x)(this.args.eval(x));
+    }
+  ]
+});
+
+
+CLASS({
   name: 'PRINT',
   properties: [ 'expr' ],
   methods: [
@@ -177,10 +188,19 @@ console.log(EQ(
   MINUS(LITERAL(10), LITERAL(1))
 ).toString());
 
+// Test Variables
 LET(LITERAL('x'), LITERAL(42)).eval(frame);
-
 PRINT(VAR(LITERAL('x'))).eval(frame);
 
+// Test Partial-Eval
 console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
 console.log('partialEval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().toString());
 console.log('partialEval + eval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().eval());
+
+// Test Apply
+PRINT(APPLY(
+  LITERAL(function(n) { return n*2; }),
+  LITERAL(2)
+)).eval();
+
+console.log('done');
