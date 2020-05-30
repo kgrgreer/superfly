@@ -136,6 +136,19 @@ CLASS({
   ]
 });
 
+CLASS({
+  name: 'IF',
+  properties: [ 'expr', 'ifBlock', 'elseBlock' ],
+  methods: [
+    function eval(x) {
+      var b = this.expr.eval(x);
+
+      if ( b ) return this.ifBlock.eval(x);
+
+      return this.elseBlock && this.elseBlock.eval(x);
+    }
+  ]
+});
 
 CLASS({
   name: 'PRINT',
@@ -202,5 +215,9 @@ PRINT(APPLY(
   LITERAL(function(n) { return n*2; }),
   LITERAL(2)
 )).eval();
+
+// Test If
+PRINT(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
+PRINT(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4)))).eval();
 
 console.log('done');
