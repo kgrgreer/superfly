@@ -22,7 +22,7 @@ function CLASS(model) {
   var cls = function() {
     var o = Object.create(proto_);
 
-    for ( i = 0 ; i < model.properties.length && i < arguments.length ; i++ ) {
+    for ( var i = 0 ; i < model.properties.length && i < arguments.length ; i++ ) {
       o[model.properties[i]] = arguments[i];
     }
 
@@ -32,7 +32,7 @@ function CLASS(model) {
   cls.isInstance = function(o) { return o.__proto__ == proto_; }
 
   if ( model.methods ) {
-    for ( i = 0 ; i < model.methods.length ; i++ ) {
+    for ( var i = 0 ; i < model.methods.length ; i++ ) {
       var m = model.methods[i];
 
       var match = m.toString().
