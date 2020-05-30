@@ -162,11 +162,56 @@ CLASS({
 
 
 CLASS({
+  name: 'TIMES',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) * this.arg2.eval(x);
+    },
+
+    function partialEval(x) {
+      var arg1 = this.arg1.partialEval();
+      var arg2 = this.arg2.partialEval();
+
+      if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
+        return LITERAL(arg1.eval(x) * arg2.eval(x));
+      }
+
+      if ( LITERAL.isInstance(arg1) ) {
+        var v1 = arg1.eval(x);
+        if ( v1 == 0 ) return LITERAL(0);
+        if ( v1 == 1 ) return arg2;
+      }
+
+      if ( LITERAL.isInstance(arg2) ) {
+        var v2 = arg2.eval(x);
+        if ( v2 == 0 ) return LITERAL(0);
+        if ( v2 == 1 ) return arg1;
+      }
+
+      return TIMES(arg1, arg2);
+    }
+  ]
+});
+
+
+CLASS({
   name: 'MINUS',
   properties: [ 'arg1', 'arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) - this.arg2.eval(x);
+    },
+
+    function partialEval(x) {
+      var arg1 = this.arg1.partialEval();
+      var arg2 = this.arg2.partialEval();
+
+      if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
+        return LITERAL(arg1.eval(x) - arg2.eval(x));
+      }
+
+      return MINUS(arg1, arg2);
     }
   ]
 });
@@ -203,6 +248,18 @@ CLASS({
     }
   ]
 });
+
+
+CLASS({
+  name: 'FN',
+  properties: [ 'args', 'expr' ],
+  methods: [
+    function eval(x) {
+      return this.fn.eval(x)(this.args.eval(x));
+    }
+  ]
+});
+
 
 CLASS({
   name: 'IF',
@@ -305,5 +362,16 @@ test(OR(LITERAL(false), LITERAL(false)));
 test(OR(LITERAL(false), LITERAL(true)));
 test(OR(LITERAL(true), LITERAL(false)));
 test(OR(LITERAL(true), LITERAL(true)));
+
+// Test TIMES
+test(TIMES(LITERAL(1), LITERAL(42)));
+test(TIMES(LITERAL(0), LITERAL(42)));
+test(TIMES(LITERAL(42), LITERAL(1)));
+test(TIMES(LITERAL(42), LITERAL(0)));
+test(TIMES(LITERAL(2), LITERAL(4)));
+test(TIMES(VAR(LITERAL('x')), LITERAL(1)));
+test(TIMES(VAR(LITERAL('x')), LITERAL(0)));
+test(TIMES(LITERAL(1), VAR(LITERAL('x'))));
+test(TIMES(LITERAL(0), VAR(LITERAL('x'))));
 
 console.log('done');
