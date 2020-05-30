@@ -1,6 +1,12 @@
 
 function CLASS(model) {
-  var proto_ = {};
+  var proto_ = {
+    toString() {
+      var s = model.name + '(' + ')';
+
+      return s;
+    }
+  };
   var cls = function() {
     var o = Object.create(proto_);
 
@@ -21,15 +27,16 @@ function CLASS(model) {
           match(/^function\s+([A-Za-z_$][0-9A-Za-z_$]*)\s*\(/);
       var name = match[1];
 
-      console.log('********',name, m);
       proto_[name] = m;
     }
   }
 
-  return cls;
+  globalThis[model.name] = cls;
 }
 
-var LITERAL = CLASS({
+
+CLASS({
+  name: 'LITERAL',
   properties: [ 'value' ],
   methods: [
     function eval(x) {
@@ -38,7 +45,9 @@ var LITERAL = CLASS({
   ]
 });
 
-var EQ = CLASS({
+
+CLASS({
+  name: 'EQ',
   properties: [ 'arg1', 'arg2' ],
   methods: [
     function eval(x) {
@@ -47,7 +56,9 @@ var EQ = CLASS({
   ]
 });
 
-var PLUS = CLASS({
+
+CLASS({
+  name: 'PLUS',
   properties: [ 'arg1', 'arg2' ],
   methods: [
     function eval(x) {
@@ -56,7 +67,20 @@ var PLUS = CLASS({
   ]
 });
 
-var LET = CLASS({
+
+CLASS({
+  name: 'MINUS',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) - this.arg2.eval(x);
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'LET',
   properties: [ 'key', 'value' ],
   methods: [
     function eval(x) {
@@ -65,7 +89,9 @@ var LET = CLASS({
   ]
 });
 
-var VAR = CLASS({
+
+CLASS({
+  name: 'VAR',
   properties: [ 'key' ],
   methods: [
     function eval(x) {
@@ -74,7 +100,9 @@ var VAR = CLASS({
   ]
 });
 
-var PRINT = CLASS({
+
+CLASS({
+  name: 'PRINT',
   properties: [ 'expr' ],
   methods: [
     function eval(x) {
@@ -83,7 +111,11 @@ var PRINT = CLASS({
   ]
 });
 
-var FRAME = CLASS({
+
+CLASS({
+  name: 'FRAME',
+  documentation: 'A Stack-Frame / Context.',
+
   methods: [
     function subFrame() {
       return Object.create(this);
@@ -97,6 +129,7 @@ var FRAME = CLASS({
   ]
 });
 
+
 var frame = FRAME();
 
 console.log(LITERAL(5).eval());
@@ -105,7 +138,19 @@ console.log(EQ(LITERAL(5), LITERAL(4)).eval());
 
 console.log(PLUS(LITERAL(5), LITERAL(4)).eval());
 
+console.log(PLUS(LITERAL(5), LITERAL(4)).eval());
+
 PRINT(PLUS(LITERAL(5), LITERAL(4))).eval();
+
+PRINT(EQ(
+  PLUS(LITERAL(5), LITERAL(4)),
+  MINUS(LITERAL(10), LITERAL(1))
+)).eval();
+
+console.log(EQ(
+  PLUS(LITERAL(5), LITERAL(4)),
+  MINUS(LITERAL(10), LITERAL(1))
+).toString());
 
 LET(LITERAL('x'), LITERAL(42)).eval(frame);
 
