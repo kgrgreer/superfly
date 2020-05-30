@@ -1,8 +1,19 @@
 
 function CLASS(model) {
+  if ( ! model.properties ) model.properties = [];
+
   var proto_ = {
     toString() {
-      var s = model.name + '(' + ')';
+      var s = model.name + '(';
+
+      for ( var i = 0 ; i < model.properties.length ; i++ ) {
+        var val = this[model.properties[i]];
+        if ( ! val ) break;
+        if ( i ) s += ', ';
+        s = s + val.toString();
+      }
+
+      s = s + ')';
 
       return s;
     }
@@ -10,10 +21,8 @@ function CLASS(model) {
   var cls = function() {
     var o = Object.create(proto_);
 
-    if ( model.properties ) {
-      for ( i = 0 ; i < model.properties.length && i < arguments.length ; i++ ) {
-        o[model.properties[i]] = arguments[i];
-      }
+    for ( i = 0 ; i < model.properties.length && i < arguments.length ; i++ ) {
+      o[model.properties[i]] = arguments[i];
     }
 
     return o;
