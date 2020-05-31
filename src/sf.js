@@ -484,18 +484,21 @@ CLASS({
 var frame = FRAME();
 
 function test(expr) {
-  console.log(expr.toString(), '->', expr.partialEval(frame).toString(), '->', expr.eval(frame));
+  var partial = expr.partialEval(frame);
+  var start = performance.now();
+  var result = partial.eval(frame);
+  var end   = performance.now();
+  console.log(expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
 
   // JS testing
   var result;
-  var start = performance.now();
+  start = performance.now();
   try {
     result = eval(expr.toJS());
   } catch(e) {
     result = e;
   }
-  var end = performance.now();
-
+  end = performance.now();
 
   console.log('JS', expr.toString(), '->', expr.toJS(), '->', result, ' Time: ' + (end-start).toFixed(3) + ' ms');
 }
