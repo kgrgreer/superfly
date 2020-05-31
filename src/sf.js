@@ -1,4 +1,7 @@
 
+const TEST_JS = false;
+
+
 function CLASS(model) {
   if ( ! model.properties ) model.properties = [];
 
@@ -19,12 +22,13 @@ function CLASS(model) {
     },
     partialEval() { return this; },
     toJS() { return '<JS NOT DEFINED for ' + model.NAME + '>'; },
-    initArgs: function(...args) {
+    initArgs(...args) {
       for ( var i = 0 ; i < model.properties.length && i < args.length ; i++ ) {
-	this[model.properties[i]] = args[i];
+        this[model.properties[i]] = args[i];
       }
     }
   };
+
   var cls = function(...args) {
     var o = Object.create(proto_);
     o.initArgs(...args);
@@ -547,6 +551,7 @@ function test(expr) {
   var end   = performance.now();
   console.log('SF', expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
 
+  if ( ! TEST_JS ) return;
 
   // JS testing
   start = performance.now();
