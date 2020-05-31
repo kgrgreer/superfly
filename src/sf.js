@@ -18,15 +18,16 @@ function CLASS(model) {
       return s;
     },
     partialEval() { return this; },
-    toJS() { return '<JS NOT DEFINED for ' + model.NAME + '>'; }
-  };
-  var cls = function() {
-    var o = Object.create(proto_);
-
-    for ( var i = 0 ; i < model.properties.length && i < arguments.length ; i++ ) {
-      o[model.properties[i]] = arguments[i];
+    toJS() { return '<JS NOT DEFINED for ' + model.NAME + '>'; },
+    initArgs: function(...args) {
+      for ( var i = 0 ; i < model.properties.length && i < args.length ; i++ ) {
+	this[model.properties[i]] = args[i];
+      }
     }
-
+  };
+  var cls = function(...args) {
+    var o = Object.create(proto_);
+    o.initArgs(...args);
     return o;
   };
 
@@ -344,8 +345,10 @@ CLASS({
       return x.get(this.key.eval(x)).eval();
       // TODO This breaks when doing recursion, because x may have
       // changed from the last time we were evaluated to a sub-frame.
+      /*
       if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
       return this.slot.eval(x);
+      */
     },
     function partialEval(x) {
       if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
@@ -432,20 +435,18 @@ CLASS({
 CLASS({
   name: 'SEQ',
   properties: [
-    'steps'
+    'args'
   ],
   methods: [
+    function initArgs(...args) {
+      this.args = args;
+    },
     function eval(x) {
-      var result;
-      for ( var i = 0 ; i < this.steps.length ; i++ ) {
-	      result = this.steps[i].eval(x);
-      }
-      return result;
+      return this.args.reduce((result, step) => step.eval(x), null);
     },
     function toJS(x) {
-      var steps = this.steps.map(s => s.toJS(x));
-      steps[steps.length - 1] = steps[steps.length - 1];
-      return steps.join(';\n');
+      // TODO: Whats the right way to return the final value?
+      return args.join(';\n');
     }
   ]
 });
@@ -580,10 +581,10 @@ title('Variables');
 test(LET(LITERAL('x'), LITERAL(42)));
 PRINT(VAR(LITERAL('x'))).eval(frame);
 
-test(SEQ([
+test(SEQ(
   LET(LITERAL('x'), LITERAL(42)),
   VAR(LITERAL('x'))
-]));
+));
 
 // Test Partial-Eval
 console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
@@ -621,10 +622,10 @@ test(MUL(LITERAL(0), LITERAL(42)));
 test(MUL(LITERAL(42), LITERAL(1)));
 test(MUL(LITERAL(42), LITERAL(0)));
 test(MUL(LITERAL(2), LITERAL(4)));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(1))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(0))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(1), VAR(LITERAL('x')))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(0), VAR(LITERAL('x')))]));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(1))));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(0))));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(1), VAR(LITERAL('x')))));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(0), VAR(LITERAL('x')))));
 
 title('DIV');
 test(DIV(LITERAL(5), LITERAL(5)));
@@ -633,10 +634,10 @@ test(DIV(LITERAL(0), LITERAL(42)));
 test(DIV(LITERAL(42), LITERAL(1)));
 test(DIV(LITERAL(42), LITERAL(0)));
 test(DIV(LITERAL(2), LITERAL(4)));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(1))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(0))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(1), VAR(LITERAL('x')))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(0), VAR(LITERAL('x')))]));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(1))));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(0))));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(1), VAR(LITERAL('x')))));
+test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(0), VAR(LITERAL('x')))));
 
 title('Functions');
 
@@ -644,15 +645,15 @@ var square = FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))));
 test(APPLY(square, LITERAL(5)));
 
 
-test(SEQ([
+test(SEQ(
   LET(LITERAL('SQUARE'), FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
   APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
-]));
+));
 
-test(SEQ([
+test(SEQ(
   LET(LITERAL('SQUARE'), FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
   APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
-]));
+));
 
 var FACT = LET(LITERAL('FACT'), FN(['I'],
   IF(EQ(VAR(LITERAL('I')), LITERAL('1')),
@@ -662,9 +663,9 @@ var FACT = LET(LITERAL('FACT'), FN(['I'],
 	  APPLY(VAR(LITERAL('FACT')), MINUS(VAR(LITERAL('I')), LITERAL(1)))))));
 
 
-test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))]));
-test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))]));
-test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(50))]));
+test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))));
+test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))));
+test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(50))));
 
 title('Fibonacci');
 CONST(LITERAL('FIB'), FN(['I'],
