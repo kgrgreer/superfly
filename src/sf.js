@@ -190,8 +190,8 @@ CLASS({
     },
 
     function partialEval(x) {
-      var arg1 = this.arg1.partialEval();
-      var arg2 = this.arg2.partialEval();
+      var arg1 = this.arg1.partialEval(x);
+      var arg2 = this.arg2.partialEval(x);
 
       if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
         return LITERAL(arg1.eval(x) * arg2.eval(x));
@@ -299,7 +299,7 @@ CLASS({
       x.set(this.key.eval(x), CONSTANT_SLOT(this.value.eval(x)));
     },
     function partialEval(x) {
-      return LITERAL(this.value.partialEval(x));
+      return LITERAL(this.value.eval(x));
     },
     function toJS(x) {
       return `const ${this.key.toJS(x)} = ${this.value.toJS(x)}`
@@ -448,7 +448,7 @@ CLASS({
       return this.value;
     },
     function partialEval() {
-      return this.value;
+      return LITERAL(this.value);
     },
     function set(value) {
       // Can't update a constant
@@ -491,7 +491,7 @@ function test(expr) {
   console.log(expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
 
   // JS testing
-  var result;
+  /*
   start = performance.now();
   try {
     result = eval(expr.toJS());
@@ -499,6 +499,7 @@ function test(expr) {
     result = e;
   }
   end = performance.now();
+  */
 
   console.log('JS', expr.toString(), '->', expr.toJS(), '->', result, ' Time: ' + (end-start).toFixed(3) + ' ms');
 }
@@ -627,7 +628,10 @@ test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))]));
 test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(50))]));
 
 title('CONST');
-LET(LITERAL('TWO_PI'), MUL(LITERAL(2), LITERAL(Math.PI))).eval(frame);
-test(VAR(LITERAL('TWO_PI')));
+LET(LITERAL('PI'), LITERAL(Math.PI)).eval(frame);
+test(MUL(LITERAL(2), VAR(LITERAL('PI'))));
+
+CONST(LITERAL('PI_CONST'), LITERAL(Math.PI)).eval(frame);
+test(MUL(LITERAL(2), VAR(LITERAL('PI_CONST'))));
 
 console.log('done');
