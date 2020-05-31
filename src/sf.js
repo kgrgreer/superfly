@@ -488,7 +488,7 @@ function test(expr) {
   var start = performance.now();
   var result = partial.eval(frame);
   var end   = performance.now();
-  console.log(expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
+  console.log('SF', expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
 
   // JS testing
   /*
