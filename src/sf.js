@@ -591,28 +591,29 @@ function title(s) {
 test(LITERAL(5));
 
 test(EQ(LITERAL(5), LITERAL(4)));
+test(EQ(5, 4));
 
-test(NOT(EQ(LITERAL(5), LITERAL(4))));
+test(NOT(EQ(5, 4)));
 
-test(PLUS(LITERAL(5), LITERAL(4)));
+test(PLUS(5, 4));
 
-PRINT(PLUS(LITERAL(5), LITERAL(4))).eval();
+PRINT(PLUS(5, 4)).eval();
 
-test(PRINT(PLUS(LITERAL(5), LITERAL(4))));
+test(PRINT(PLUS(5, 4)));
 
 test(PRINT(EQ(
-  PLUS(LITERAL(5), LITERAL(4)),
-  MINUS(LITERAL(10), LITERAL(1))
+  PLUS(5, 4),
+  MINUS(10, 1)
 )));
 
 console.log(EQ(
-  PLUS(LITERAL(5), LITERAL(4)),
-  MINUS(LITERAL(10), LITERAL(1))
+  PLUS(5, 4),
+  MINUS(10, 1)
 ).toString());
 
 console.log(EQ(
-  PLUS(LITERAL(5), LITERAL(4)),
-  MINUS(LITERAL(10), LITERAL(1))
+  PLUS(5, 4),
+  MINUS(10, 1)
 ).toJS());
 
 title('LT');
