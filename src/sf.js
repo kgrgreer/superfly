@@ -373,7 +373,7 @@ CLASS({
 CLASS({
   name: 'CONST',
   documentation: "The same as LET but can partialEval() the lookup becuase it doesn't change.",
-  properties: [ 'key', 'value' ],
+  properties: [ 'Expr key', 'Expr value' ],
   methods: [
     function eval(x) {
       x.set(this.key.eval(x), CONSTANT_SLOT(this.value.eval(x)));
@@ -695,12 +695,12 @@ test(APPLY(square, 5));
 
 
 test(SEQ(
-  LET('SQUARE'), FN(['I'], MUL(VAR('I'), VAR('I'))),
+  LET('SQUARE', FN(['I'], MUL(VAR('I'), VAR('I')))),
   APPLY(VAR('SQUARE'), 5)
 ));
 
 test(SEQ(
-  LET('SQUARE'), FN(['I'], MUL(VAR('I'), VAR('I'))),
+  LET('SQUARE', FN(['I'], MUL(VAR('I'), VAR('I')))),
   APPLY(VAR('SQUARE'), 5)
 ));
 
@@ -712,36 +712,36 @@ var FACT = LET('FACT', FN(['I'],
 	    APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
 
 
-test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), 1)));
-test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), 5)));
-test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), 50)));
+test(SEQ(FACT, APPLY(VAR('FACT'), 1)));
+test(SEQ(FACT, APPLY(VAR('FACT'), 5)));
+test(SEQ(FACT, APPLY(VAR('FACT'), 50)));
 
 title('Fibonacci');
-CONST(LITERAL('FIB'), FN(['I'],
+CONST('FIB', FN(['I'],
   IF(LT(VAR('I'), 2),
     1,
     PLUS(
-      APPLY(VAR(LITERAL('FIB')), MINUS(VAR('I'), 1)),
-      APPLY(VAR(LITERAL('FIB')), MINUS(VAR('I'), 2)))))).eval(frame);
+      APPLY(VAR('FIB'), MINUS(VAR('I'), 1)),
+      APPLY(VAR('FIB'), MINUS(VAR('I'), 2)))))).eval(frame);
 
-test(APPLY(VAR(LITERAL('FIB')), 1));
-test(APPLY(VAR(LITERAL('FIB')), 2));
-test(APPLY(VAR(LITERAL('FIB')), 3));
-test(APPLY(VAR(LITERAL('FIB')), 4));
-test(APPLY(VAR(LITERAL('FIB')), 5));
-test(APPLY(VAR(LITERAL('FIB')), 6));
-test(APPLY(VAR(LITERAL('FIB')), 7));
-test(APPLY(VAR(LITERAL('FIB')), 8));
-test(APPLY(VAR(LITERAL('FIB')), 9));
-test(APPLY(VAR(LITERAL('FIB')), 10));
-test(APPLY(VAR(LITERAL('FIB')), 20));
-test(APPLY(VAR(LITERAL('FIB')), 30));
+test(APPLY(VAR('FIB'), 1));
+test(APPLY(VAR('FIB'), 2));
+test(APPLY(VAR('FIB'), 3));
+test(APPLY(VAR('FIB'), 4));
+test(APPLY(VAR('FIB'), 5));
+test(APPLY(VAR('FIB'), 6));
+test(APPLY(VAR('FIB'), 7));
+test(APPLY(VAR('FIB'), 8));
+test(APPLY(VAR('FIB'), 9));
+test(APPLY(VAR('FIB'), 10));
+test(APPLY(VAR('FIB'), 20));
+test(APPLY(VAR('FIB'), 30));
 
 title('CONST');
-LET(LITERAL('PI'), Math.PI).eval(frame);
+LET('PI', Math.PI).eval(frame);
 test(MUL(2, VAR('PI')));
 
-CONST(LITERAL('PI_CONST'), Math.PI).eval(frame);
+CONST('PI_CONST', Math.PI).eval(frame);
 test(MUL(2, VAR('PI_CONST')));
 
 console.log('done');
