@@ -3,14 +3,31 @@ const TEST_JS = false;
 
 
 function CLASS(model) {
-  if ( ! model.properties ) model.properties = [];
+  if ( ! model.properties ) {
+    model.properties = [];
+  } else {
+    model.properties = model.properties.map((p) => {
+      var a = p.split(' ');
+      if ( a.length == 1 ) { return { name: a[0], adapt: v => v } };
+      return {
+        name: a[1],
+        adapt: {
+          Expr: v => {
+            if ( typeof v === 'number' ) return LITERAL(v);
+            if ( typeof v === 'string' ) return LITERAL(v);
+            return v;
+          },
+        }[a[0]]
+      };
+    });
+  }
 
   var proto_ = {
     toString() {
       var s = model.name + '(';
 
       for ( var i = 0 ; i < model.properties.length ; i++ ) {
-        var val = this[model.properties[i]];
+        var val = this[model.properties[i].name];
         if ( val === undefined ) break;
         if ( i ) s += ', ';
         s = s + val.toString();
@@ -24,7 +41,7 @@ function CLASS(model) {
     toJS() { return '<JS NOT DEFINED for ' + model.NAME + '>'; },
     initArgs(...args) {
       for ( var i = 0 ; i < model.properties.length && i < args.length ; i++ ) {
-        this[model.properties[i]] = args[i];
+        this[model.properties[i].name] = model.properties[i].adapt(args[i]);
       }
     }
   };
@@ -69,7 +86,7 @@ CLASS({
 
 CLASS({
   name: 'EQ',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) == this.arg2.eval(x);
@@ -83,7 +100,7 @@ CLASS({
 
 CLASS({
   name: 'LT',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) < this.arg2.eval(x);
@@ -97,7 +114,7 @@ CLASS({
 
 CLASS({
   name: 'GT',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) > this.arg2.eval(x);
@@ -111,7 +128,7 @@ CLASS({
 
 CLASS({
   name: 'LTE',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) <= this.arg2.eval(x);
@@ -125,7 +142,7 @@ CLASS({
 
 CLASS({
   name: 'GTE',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) >= this.arg2.eval(x);
@@ -139,7 +156,7 @@ CLASS({
 
 CLASS({
   name: 'AND',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) && this.arg2.eval(x);
@@ -172,7 +189,7 @@ CLASS({
 
 CLASS({
   name: 'OR',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) || this.arg2.eval(x);
@@ -205,7 +222,7 @@ CLASS({
 
 CLASS({
   name: 'NOT',
-  properties: [ 'expr' ],
+  properties: [ 'Expr expr' ],
   methods: [
     function eval(x) {
       return ! this.expr.eval(x);
@@ -219,7 +236,7 @@ CLASS({
 
 CLASS({
   name: 'PLUS',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) + this.arg2.eval(x);
@@ -244,7 +261,7 @@ CLASS({
 
 CLASS({
   name: 'MUL',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) * this.arg2.eval(x);
@@ -281,7 +298,7 @@ CLASS({
 
 CLASS({
   name: 'DIV',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) / this.arg2.eval(x);
@@ -312,7 +329,7 @@ CLASS({
 
 CLASS({
   name: 'MINUS',
-  properties: [ 'arg1', 'arg2' ],
+  properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
       return this.arg1.eval(x) - this.arg2.eval(x);
@@ -338,7 +355,7 @@ CLASS({
 
 CLASS({
   name: 'LET',
-  properties: [ 'key', 'value' ],
+  properties: [ 'Expr key', 'Expr value' ],
   methods: [
     function eval(x) {
       x.set(this.key.eval(x), SLOT(this.value.eval(x)));
@@ -371,7 +388,7 @@ CLASS({
 
 CLASS({
   name: 'VAR',
-  properties: [ 'key' ],
+  properties: [ 'Expr key' ],
   methods: [
     function eval(x) {
       return x.get(this.key.eval(x)).eval();
@@ -395,7 +412,7 @@ CLASS({
 
 CLASS({
   name: 'APPLY',
-  properties: [ 'fn', 'args' ],
+  properties: [ 'Expr fn', 'args' ],
   methods: [
     function eval(x) {
       return this.fn.eval(x)(this.args.eval(x));
@@ -410,7 +427,7 @@ CLASS({
 
 CLASS({
   name: 'FN',
-  properties: [ 'args', 'expr' ],
+  properties: [ 'args', 'Expr expr' ],
   methods: [
     function eval(x) {
       var self = this;
@@ -431,7 +448,7 @@ CLASS({
 
 CLASS({
   name: 'IF',
-  properties: [ 'expr', 'ifBlock', 'elseBlock' ],
+  properties: [ 'Expr expr', 'Expr ifBlock', 'Expr elseBlock' ],
   methods: [
     function eval(x) {
       var b = this.expr.eval(x);
@@ -452,7 +469,7 @@ CLASS({
 
 CLASS({
   name: 'PRINT',
-  properties: [ 'expr' ],
+  properties: [ 'Expr expr' ],
   methods: [
     function eval(x) {
       console.log(this.expr.eval(x));
@@ -563,7 +580,6 @@ function test(expr) {
   end = performance.now();
 
   console.log('JS', expr.toString(), '->', expr.toJS(), '->', result, ' Time: ' + (end-start).toFixed(3) + ' ms');
-
 }
 
 function title(s) {
@@ -685,12 +701,12 @@ test(SEQ(
   APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
 ));
 
-var FACT = LET(LITERAL('FACT'), FN(['I'],
-  IF(EQ(VAR(LITERAL('I')), LITERAL('1')),
-    LITERAL('1'),
+var FACT = LET('FACT', FN(['I'],
+  IF(EQ(VAR('I'), 1),
+    1,
     MUL(
-      VAR(LITERAL('I')),
-	  APPLY(VAR(LITERAL('FACT')), MINUS(VAR(LITERAL('I')), LITERAL(1)))))));
+      VAR('I'),
+	    APPLY(VAR(LITERAL('FACT')), MINUS(VAR('I'), 1))))));
 
 
 test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))));
