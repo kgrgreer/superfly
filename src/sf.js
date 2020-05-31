@@ -13,8 +13,10 @@ function CLASS(model) {
         name: a[1],
         adapt: {
           Expr: v => {
-            if ( typeof v === 'number' ) return LITERAL(v);
-            if ( typeof v === 'string' ) return LITERAL(v);
+            if ( typeof v === 'number'   ) return LITERAL(v);
+            if ( typeof v === 'string'   ) return LITERAL(v);
+            if ( typeof v === 'function' ) return LITERAL(v);
+            if ( typeof v === 'boolean'  ) return LITERAL(v);
             return v;
           },
         }[a[0]]
@@ -412,7 +414,7 @@ CLASS({
 
 CLASS({
   name: 'APPLY',
-  properties: [ 'Expr fn', 'args' ],
+  properties: [ 'Expr fn', 'Expr args' ],
   methods: [
     function eval(x) {
       return this.fn.eval(x)(this.args.eval(x));
@@ -590,7 +592,7 @@ function title(s) {
 
 test(LITERAL(5));
 
-test(EQ(LITERAL(5), LITERAL(4)));
+test(EQ(LITERAL(5), 4));
 test(EQ(5, 4));
 
 test(NOT(EQ(5, 4)));
@@ -617,74 +619,74 @@ console.log(EQ(
 ).toJS());
 
 title('LT');
-test(LT(LITERAL(5), LITERAL(4)));
-test(LT(LITERAL(4), LITERAL(5)));
+test(LT(5, 4));
+test(LT(4, 5));
 
 title('GT');
-test(GT(LITERAL(5), LITERAL(4)));
-test(GT(LITERAL(4), LITERAL(5)));
+test(GT(5, 4));
+test(GT(4, 5));
 
 title('Variables');
-test(LET(LITERAL('x'), LITERAL(42)));
-PRINT(VAR(LITERAL('x'))).eval(frame);
+test(LET('x', 42));
+PRINT(VAR('x')).eval(frame);
 
 test(SEQ(
-  LET(LITERAL('x'), LITERAL(42)),
-  VAR(LITERAL('x'))
+  LET('x', 42),
+  VAR('x')
 ));
 
 // Test Partial-Eval
-console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
-console.log('partialEval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().toString());
-console.log('partialEval + eval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().eval());
+console.log('eval: ', PLUS(5, 4).eval());
+console.log('partialEval: ', PLUS(5, 4).partialEval().toString());
+console.log('partialEval + eval: ', PLUS(5, 4).partialEval().eval());
 
 title('Apply');
 test(APPLY(
-  LITERAL(function(n) { return n*2; }),
-  LITERAL(2)));
+  function(n) { return n*2; },
+  2));
 
 title('Minus');
-test(MINUS(LITERAL(10), LITERAL(1)));
+test(MINUS(10, 1));
 
 title('If');
-test(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4))));
-test(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4))));
+test(IF(EQ(1, 1), 42, PLUS(2, 4)));
+test(IF(EQ(1, 2), 42, PLUS(2, 4)));
 
 title('And');
-test(AND(LITERAL(false), LITERAL(false)));
-test(AND(LITERAL(false), LITERAL(true)));
-test(AND(LITERAL(true), LITERAL(false)));
-test(AND(LITERAL(true), LITERAL(true)));
+test(AND(false, false));
+test(AND(false, true));
+test(AND(true, false));
+test(AND(true, true));
 
 title('Or');
-test(OR(LITERAL(false), LITERAL(false)));
-test(OR(LITERAL(false), LITERAL(true)));
-test(OR(LITERAL(true), LITERAL(false)));
-test(OR(LITERAL(true), LITERAL(true)));
+test(OR(false, false));
+test(OR(false, true));
+test(OR(true, false));
+test(OR(true, true));
 
 title('MUL');
 test(MUL(LITERAL(5), LITERAL(5)));
-test(MUL(LITERAL(1), LITERAL(42)));
-test(MUL(LITERAL(0), LITERAL(42)));
-test(MUL(LITERAL(42), LITERAL(1)));
-test(MUL(LITERAL(42), LITERAL(0)));
-test(MUL(LITERAL(2), LITERAL(4)));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(1))));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(0))));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(1), VAR(LITERAL('x')))));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(0), VAR(LITERAL('x')))));
+test(MUL(1, 42));
+test(MUL(LITERAL(0), 42));
+test(MUL(42, 1));
+test(MUL(42, LITERAL(0)));
+test(MUL(2, 4));
+test(SEQ(LET(LITERAL('x'), 42), MUL(VAR(LITERAL('x')), 1)));
+test(SEQ(LET(LITERAL('x'), 42), MUL(VAR(LITERAL('x')), LITERAL(0))));
+test(SEQ(LET(LITERAL('x'), 42), MUL(1, VAR(LITERAL('x')))));
+test(SEQ(LET(LITERAL('x'), 42), MUL(LITERAL(0), VAR(LITERAL('x')))));
 
 title('DIV');
 test(DIV(LITERAL(5), LITERAL(5)));
-test(DIV(LITERAL(1), LITERAL(42)));
-test(DIV(LITERAL(0), LITERAL(42)));
-test(DIV(LITERAL(42), LITERAL(1)));
-test(DIV(LITERAL(42), LITERAL(0)));
-test(DIV(LITERAL(2), LITERAL(4)));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(1))));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(0))));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(1), VAR(LITERAL('x')))));
-test(SEQ(LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(0), VAR(LITERAL('x')))));
+test(DIV(1, 42));
+test(DIV(LITERAL(0), 42));
+test(DIV(42, 1));
+test(DIV(42, LITERAL(0)));
+test(DIV(2, 4));
+test(SEQ(LET(LITERAL('x'), 42), DIV(VAR(LITERAL('x')), 1)));
+test(SEQ(LET(LITERAL('x'), 42), DIV(VAR(LITERAL('x')), LITERAL(0))));
+test(SEQ(LET(LITERAL('x'), 42), DIV(1, VAR(LITERAL('x')))));
+test(SEQ(LET(LITERAL('x'), 42), DIV(LITERAL(0), VAR(LITERAL('x')))));
 
 title('Functions');
 
@@ -710,22 +712,22 @@ var FACT = LET('FACT', FN(['I'],
 	    APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
 
 
-test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))));
+test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), 1)));
 test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))));
 test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(50))));
 
 title('Fibonacci');
 CONST(LITERAL('FIB'), FN(['I'],
-  IF(LT(VAR(LITERAL('I')), LITERAL(2)),
-    LITERAL(1),
+  IF(LT(VAR(LITERAL('I')), 2),
+    1,
     PLUS(
-      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), LITERAL(1))),
-      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), LITERAL(2))))))).eval(frame);
+      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), 1)),
+      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), 2)))))).eval(frame);
 
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(1)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(2)));
+test(APPLY(VAR(LITERAL('FIB')), 1));
+test(APPLY(VAR(LITERAL('FIB')), 2));
 test(APPLY(VAR(LITERAL('FIB')), LITERAL(3)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(4)));
+test(APPLY(VAR(LITERAL('FIB')), 4));
 test(APPLY(VAR(LITERAL('FIB')), LITERAL(5)));
 test(APPLY(VAR(LITERAL('FIB')), LITERAL(6)));
 test(APPLY(VAR(LITERAL('FIB')), LITERAL(7)));
@@ -737,9 +739,9 @@ test(APPLY(VAR(LITERAL('FIB')), LITERAL(30)));
 
 title('CONST');
 LET(LITERAL('PI'), LITERAL(Math.PI)).eval(frame);
-test(MUL(LITERAL(2), VAR(LITERAL('PI'))));
+test(MUL(2, VAR(LITERAL('PI'))));
 
 CONST(LITERAL('PI_CONST'), LITERAL(Math.PI)).eval(frame);
-test(MUL(LITERAL(2), VAR(LITERAL('PI_CONST'))));
+test(MUL(2, VAR(LITERAL('PI_CONST'))));
 
 console.log('done');
