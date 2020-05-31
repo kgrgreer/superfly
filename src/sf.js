@@ -279,13 +279,13 @@ CLASS({
 
       if ( LITERAL.isInstance(arg1) ) {
         var v1 = arg1.eval(x);
-        if ( v1 == 0 ) return LITERAL(0);
+        if ( v1 == 0 ) return 0;
         if ( v1 == 1 ) return arg2;
       }
 
       if ( LITERAL.isInstance(arg2) ) {
         var v2 = arg2.eval(x);
-        if ( v2 == 0 ) return LITERAL(0);
+        if ( v2 == 0 ) return 0;
         if ( v2 == 1 ) return arg1;
       }
 
@@ -592,7 +592,7 @@ function title(s) {
 
 test(LITERAL(5));
 
-test(EQ(LITERAL(5), 4));
+test(EQ(5, 4));
 test(EQ(5, 4));
 
 test(NOT(EQ(5, 4)));
@@ -665,43 +665,43 @@ test(OR(true, false));
 test(OR(true, true));
 
 title('MUL');
-test(MUL(LITERAL(5), LITERAL(5)));
+test(MUL(5, 5));
 test(MUL(1, 42));
-test(MUL(LITERAL(0), 42));
+test(MUL(0, 42));
 test(MUL(42, 1));
-test(MUL(42, LITERAL(0)));
+test(MUL(42, 0));
 test(MUL(2, 4));
-test(SEQ(LET(LITERAL('x'), 42), MUL(VAR(LITERAL('x')), 1)));
-test(SEQ(LET(LITERAL('x'), 42), MUL(VAR(LITERAL('x')), LITERAL(0))));
-test(SEQ(LET(LITERAL('x'), 42), MUL(1, VAR(LITERAL('x')))));
-test(SEQ(LET(LITERAL('x'), 42), MUL(LITERAL(0), VAR(LITERAL('x')))));
+test(SEQ(LET('X', 42), MUL(VAR('X'), 1)));
+test(SEQ(LET('X', 42), MUL(VAR('X'), 0)));
+test(SEQ(LET('X', 42), MUL(1, VAR('X'))));
+test(SEQ(LET('X', 42), MUL(0, VAR('X'))));
 
 title('DIV');
-test(DIV(LITERAL(5), LITERAL(5)));
+test(DIV(5, 5));
 test(DIV(1, 42));
-test(DIV(LITERAL(0), 42));
+test(DIV(0, 42));
 test(DIV(42, 1));
-test(DIV(42, LITERAL(0)));
+test(DIV(42, 0));
 test(DIV(2, 4));
-test(SEQ(LET(LITERAL('x'), 42), DIV(VAR(LITERAL('x')), 1)));
-test(SEQ(LET(LITERAL('x'), 42), DIV(VAR(LITERAL('x')), LITERAL(0))));
-test(SEQ(LET(LITERAL('x'), 42), DIV(1, VAR(LITERAL('x')))));
-test(SEQ(LET(LITERAL('x'), 42), DIV(LITERAL(0), VAR(LITERAL('x')))));
+test(SEQ(LET('X', 42), DIV(VAR('x'), 1)));
+test(SEQ(LET('X', 42), DIV(VAR('x'), 0)));
+test(SEQ(LET('X', 42), DIV(1, VAR('x'))));
+test(SEQ(LET('X', 42), DIV(0, VAR('x'))));
 
 title('Functions');
 
-var square = FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))));
-test(APPLY(square, LITERAL(5)));
+var square = FN(['I'], MUL(VAR('I'), VAR('I')));
+test(APPLY(square, 5));
 
 
 test(SEQ(
-  LET(LITERAL('SQUARE'), FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
-  APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
+  LET('SQUARE'), FN(['I'], MUL(VAR('I'), VAR('I'))),
+  APPLY(VAR('SQUARE'), 5)
 ));
 
 test(SEQ(
-  LET(LITERAL('SQUARE'), FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
-  APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
+  LET('SQUARE'), FN(['I'], MUL(VAR('I'), VAR('I'))),
+  APPLY(VAR('SQUARE'), 5)
 ));
 
 var FACT = LET('FACT', FN(['I'],
@@ -713,35 +713,35 @@ var FACT = LET('FACT', FN(['I'],
 
 
 test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), 1)));
-test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))));
-test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(50))));
+test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), 5)));
+test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), 50)));
 
 title('Fibonacci');
 CONST(LITERAL('FIB'), FN(['I'],
-  IF(LT(VAR(LITERAL('I')), 2),
+  IF(LT(VAR('I'), 2),
     1,
     PLUS(
-      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), 1)),
-      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), 2)))))).eval(frame);
+      APPLY(VAR(LITERAL('FIB')), MINUS(VAR('I'), 1)),
+      APPLY(VAR(LITERAL('FIB')), MINUS(VAR('I'), 2)))))).eval(frame);
 
 test(APPLY(VAR(LITERAL('FIB')), 1));
 test(APPLY(VAR(LITERAL('FIB')), 2));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(3)));
+test(APPLY(VAR(LITERAL('FIB')), 3));
 test(APPLY(VAR(LITERAL('FIB')), 4));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(5)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(6)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(7)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(8)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(9)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(10)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(20)));
-test(APPLY(VAR(LITERAL('FIB')), LITERAL(30)));
+test(APPLY(VAR(LITERAL('FIB')), 5));
+test(APPLY(VAR(LITERAL('FIB')), 6));
+test(APPLY(VAR(LITERAL('FIB')), 7));
+test(APPLY(VAR(LITERAL('FIB')), 8));
+test(APPLY(VAR(LITERAL('FIB')), 9));
+test(APPLY(VAR(LITERAL('FIB')), 10));
+test(APPLY(VAR(LITERAL('FIB')), 20));
+test(APPLY(VAR(LITERAL('FIB')), 30));
 
 title('CONST');
-LET(LITERAL('PI'), LITERAL(Math.PI)).eval(frame);
-test(MUL(2, VAR(LITERAL('PI'))));
+LET(LITERAL('PI'), Math.PI).eval(frame);
+test(MUL(2, VAR('PI')));
 
-CONST(LITERAL('PI_CONST'), LITERAL(Math.PI)).eval(frame);
-test(MUL(2, VAR(LITERAL('PI_CONST'))));
+CONST(LITERAL('PI_CONST'), Math.PI).eval(frame);
+test(MUL(2, VAR('PI_CONST')));
 
 console.log('done');
