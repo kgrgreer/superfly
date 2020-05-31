@@ -71,7 +71,7 @@ CLASS({
       return this.arg1.eval(x) == this.arg2.eval(x);
     },
     function toJS(x) {
-      return `${this.arg1.toJS(x)} == ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} == ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -85,7 +85,7 @@ CLASS({
       return this.arg1.eval(x) < this.arg2.eval(x);
     },
     function toJS(x) {
-      return `${this.arg1.toJS(x)} < ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} < ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -99,7 +99,35 @@ CLASS({
       return this.arg1.eval(x) > this.arg2.eval(x);
     },
     function toJS(x) {
-      return `${this.arg1.toJS(x)} > ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} > ${this.arg2.toJS(x)})`;
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'LTE',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) <= this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `(${this.arg1.toJS(x)} <= ${this.arg2.toJS(x)})`;
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'GTE',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) >= this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `(${this.arg1.toJS(x)} >= ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -133,7 +161,7 @@ CLASS({
     },
 
     function toJS(x) {
-      return `${this.arg1.toJS(x)} && ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} && ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -165,7 +193,7 @@ CLASS({
       return OR(arg1, arg2);
     },
     function toJS(x) {
-      return `${this.arg1.toJS(x)} || ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} || ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -179,7 +207,7 @@ CLASS({
       return ! this.expr.eval(x);
     },
     function toJS(x) {
-      return `! ( ${this.expr.toJS(x)} )`;
+      return `(! ${this.expr.toJS(x)})`;
     }
   ]
 });
@@ -204,7 +232,7 @@ CLASS({
       return PLUS(arg1, arg2);
     },
     function toJS(x) {
-      return `${this.arg1.toJS(x)} + ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} + ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -241,7 +269,7 @@ CLASS({
       return MUL(arg1, arg2);
     },
     function toJS(x) {
-      return `${this.arg1.toJS(x)} * ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} * ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -272,7 +300,7 @@ CLASS({
       return DIV(arg1, arg2);
     },
     function toJS(x) {
-      return `${this.arg1.toJS(x)} / ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} / ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -298,7 +326,7 @@ CLASS({
     },
 
     function toJS(x) {
-      return `${this.arg1.toJS(x)} - ${this.arg2.toJS(x)}`;
+      return `(${this.arg1.toJS(x)} - ${this.arg2.toJS(x)})`;
     }
   ]
 });
@@ -446,7 +474,7 @@ CLASS({
     },
     function toJS(x) {
       // TODO: Whats the right way to return the final value?
-      return args.join(';\n');
+      return this.args.map(a => a.toJS(x)).join(';\n');
     }
   ]
 });
@@ -506,9 +534,6 @@ CLASS({
     },
     function set(name, slot) {
       this[name] = slot;
-    },
-    function toJS(x) {
-
     }
   ]
 });
@@ -522,7 +547,7 @@ function test(expr) {
   var end   = performance.now();
   console.log('SF', expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
 
-/*
+
   // JS testing
   start = performance.now();
   try {
@@ -533,7 +558,7 @@ function test(expr) {
   end = performance.now();
 
   console.log('JS', expr.toString(), '->', expr.toJS(), '->', result, ' Time: ' + (end-start).toFixed(3) + ' ms');
-*/
+
 }
 
 function title(s) {
