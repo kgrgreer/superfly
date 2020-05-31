@@ -313,6 +313,9 @@ CLASS({
   properties: [ 'key' ],
   methods: [
     function eval(x) {
+      return x.get(this.key.eval(x)).eval();
+      // TODO This breaks when doing recursion, because x may have
+      // changed from the last time we were evaluated to a sub-frame.
       if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
       return this.slot.eval();
     },
