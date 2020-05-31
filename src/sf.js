@@ -77,6 +77,34 @@ CLASS({
 
 
 CLASS({
+  name: 'LT',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) < this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} < ${this.arg2.toJS(x)}`;
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'GT',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) > this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} > ${this.arg2.toJS(x)}`;
+    }
+  ]
+});
+
+
+CLASS({
   name: 'AND',
   properties: [ 'arg1', 'arg2' ],
   methods: [
@@ -85,8 +113,8 @@ CLASS({
     },
 
     function partialEval(x) {
-      var arg1 = this.arg1.partialEval();
-      var arg2 = this.arg2.partialEval();
+      var arg1 = this.arg1.partialEval(x);
+      var arg2 = this.arg2.partialEval(x);
 
       if ( LITERAL.isInstance(arg1) ) {
         var v1 = arg1.eval(x);
@@ -118,8 +146,8 @@ CLASS({
     },
 
     function partialEval(x) {
-      var arg1 = this.arg1.partialEval();
-      var arg2 = this.arg2.partialEval();
+      var arg1 = this.arg1.partialEval(x);
+      var arg2 = this.arg2.partialEval(x);
 
       if ( LITERAL.isInstance(arg1) ) {
         var v1 = arg1.eval(x);
@@ -165,8 +193,8 @@ CLASS({
     },
 
     function partialEval(x) {
-      var arg1 = this.arg1.partialEval();
-      var arg2 = this.arg2.partialEval();
+      var arg1 = this.arg1.partialEval(x);
+      var arg2 = this.arg2.partialEval(x);
 
       if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
         return LITERAL(arg1.eval(x) + arg2.eval(x));
@@ -227,8 +255,8 @@ CLASS({
     },
 
     function partialEval(x) {
-      var arg1 = this.arg1.partialEval();
-      var arg2 = this.arg2.partialEval();
+      var arg1 = this.arg1.partialEval(x);
+      var arg2 = this.arg2.partialEval(x);
 
       if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
         return LITERAL(arg1.eval(x) / arg2.eval(x));
@@ -258,8 +286,8 @@ CLASS({
     },
 
     function partialEval(x) {
-      var arg1 = this.arg1.partialEval();
-      var arg2 = this.arg2.partialEval();
+      var arg1 = this.arg1.partialEval(x);
+      var arg2 = this.arg2.partialEval(x);
 
       if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
         return LITERAL(arg1.eval(x) - arg2.eval(x));
@@ -314,11 +342,11 @@ CLASS({
   methods: [
     function eval(x) {
       if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
-      return this.slot.eval();
+      return this.slot.eval(x);
     },
     function partialEval(x) {
       if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
-      return this.slot.partialEval();
+      return this.slot.partialEval(x);
     },
     function toJS(x) {
       return this.key.toJS(x);
@@ -407,7 +435,7 @@ CLASS({
     function eval(x) {
       var result;
       for ( var i = 0 ; i < this.steps.length ; i++ ) {
-	result = this.steps[i].eval(x);
+	      result = this.steps[i].eval(x);
       }
       return result;
     },
@@ -490,8 +518,8 @@ function test(expr) {
   var end   = performance.now();
   console.log('SF', expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
 
+/*
   // JS testing
-  /*
   start = performance.now();
   try {
     result = eval(expr.toJS());
@@ -499,9 +527,9 @@ function test(expr) {
     result = e;
   }
   end = performance.now();
-  */
 
   console.log('JS', expr.toString(), '->', expr.toJS(), '->', result, ' Time: ' + (end-start).toFixed(3) + ' ms');
+*/
 }
 
 function title(s) {
@@ -536,6 +564,14 @@ console.log(EQ(
   PLUS(LITERAL(5), LITERAL(4)),
   MINUS(LITERAL(10), LITERAL(1))
 ).toJS());
+
+title('LT');
+test(LT(LITERAL(5), LITERAL(4)));
+test(LT(LITERAL(4), LITERAL(5)));
+
+title('GT');
+test(GT(LITERAL(5), LITERAL(4)));
+test(GT(LITERAL(4), LITERAL(5)));
 
 title('Variables');
 test(LET(LITERAL('x'), LITERAL(42)));
@@ -626,6 +662,24 @@ var FACT = LET(LITERAL('FACT'), FN(['I'],
 test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))]));
 test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))]));
 test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(50))]));
+
+title('Fibonacci');
+CONST(LITERAL('FIB'), FN(['I'],
+  SEQ(PRINT(VAR(LITERAL('I'))),
+  IF(LT(VAR(LITERAL('I')), LITERAL('2')),
+    LITERAL('1'),
+    PLUS(
+      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), LITERAL(1))),
+      APPLY(VAR(LITERAL('FIB')), MINUS(VAR(LITERAL('I')), LITERAL(2)))))))).eval(frame);
+
+test(APPLY(VAR(LITERAL('FIB')), LITERAL(5)));
+/*
+test(APPLY(VAR(LITERAL('FIB')), LITERAL(1)));
+test(APPLY(VAR(LITERAL('FIB')), LITERAL(2)));
+test(APPLY(VAR(LITERAL('FIB')), LITERAL(3)));
+test(APPLY(VAR(LITERAL('FIB')), LITERAL(4)));
+test(APPLY(VAR(LITERAL('FIB')), LITERAL(5)));
+*/
 
 title('CONST');
 LET(LITERAL('PI'), LITERAL(Math.PI)).eval(frame);
