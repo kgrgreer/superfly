@@ -229,6 +229,22 @@ CLASS({
 
 
 CLASS({
+  name: 'CONST',
+  documentation: "The same as LET but can partialEval() the lookup becuase it doesn't change.",
+  properties: [ 'key', 'value' ],
+  methods: [
+    function eval(x) {
+      return x.set(this.key.eval(x), this.value.eval(x));
+    }
+
+    function partialEval(x) {
+      return this.eval(x).partialEval(x);
+    }
+  ]
+});
+
+
+CLASS({
   name: 'VAR',
   properties: [ 'key' ],
   methods: [
@@ -247,6 +263,7 @@ CLASS({
       console.log('APPLY ', this.args.eval(x));
       return this.fn.eval(x)(this.args.eval(x));
     }
+    // TODO: partialEval
   ]
 });
 
@@ -403,5 +420,10 @@ test(LET(LITERAL('FACT'), FN(['I'],
 
 test(APPLY(VAR(LITERAL('FACT')), LITERAL(1)));
 test(APPLY(VAR(LITERAL('FACT')), LITERAL(5)));
+
+console.log('Test CONST');
+CONST(LITERAL('TWO_PI'), TIMES(LITERAL(2), LITERAL(Math.PI))).eval(frame);
+test(VAR(LITERAL('TWO_PI')));
+
 
 console.log('done');
