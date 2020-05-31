@@ -181,7 +181,7 @@ CLASS({
 
 
 CLASS({
-  name: 'TIMES',
+  name: 'MUL',
   properties: [ 'arg1', 'arg2' ],
   methods: [
     function eval(x) {
@@ -208,10 +208,41 @@ CLASS({
         if ( v2 == 1 ) return arg1;
       }
 
-      return TIMES(arg1, arg2);
+      return MUL(arg1, arg2);
     },
     function toJS(x) {
       return `${this.arg1.toJS(x)} * ${this.arg2.toJS(x)}`;
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'DIV',
+  properties: [ 'arg1', 'arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) / this.arg2.eval(x);
+    },
+
+    function partialEval(x) {
+      var arg1 = this.arg1.partialEval();
+      var arg2 = this.arg2.partialEval();
+
+      if ( LITERAL.isInstance(arg1) && LITERAL.isInstance(arg2) ) {
+        return LITERAL(arg1.eval(x) / arg2.eval(x));
+      }
+
+      if ( LITERAL.isInstance(arg2) ) {
+        var v2 = arg2.eval(x);
+        // if ( v2 == 0 ) error divide by zer
+        if ( v2 == 1 ) return arg1;
+      }
+
+      return DIV(arg1, arg2);
+    },
+    function toJS(x) {
+      return `${this.arg1.toJS(x)} / ${this.arg2.toJS(x)}`;
     }
   ]
 });
@@ -264,7 +295,7 @@ CLASS({
   methods: [
     function eval(x) {
       return x.set(this.key.eval(x), this.value.eval(x));
-    }
+    },
 
     function partialEval(x) {
       return this.eval(x).partialEval(x);
@@ -337,7 +368,7 @@ CLASS({
     function toJS(x) {
       // TODO: Are the if/else cases blocks or expressions?  This
       // assumes that they are expression.
-      
+
       return `( ( ${this.expr.toJS(x)} ) ? ( ${this.ifBlock.toJS(x)} ) : ( ${this.elseBlock.toJS(x)} ) )`;
     }
   ]
@@ -393,7 +424,7 @@ CLASS({
       return this[name] = value;
     },
     function toJS(x) {
-      
+
     }
   ]
 });
@@ -479,38 +510,50 @@ test(OR(LITERAL(false), LITERAL(true)));
 test(OR(LITERAL(true), LITERAL(false)));
 test(OR(LITERAL(true), LITERAL(true)));
 
-console.log('Test TIMES');
-test(TIMES(LITERAL(5), LITERAL(5)));
-test(TIMES(LITERAL(1), LITERAL(42)));
-test(TIMES(LITERAL(0), LITERAL(42)));
-test(TIMES(LITERAL(42), LITERAL(1)));
-test(TIMES(LITERAL(42), LITERAL(0)));
-test(TIMES(LITERAL(2), LITERAL(4)));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(VAR(LITERAL('x')), LITERAL(1))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(VAR(LITERAL('x')), LITERAL(0))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(LITERAL(1), VAR(LITERAL('x')))]));
-test(SEQ([LET(LITERAL('x'), LITERAL(42)), TIMES(LITERAL(0), VAR(LITERAL('x')))]));
+console.log('Test MUL');
+test(MUL(LITERAL(5), LITERAL(5)));
+test(MUL(LITERAL(1), LITERAL(42)));
+test(MUL(LITERAL(0), LITERAL(42)));
+test(MUL(LITERAL(42), LITERAL(1)));
+test(MUL(LITERAL(42), LITERAL(0)));
+test(MUL(LITERAL(2), LITERAL(4)));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(1))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(0))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(1), VAR(LITERAL('x')))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(0), VAR(LITERAL('x')))]));
+
+console.log('Test DIV');
+test(DIV(LITERAL(5), LITERAL(5)));
+test(DIV(LITERAL(1), LITERAL(42)));
+test(DIV(LITERAL(0), LITERAL(42)));
+test(DIV(LITERAL(42), LITERAL(1)));
+test(DIV(LITERAL(42), LITERAL(0)));
+test(DIV(LITERAL(2), LITERAL(4)));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(1))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(0))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(1), VAR(LITERAL('x')))]));
+test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(0), VAR(LITERAL('x')))]));
 
 console.log('Test functions');
 
-var square = FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))));
+var square = FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))));
 test(APPLY(square, LITERAL(5)));
 
 
 test(SEQ([
-  LET(LITERAL('SQUARE'), FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
+  LET(LITERAL('SQUARE'), FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
   APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
 ]));
-     
+
 test(SEQ([
-  LET(LITERAL('SQUARE'), FN(['I'], TIMES(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
+  LET(LITERAL('SQUARE'), FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))))),
   APPLY(VAR(LITERAL('SQUARE')), LITERAL(5))
 ]));
 
 var FACT = LET(LITERAL('FACT'), FN(['I'],
   IF(EQ(VAR(LITERAL('I')), LITERAL('1')),
     LITERAL('1'),
-    TIMES(
+    MUL(
       VAR(LITERAL('I')),
 	  APPLY(VAR(LITERAL('FACT')), MINUS(VAR(LITERAL('I')), LITERAL(1)))))));
 
@@ -519,7 +562,7 @@ test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))]));
 test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))]));
 
 console.log('Test CONST');
-CONST(LITERAL('TWO_PI'), TIMES(LITERAL(2), LITERAL(Math.PI))).eval(frame);
+CONST(LITERAL('TWO_PI'), MUL(LITERAL(2), LITERAL(Math.PI))).eval(frame);
 test(VAR(LITERAL('TWO_PI')));
 
 
