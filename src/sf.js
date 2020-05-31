@@ -17,7 +17,8 @@ function CLASS(model) {
 
       return s;
     },
-    partialEval() { return this; }
+    partialEval() { return this; },
+    toJS() { return '<JS NOT DEFINED for ' + model.NAME + '>'; }
   };
   var cls = function() {
     var o = Object.create(proto_);
@@ -279,7 +280,7 @@ CLASS({
   properties: [ 'key', 'value' ],
   methods: [
     function eval(x) {
-      return x.set(this.key.eval(x), this.value.eval(x));
+      x.set(this.key.eval(x), SLOT(this.value.eval(x)));
     },
     function toJS(x) {
       return `var ${this.key.toJS(x)} = ${this.value.toJS(x)}`
@@ -287,6 +288,7 @@ CLASS({
   ]
 });
 
+// TODO: 'SET'
 
 CLASS({
   name: 'CONST',
@@ -294,11 +296,13 @@ CLASS({
   properties: [ 'key', 'value' ],
   methods: [
     function eval(x) {
-      return x.set(this.key.eval(x), this.value.eval(x));
+      x.set(this.key.eval(x), CONSTANT_SLOT(this.value.eval(x)));
     },
-
     function partialEval(x) {
-      return this.eval(x).partialEval(x);
+      return LITERAL(this.value.partialEval(x));
+    },
+    function toJS(x) {
+      return `const ${this.key.toJS(x)} = ${this.value.toJS(x)}`
     }
   ]
 });
@@ -309,7 +313,12 @@ CLASS({
   properties: [ 'key' ],
   methods: [
     function eval(x) {
-      return x.get(this.key.eval(x));
+      if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
+      return this.slot.eval();
+    },
+    function partialEval(x) {
+      if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
+      return this.slot.partialEval();
     },
     function toJS(x) {
       return this.key.toJS(x);
@@ -342,7 +351,7 @@ CLASS({
       return function() {
         var y = x.subFrame();
         for ( var i = 0 ; i < self.args.length ; i++ ) {
-          y.set(self.args[i], arguments[i]);
+          y.set(self.args[i], SLOT(arguments[i]));
         }
         return self.expr.eval(y);
       }
@@ -388,6 +397,7 @@ CLASS({
   ]
 });
 
+
 CLASS({
   name: 'SEQ',
   properties: [
@@ -409,6 +419,44 @@ CLASS({
   ]
 });
 
+
+CLASS({
+  name: 'SLOT',
+  documentation: 'A Stack-Frame entry.',
+
+  properties: [ 'value' ],
+
+  methods: [
+    function eval() {
+      return this.value;
+    },
+    function set(value) {
+      this.value = value;
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'CONSTANT_SLOT',
+  documentation: 'A Stack-Frame entry.',
+
+  properties: [ 'value' ],
+
+  methods: [
+    function eval() {
+      return this.value;
+    },
+    function partialEval() {
+      return this.value;
+    },
+    function set(value) {
+      // Can't update a constant
+    }
+  ]
+});
+
+
 CLASS({
   name: 'FRAME',
   documentation: 'A Stack-Frame / Context.',
@@ -418,10 +466,14 @@ CLASS({
       return Object.create(this);
     },
     function get(name) {
-      return this[name];
+      if ( ! this[name] ) {
+        console.log("Unknown variable name ", name);
+      } else {
+        return this[name];
+      }
     },
-    function set(name, value) {
-      return this[name] = value;
+    function set(name, slot) {
+      this[name] = slot;
     },
     function toJS(x) {
 
@@ -436,13 +488,22 @@ function test(expr) {
 
   // JS testing
   var result;
+  var start = performance.now();
   try {
     result = eval(expr.toJS());
   } catch(e) {
     result = e;
   }
+  var end = performance.now();
 
-  console.log('JS', expr.toString(), '->', expr.toJS(), '->', result);
+
+  console.log('JS', expr.toString(), '->', expr.toJS(), '->', result, ' Time: ' + (end-start).toFixed(3) + ' ms');
+}
+
+function title(s) {
+  console.log('\n');
+  console.log('Testing ' + s);
+  console.log('-------------------------');
 }
 
 test(LITERAL(5));
@@ -472,7 +533,7 @@ console.log(EQ(
   MINUS(LITERAL(10), LITERAL(1))
 ).toJS());
 
-console.log('Test Variables');
+title('Variables');
 test(LET(LITERAL('x'), LITERAL(42)));
 PRINT(VAR(LITERAL('x'))).eval(frame);
 
@@ -486,31 +547,31 @@ console.log('eval: ', PLUS(LITERAL(5), LITERAL(4)).eval());
 console.log('partialEval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().toString());
 console.log('partialEval + eval: ', PLUS(LITERAL(5), LITERAL(4)).partialEval().eval());
 
-console.log('Test Apply');
+title('Apply');
 test(APPLY(
   LITERAL(function(n) { return n*2; }),
   LITERAL(2)));
 
-console.log('Test Minus');
+title('Minus');
 test(MINUS(LITERAL(10), LITERAL(1)));
 
-console.log('Test If');
+title('If');
 test(IF(EQ(LITERAL(1), LITERAL(1)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4))));
 test(IF(EQ(LITERAL(1), LITERAL(2)), LITERAL(42), PLUS(LITERAL(2), LITERAL(4))));
 
-console.log('Test And');
+title('And');
 test(AND(LITERAL(false), LITERAL(false)));
 test(AND(LITERAL(false), LITERAL(true)));
 test(AND(LITERAL(true), LITERAL(false)));
 test(AND(LITERAL(true), LITERAL(true)));
 
-console.log('Test Or');
+title('Or');
 test(OR(LITERAL(false), LITERAL(false)));
 test(OR(LITERAL(false), LITERAL(true)));
 test(OR(LITERAL(true), LITERAL(false)));
 test(OR(LITERAL(true), LITERAL(true)));
 
-console.log('Test MUL');
+title('MUL');
 test(MUL(LITERAL(5), LITERAL(5)));
 test(MUL(LITERAL(1), LITERAL(42)));
 test(MUL(LITERAL(0), LITERAL(42)));
@@ -522,7 +583,7 @@ test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(VAR(LITERAL('x')), LITERAL(0))]));
 test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(1), VAR(LITERAL('x')))]));
 test(SEQ([LET(LITERAL('x'), LITERAL(42)), MUL(LITERAL(0), VAR(LITERAL('x')))]));
 
-console.log('Test DIV');
+title('DIV');
 test(DIV(LITERAL(5), LITERAL(5)));
 test(DIV(LITERAL(1), LITERAL(42)));
 test(DIV(LITERAL(0), LITERAL(42)));
@@ -534,7 +595,7 @@ test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(VAR(LITERAL('x')), LITERAL(0))]));
 test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(1), VAR(LITERAL('x')))]));
 test(SEQ([LET(LITERAL('x'), LITERAL(42)), DIV(LITERAL(0), VAR(LITERAL('x')))]));
 
-console.log('Test functions');
+title('Functions');
 
 var square = FN(['I'], MUL(VAR(LITERAL('I')), VAR(LITERAL('I'))));
 test(APPLY(square, LITERAL(5)));
@@ -560,10 +621,10 @@ var FACT = LET(LITERAL('FACT'), FN(['I'],
 
 test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))]));
 test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(5))]));
+test(SEQ([FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(50))]));
 
-console.log('Test CONST');
-CONST(LITERAL('TWO_PI'), MUL(LITERAL(2), LITERAL(Math.PI))).eval(frame);
+title('CONST');
+LET(LITERAL('TWO_PI'), MUL(LITERAL(2), LITERAL(Math.PI))).eval(frame);
 test(VAR(LITERAL('TWO_PI')));
-
 
 console.log('done');
