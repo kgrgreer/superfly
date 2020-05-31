@@ -706,7 +706,7 @@ var FACT = LET('FACT', FN(['I'],
     1,
     MUL(
       VAR('I'),
-	    APPLY(VAR(LITERAL('FACT')), MINUS(VAR('I'), 1))))));
+	    APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
 
 
 test(SEQ(FACT, APPLY(VAR(LITERAL('FACT')), LITERAL(1))));
