@@ -364,7 +364,7 @@ CLASS({
   properties: [ 'Expr key', 'Expr value' ],
   methods: [
     function eval(x) {
-      x.set(this.key.eval(x), SLOT(this.value.eval(x)));
+      x.set(this.key.eval(x), SLOT(this.value.partialEval(x).eval(x)));
     },
     function toJS(x) {
       return `var ${this.key.toJS(x)} = ${this.value.toJS(x)}`
@@ -380,7 +380,7 @@ CLASS({
   properties: [ 'Expr key', 'Expr value' ],
   methods: [
     function eval(x) {
-      x.set(this.key.eval(x), CONSTANT_SLOT(this.value.eval(x)));
+      x.set(this.key.eval(x), CONSTANT_SLOT(this.value.partialEval(x).eval(x)));
     },
     function partialEval(x) {
       return LITERAL(this.value.eval(x));
@@ -398,6 +398,14 @@ CLASS({
   methods: [
     function eval(x) {
       return x.get(this.key.eval(x)).eval();
+      /*
+      Experiment, but not faster.
+      var slot = this.slot;
+      if ( slot && x == this.lastX ) return slot.eval(x);
+      slot = this.slot = x.get(this.key.eval(x));
+      this.lastX = x;
+      return slot.eval(x);
+      */
       // TODO This breaks when doing recursion, because x may have
       // changed from the last time we were evaluated to a sub-frame.
       /*
@@ -406,8 +414,15 @@ CLASS({
       */
     },
     function partialEval(x) {
+      var key = this.key.partialEval(x);
+      var slot = x.get(key.eval(x));
+      if ( slot && CONSTANT_SLOT.isInstance(slot) ) return slot.eval(x);
+     // if ( LITERAL.isInstance(this.key) ) return LITERAL_VAR(this.key.eval(x));
+      return this;
+      /*
       if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
       return this.slot.partialEval(x);
+      */
     },
     function toJS(x) {
       return this.key.toJS(x);
@@ -416,6 +431,26 @@ CLASS({
 });
 
 
+/*
+CLASS({
+  name: 'LITERAL_VAR',
+  properties: [ 'key' ],
+  methods: [
+    function eval(x) {
+      return x.get(this.key).eval(x);
+    },
+    function partialEval(x) {
+      return this;
+    },
+    function toJS(x) {
+      return this.key;
+    }
+  ]
+});
+*/
+
+var LITERAL_VAR = VAR;
+
 CLASS({
   name: 'APPLY',
   properties: [ 'Expr fn', 'Expr args' ],
@@ -423,10 +458,31 @@ CLASS({
     function eval(x) {
       return this.fn.eval(x)(this.args.eval(x));
     },
+    function partialEval(x) {
+      var fn   = this.fn.partialEval(x);
+      var args = this.args.partialEval(x);
+      if ( LITERAL.isInstance(fn) ) { console.log('---------------- Creating LITERAL_APPLY', fn.eval(x)); return LITERAL_APPLY(fn.eval(x), args); }
+      return APPLY(fn, args);
+    },
     function toJS(x) {
       return `(${this.fn.toJS(x)})(${this.args.toJS(x)})`;
     }
-    // TODO: partialEval
+  ]
+});
+
+CLASS({
+  name: 'LITERAL_APPLY',
+  properties: [ 'fn', 'Expr args' ],
+  methods: [
+    function eval(x) {
+      return this.fn(this.args.eval(x));
+    },
+    function partialEval(x) {
+      return this;
+    },
+    function toJS(x) {
+      return `(${this.fn})(${this.args.toJS(x)})`;
+    }
   ]
 });
 
@@ -445,6 +501,9 @@ CLASS({
         return self.expr.eval(y);
       }
     },
+    function partialEval(x) {
+      return FN(this.args, this.expr.partialEval(x));
+    },
     function toJS(x) {
       return `function(${this.args.join(',')}) { return ${this.expr.toJS(x)} }`;
     }
@@ -461,7 +520,22 @@ CLASS({
 
       if ( b ) return this.ifBlock.eval(x);
 
-      return this.elseBlock && this.elseBlock.eval(x);
+      var elseBlock = this.elseBlock;
+
+      return elseBlock && elseBlock.eval(x);
+    },
+    function partialEval(x) {
+      var expr = this.expr.partialEval(x);
+
+      if ( LITERAL.isInstance(expr) ) {
+        if ( expr.eval(x) ) return this.ifBlock.partialEval(x);
+        return this.elseBlock && this.elseBlock.partialEval(x);
+      }
+
+      return IF(
+        expr,
+        this.ifBlock.partialEval(x),
+        this.elseBlock && this.elseBlock.partialEval(x));
     },
     function toJS(x) {
       // TODO: Are the if/else cases blocks or expressions?  This
@@ -560,6 +634,7 @@ CLASS({
 
   methods: [
     function subFrame() {
+//      return Object.create(frame); // is ~8% faster
       return Object.create(this);
     },
     function get(name) {
@@ -729,11 +804,11 @@ test(SEQ(FACT, APPLY(VAR('FACT'), 50)));
 
 title('Fibonacci');
 CONST('FIB', FN('I',
-  IF(LT(VAR('I'), 2),
+  IF(LT(LITERAL_VAR('I'), 2),
     1,
     PLUS(
-      APPLY(VAR('FIB'), MINUS(VAR('I'), 1)),
-      APPLY(VAR('FIB'), MINUS(VAR('I'), 2)))))).eval(frame);
+      APPLY(LITERAL_VAR('FIB'), MINUS(LITERAL_VAR('I'), 1)),
+      APPLY(LITERAL_VAR('FIB'), MINUS(LITERAL_VAR('I'), 2)))))).eval(frame);
 
 test(APPLY(VAR('FIB'), 1));
 test(APPLY(VAR('FIB'), 2));
@@ -752,7 +827,7 @@ test(APPLY(VAR('FIB'), 30));
 var f = APPLY(VAR('FIB'), 25).partialEval(frame);
 console.log('__________________START');
 console.profile();
-f.eval(frame);
+for ( var i = 0 ; i < 100 ; i++ ) f.eval(frame);
 console.profileEnd();
 console.log('__________________END');
 */
