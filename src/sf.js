@@ -11,6 +11,10 @@ function CLASS(model) {
       return {
         name: a[1],
         adapt: {
+          'String[]': v => {
+            if ( typeof v == 'string' ) return [ v ];
+            return v;
+          },
           Expr: v => {
             if ( typeof v === 'number'   ) return LITERAL(v);
             if ( typeof v === 'string'   ) return LITERAL(v);
@@ -428,7 +432,7 @@ CLASS({
 
 CLASS({
   name: 'FN',
-  properties: [ 'args', 'Expr expr' ],
+  properties: [ 'String[] args', 'Expr expr' ],
   methods: [
     function eval(x) {
       var self = this;
@@ -687,20 +691,20 @@ test(SEQ(LET('X', 42), DIV(1, VAR('x'))));
 test(SEQ(LET('X', 42), DIV(0, VAR('x'))));
 
 title('Functions');
-var square = FN(['I'], MUL(VAR('I'), VAR('I')));
+var square = FN('I', MUL(VAR('I'), VAR('I')));
 test(APPLY(square, 5));
 
 test(SEQ(
-  LET('SQUARE', FN(['I'], MUL(VAR('I'), VAR('I')))),
+  LET('SQUARE', FN('I', MUL(VAR('I'), VAR('I')))),
   APPLY(VAR('SQUARE'), 5)
 ));
 
 test(SEQ(
-  LET('SQUARE', FN(['I'], MUL(VAR('I'), VAR('I')))),
+  LET('SQUARE', FN('I', MUL(VAR('I'), VAR('I')))),
   APPLY(VAR('SQUARE'), 5)
 ));
 
-var FACT = LET('FACT', FN(['I'],
+var FACT = LET('FACT', FN('I',
   IF(EQ(VAR('I'), 1),
     1,
     MUL(
@@ -712,7 +716,7 @@ test(SEQ(FACT, APPLY(VAR('FACT'), 5)));
 test(SEQ(FACT, APPLY(VAR('FACT'), 50)));
 
 title('Fibonacci');
-CONST('FIB', FN(['I'],
+CONST('FIB', FN('I',
   IF(LT(VAR('I'), 2),
     1,
     PLUS(
