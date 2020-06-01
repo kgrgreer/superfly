@@ -1,4 +1,3 @@
-
 const TEST_JS = false;
 
 
@@ -590,6 +589,7 @@ function title(s) {
   console.log('-------------------------');
 }
 
+title('Basics');
 test(LITERAL(5));
 
 test(EQ(5, 4));
@@ -635,15 +635,13 @@ test(SEQ(
   VAR('x')
 ));
 
-// Test Partial-Eval
+title('Partial-Eval');
 console.log('eval: ', PLUS(5, 4).eval());
 console.log('partialEval: ', PLUS(5, 4).partialEval().toString());
 console.log('partialEval + eval: ', PLUS(5, 4).partialEval().eval());
 
 title('Apply');
-test(APPLY(
-  function(n) { return n*2; },
-  2));
+test(APPLY(function(n) { return n*2; }, 2));
 
 title('Minus');
 test(MINUS(10, 1));
@@ -689,10 +687,8 @@ test(SEQ(LET('X', 42), DIV(1, VAR('x'))));
 test(SEQ(LET('X', 42), DIV(0, VAR('x'))));
 
 title('Functions');
-
 var square = FN(['I'], MUL(VAR('I'), VAR('I')));
 test(APPLY(square, 5));
-
 
 test(SEQ(
   LET('SQUARE', FN(['I'], MUL(VAR('I'), VAR('I')))),
@@ -710,7 +706,6 @@ var FACT = LET('FACT', FN(['I'],
     MUL(
       VAR('I'),
 	    APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
-
 
 test(SEQ(FACT, APPLY(VAR('FACT'), 1)));
 test(SEQ(FACT, APPLY(VAR('FACT'), 5)));
