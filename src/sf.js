@@ -192,6 +192,7 @@ CLASS({
   ]
 });
 
+
 CLASS({
   name: 'OR',
   properties: [ 'Expr arg1', 'Expr arg2' ],
@@ -505,7 +506,7 @@ CLASS({
   ]
 });
 
-
+/*
 CLASS({
   name: 'SLOT',
   documentation: 'A Stack-Frame entry.',
@@ -521,6 +522,16 @@ CLASS({
     }
   ]
 });
+*/
+
+SLOT = function(value) {
+  return {
+    name: 'SLOT',
+    eval: function() { return value; },
+    set: function(val) { value = val; },
+    partialEval: function() { return this; }
+  };
+}
 
 
 CLASS({
@@ -552,10 +563,11 @@ CLASS({
       return Object.create(this);
     },
     function get(name) {
-      if ( ! this[name] ) {
+      var slot = this[name];
+      if ( ! slot ) {
         console.log("Unknown variable name ", name);
       } else {
-        return this[name];
+        return slot;
       }
     },
     function set(name, slot) {
@@ -735,6 +747,15 @@ test(APPLY(VAR('FIB'), 9));
 test(APPLY(VAR('FIB'), 10));
 test(APPLY(VAR('FIB'), 20));
 test(APPLY(VAR('FIB'), 30));
+
+/*
+var f = APPLY(VAR('FIB'), 25).partialEval(frame);
+console.log('__________________START');
+console.profile();
+f.eval(frame);
+console.profileEnd();
+console.log('__________________END');
+*/
 
 title('CONST');
 LET('PI', Math.PI).eval(frame);
