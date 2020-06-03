@@ -35,7 +35,7 @@ function CLASS(model) {
         var val = this[model.properties[i].name];
         if ( val === undefined ) break;
         if ( i ) s += ', ';
-        s = s + val.toString();
+        s = s + val;
       }
 
       s = s + ')';
@@ -558,6 +558,7 @@ CLASS({
       this.args = args;
     },
     function eval(x) {
+
       for ( var i = 0 ; i < this.args.length ; i += 2 ) {
         var c = this.args[i].eval(x);
         if ( c ) return this.args[i + 1].eval(x);
@@ -648,47 +649,13 @@ CLASS({
 });
 
 CLASS({
-  name: 'HEAD',
-  properties: [
-    'Expr pair',
-  ],
-  methods: [
-    function eval(x) {
-      return this.pair.eval(x)[0];
-    }
-  ]
-});
-
-CLASS({
-  name: 'TAIL',
-  properties: [
-    'Expr pair'
-  ],
-  methods: [
-    function eval(x) {
-      return this.pair.eval(x)[1];
-    }
-  ]
-});
-
-CLASS({
-  name: 'PAIR',
-  properties: [
-    'Expr head',
-    'Expr tail'
-  ],
-  methods: [
-    function eval(x) {
-      return [this.head.eval(x), this.tail.eval(x)];
-    }
-  ]
-});
-
-CLASS({
   name: 'FRAME',
   documentation: 'A Stack-Frame / Context.',
 
   methods: [
+    function eval(x) {
+      return FRAME();
+    },
     function subFrame() {
 //      return Object.create(frame); // is ~8% faster
       return Object.create(this);
@@ -706,6 +673,35 @@ CLASS({
     }
   ]
 });
+
+CLASS({
+  name: 'GET',
+  properties: [
+    'Expr frame',
+    'Expr key',
+  ],
+  methods: [
+    function eval(x) {
+      return this.frame.eval(x).get(this.key.eval(x)).eval();
+    }
+  ]
+});
+
+CLASS({
+  name: 'SET',
+  properties: [
+    'Expr frame',
+    'Expr key',
+    'Expr value'
+  ],
+  methods: [
+    function eval(x) {
+      return this.frame.eval(x).set(this.key.eval(x), SLOT(this.value.eval(x)));
+    }
+  ]
+});
+
+
 
 var frame = FRAME();
 
@@ -898,20 +894,49 @@ CONST('PI_CONST', Math.PI).eval(frame);
 test(MUL(2, VAR('PI_CONST')));
 
 
-title('StringPStream');
+title('Objects');
 
-LET('StringPStream',
+test(LET('foo', FRAME()))
+
+test(SET(VAR('foo'), 'key', 'value'));
+
+test(GET(VAR('foo'), 'key', 'value'));
+
+
+test(LET('StringPStream',
     FN('name',
        COND(
          EQ(VAR('name'), 'create'),
-         FN('string', PAIR(VAR('string'), PAIR(0, LITERAL(null)))),
+         FN('string',
+            SEQ(LET('obj', FRAME()),
+                SET(VAR('obj'), 'string', VAR('string')),
+                SET(VAR('obj'), 'position', 0),
+                SET(VAR('obj'), 'value', LITERAL(null)),
+                VAR('obj'))),
          EQ(VAR('name'), 'head'),
-         FN('ps', APPLY(function(args) { return args[0][args[1]]; }, PAIR(HEAD(VAR('ps')), HEAD(TAIL(VAR('ps')))))),
+         FN('ps', APPLY(function(ps) { return ps.string.eval()[ps.position.eval()] }, VAR('ps'))),
+         EQ(VAR('name'), 'tail'),
+         FN('ps', SEQ(LET('tail', FRAME()),
+                      SET(VAR('tail'), 'string', GET(VAR('ps'), 'string')),
+                      SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
+                      SET(VAR('tail'), 'value', LITERAL(null)),
+                      VAR('tail'))),
+         EQ(VAR('name'), 'value'), FN('ps', GET(VAR('ps'), 'value')),
          EQ(VAR('name'), 'setValue'),
-         FN('ps', FN('value', PAIR(HEAD(VAR('ps')), PAIR(HEAD(TAIL(VAR('ps'))), TAIL(TAIL(VAR('ps')))))))))
-   ).eval(frame);
+         FN('ps', FN('value', SEQ(LET('ret', FRAME()),
+                                  SET(VAR('ret'), 'string', GET(VAR('ps'), 'string')),
+                                  SET(VAR('ret'), 'position', GET(VAR('ps'), 'position')),
+                                  SET(VAR('ret'), 'value', VAR('value')),
+                                  VAR('ret'))))))));
+
+
+test(APPLY(VAR('StringPStream'), 'head'));
+
+test(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')));
+
+test(GET(VAR('ps'), 'string'));
 
 test(SEQ(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
-             PRINT(APPLY(APPLY(VAR('StringPStream'), 'head'), VAR('ps')))));
+         PRINT(APPLY(APPLY(VAR('StringPStream'), 'head'), VAR('ps')))));
 
 console.log('done');
