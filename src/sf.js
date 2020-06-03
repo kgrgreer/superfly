@@ -35,7 +35,7 @@ function CLASS(model) {
         var val = this[model.properties[i].name];
         if ( val === undefined ) break;
         if ( i ) s += ', ';
-        s = s + val.toString();
+        s = s + val;
       }
 
       s = s + ')';
@@ -526,6 +526,26 @@ CLASS({
   ]
 });
 
+CLASS({
+  name: 'COND',
+  // Lisp COND like series of conditions and bodies to execute.
+  //
+  properties: [
+    'args'
+  ],
+  methods: [
+    function initArgs(...args) {
+      this.args = args;
+    },
+    function eval(x) {
+      for ( var i = 0 ; i < this.args.length ; i += 2 ) {
+        var c = this.args[i].eval(x);
+        if ( c ) return this.args[i + 1].eval(x);
+      }
+    }
+  ]
+});
+
 
 CLASS({
   name: 'PRINT',
@@ -607,12 +627,43 @@ CLASS({
   ]
 });
 
+CLASS({
+  name: 'GET',
+  properties: [
+    'Expr frame',
+    'Expr key',
+  ],
+  methods: [
+    function eval(x) {
+      return this.frame.eval(x).get(this.key.eval(x)).eval();
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'SET',
+  properties: [
+    'Expr frame',
+    'Expr key',
+    'Expr value'
+  ],
+  methods: [
+    function eval(x) {
+      return this.frame.eval(x).set(this.key.eval(x), SLOT(this.value.eval(x)));
+    }
+  ]
+});
+
 
 CLASS({
   name: 'FRAME',
   documentation: 'A Stack-Frame / Context.',
 
   methods: [
+    function eval(x) {
+      return FRAME();
+    },
     function subFrame() {
 //      return Object.create(frame); // is ~8% faster
       return Object.create(this);
@@ -776,7 +827,7 @@ var FACT = LET('FACT', FN('I',
     1,
     MUL(
       VAR('I'),
-	    APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
+          APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
 
 test(SEQ(FACT, APPLY(VAR('FACT'), 1)));
 test(SEQ(FACT, APPLY(VAR('FACT'), 5)));
@@ -790,6 +841,7 @@ CONST('FIB', FN('I',
       APPLY(VAR('FIB'), MINUS(VAR('I'), 1)),
       APPLY(VAR('FIB'), MINUS(VAR('I'), 2)))))).eval(frame);
 
+/*/
 test(APPLY(VAR('FIB'), 1));
 test(APPLY(VAR('FIB'), 2));
 test(APPLY(VAR('FIB'), 3));
@@ -802,6 +854,7 @@ test(APPLY(VAR('FIB'), 9));
 test(APPLY(VAR('FIB'), 10));
 test(APPLY(VAR('FIB'), 20));
 test(APPLY(VAR('FIB'), 30));
+/*///*/
 
 /*
 var f = APPLY(VAR('FIB'), 25).partialEval(frame);
@@ -818,5 +871,51 @@ test(MUL(2, VAR('PI')));
 
 CONST('PI_CONST', Math.PI).eval(frame);
 test(MUL(2, VAR('PI_CONST')));
+
+
+title('Objects');
+
+test(LET('foo', FRAME()))
+
+test(SET(VAR('foo'), 'key', 'value'));
+
+test(GET(VAR('foo'), 'key', 'value'));
+
+
+test(LET('StringPStream',
+    FN('name',
+       COND(
+         EQ(VAR('name'), 'create'),
+         FN('string',
+            SEQ(LET('obj', FRAME()),
+                SET(VAR('obj'), 'string', VAR('string')),
+                SET(VAR('obj'), 'position', 0),
+                SET(VAR('obj'), 'value', LITERAL(null)),
+                VAR('obj'))),
+         EQ(VAR('name'), 'head'),
+         FN('ps', APPLY(function(ps) { return ps.string.eval()[ps.position.eval()] }, VAR('ps'))),
+         EQ(VAR('name'), 'tail'),
+         FN('ps', SEQ(LET('tail', FRAME()),
+                      SET(VAR('tail'), 'string', GET(VAR('ps'), 'string')),
+                      SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
+                      SET(VAR('tail'), 'value', LITERAL(null)),
+                      VAR('tail'))),
+         EQ(VAR('name'), 'value'), FN('ps', GET(VAR('ps'), 'value')),
+         EQ(VAR('name'), 'setValue'),
+         FN('ps', FN('value', SEQ(LET('ret', FRAME()),
+                                  SET(VAR('ret'), 'string', GET(VAR('ps'), 'string')),
+                                  SET(VAR('ret'), 'position', GET(VAR('ps'), 'position')),
+                                  SET(VAR('ret'), 'value', VAR('value')),
+                                  VAR('ret'))))))));
+
+
+test(APPLY(VAR('StringPStream'), 'head'));
+
+test(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')));
+
+test(GET(VAR('ps'), 'string'));
+
+test(SEQ(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
+         PRINT(APPLY(APPLY(VAR('StringPStream'), 'head'), VAR('ps')))));
 
 console.log('done');
