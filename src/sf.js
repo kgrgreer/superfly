@@ -558,7 +558,6 @@ CLASS({
       this.args = args;
     },
     function eval(x) {
-
       for ( var i = 0 ; i < this.args.length ; i += 2 ) {
         var c = this.args[i].eval(x);
         if ( c ) return this.args[i + 1].eval(x);
