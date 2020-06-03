@@ -546,6 +546,26 @@ CLASS({
   ]
 });
 
+CLASS({
+  name: 'COND',
+  // Lisp COND like series of conditions and bodies to execute.
+  //
+  properties: [
+    'args'
+  ],
+  methods: [
+    function initArgs(...args) {
+      this.args = args;
+    },
+    function eval(x) {
+      for ( var i = 0 ; i < this.args.length ; i += 2 ) {
+        var c = this.args[i].eval(x);
+        if ( c ) return this.args[i + 1].eval(x);
+      }
+    }
+  ]
+});
+
 
 CLASS({
   name: 'PRINT',
@@ -627,6 +647,42 @@ CLASS({
   ]
 });
 
+CLASS({
+  name: 'HEAD',
+  properties: [
+    'Expr pair',
+  ],
+  methods: [
+    function eval(x) {
+      return this.pair.eval(x)[0];
+    }
+  ]
+});
+
+CLASS({
+  name: 'TAIL',
+  properties: [
+    'Expr pair'
+  ],
+  methods: [
+    function eval(x) {
+      return this.pair.eval(x)[1];
+    }
+  ]
+});
+
+CLASS({
+  name: 'PAIR',
+  properties: [
+    'Expr head',
+    'Expr tail'
+  ],
+  methods: [
+    function eval(x) {
+      return [this.head.eval(x), this.tail.eval(x)];
+    }
+  ]
+});
 
 CLASS({
   name: 'FRAME',
@@ -796,7 +852,7 @@ var FACT = LET('FACT', FN('I',
     1,
     MUL(
       VAR('I'),
-	    APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
+          APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
 
 test(SEQ(FACT, APPLY(VAR('FACT'), 1)));
 test(SEQ(FACT, APPLY(VAR('FACT'), 5)));
@@ -810,6 +866,7 @@ CONST('FIB', FN('I',
       APPLY(LITERAL_VAR('FIB'), MINUS(LITERAL_VAR('I'), 1)),
       APPLY(LITERAL_VAR('FIB'), MINUS(LITERAL_VAR('I'), 2)))))).eval(frame);
 
+/*/
 test(APPLY(VAR('FIB'), 1));
 test(APPLY(VAR('FIB'), 2));
 test(APPLY(VAR('FIB'), 3));
@@ -822,6 +879,7 @@ test(APPLY(VAR('FIB'), 9));
 test(APPLY(VAR('FIB'), 10));
 test(APPLY(VAR('FIB'), 20));
 test(APPLY(VAR('FIB'), 30));
+/*///*/
 
 /*
 var f = APPLY(VAR('FIB'), 25).partialEval(frame);
@@ -838,5 +896,22 @@ test(MUL(2, VAR('PI')));
 
 CONST('PI_CONST', Math.PI).eval(frame);
 test(MUL(2, VAR('PI_CONST')));
+
+
+title('StringPStream');
+
+LET('StringPStream',
+    FN('name',
+       COND(
+         EQ(VAR('name'), 'create'),
+         FN('string', PAIR(VAR('string'), PAIR(0, LITERAL(null)))),
+         EQ(VAR('name'), 'head'),
+         FN('ps', APPLY(function(args) { return args[0][args[1]]; }, PAIR(HEAD(VAR('ps')), HEAD(TAIL(VAR('ps')))))),
+         EQ(VAR('name'), 'setValue'),
+         FN('ps', FN('value', PAIR(HEAD(VAR('ps')), PAIR(HEAD(TAIL(VAR('ps'))), TAIL(TAIL(VAR('ps')))))))))
+   ).eval(frame);
+
+test(SEQ(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
+             PRINT(APPLY(APPLY(VAR('StringPStream'), 'head'), VAR('ps')))));
 
 console.log('done');
