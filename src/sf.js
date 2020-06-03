@@ -417,7 +417,7 @@ CLASS({
       var key = this.key.partialEval(x);
       var slot = x.get(key.eval(x));
       if ( slot && CONSTANT_SLOT.isInstance(slot) ) return slot.eval(x);
-     // if ( LITERAL.isInstance(this.key) ) return LITERAL_VAR(this.key.eval(x));
+     // if ( LITERAL.isInstance(this.key) ) return VAR(this.key.eval(x));
       return this;
       /*
       if ( ! this.slot ) this.slot = x.get(this.key.eval(x));
@@ -430,26 +430,6 @@ CLASS({
   ]
 });
 
-
-/*
-CLASS({
-  name: 'LITERAL_VAR',
-  properties: [ 'key' ],
-  methods: [
-    function eval(x) {
-      return x.get(this.key).eval(x);
-    },
-    function partialEval(x) {
-      return this;
-    },
-    function toJS(x) {
-      return this.key;
-    }
-  ]
-});
-*/
-
-var LITERAL_VAR = VAR;
 
 CLASS({
   name: 'APPLY',
@@ -804,11 +784,11 @@ test(SEQ(FACT, APPLY(VAR('FACT'), 50)));
 
 title('Fibonacci');
 CONST('FIB', FN('I',
-  IF(LT(LITERAL_VAR('I'), 2),
+  IF(LT(VAR('I'), 2),
     1,
     PLUS(
-      APPLY(LITERAL_VAR('FIB'), MINUS(LITERAL_VAR('I'), 1)),
-      APPLY(LITERAL_VAR('FIB'), MINUS(LITERAL_VAR('I'), 2)))))).eval(frame);
+      APPLY(VAR('FIB'), MINUS(VAR('I'), 1)),
+      APPLY(VAR('FIB'), MINUS(VAR('I'), 2)))))).eval(frame);
 
 test(APPLY(VAR('FIB'), 1));
 test(APPLY(VAR('FIB'), 2));
