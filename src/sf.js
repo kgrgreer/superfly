@@ -648,6 +648,35 @@ CLASS({
 });
 
 CLASS({
+  name: 'GET',
+  properties: [
+    'Expr frame',
+    'Expr key',
+  ],
+  methods: [
+    function eval(x) {
+      return this.frame.eval(x).get(this.key.eval(x)).eval();
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'SET',
+  properties: [
+    'Expr frame',
+    'Expr key',
+    'Expr value'
+  ],
+  methods: [
+    function eval(x) {
+      return this.frame.eval(x).set(this.key.eval(x), SLOT(this.value.eval(x)));
+    }
+  ]
+});
+
+
+CLASS({
   name: 'FRAME',
   documentation: 'A Stack-Frame / Context.',
 
@@ -672,35 +701,6 @@ CLASS({
     }
   ]
 });
-
-CLASS({
-  name: 'GET',
-  properties: [
-    'Expr frame',
-    'Expr key',
-  ],
-  methods: [
-    function eval(x) {
-      return this.frame.eval(x).get(this.key.eval(x)).eval();
-    }
-  ]
-});
-
-CLASS({
-  name: 'SET',
-  properties: [
-    'Expr frame',
-    'Expr key',
-    'Expr value'
-  ],
-  methods: [
-    function eval(x) {
-      return this.frame.eval(x).set(this.key.eval(x), SLOT(this.value.eval(x)));
-    }
-  ]
-});
-
-
 
 var frame = FRAME();
 
