@@ -1,5 +1,13 @@
 const TEST_JS = false;
 
+if ( typeof performance == 'undefined' ) {
+  var start = Date.now();
+  performance = {
+    now: function() {
+      return Date.now() - start;
+    }
+  };
+}
 
 function CLASS(model) {
   if ( ! model.properties ) {
@@ -7,7 +15,8 @@ function CLASS(model) {
   } else {
     model.properties = model.properties.map((p) => {
       var a = p.split(' ');
-      if ( a.length == 1 ) { return { name: a[0], adapt: v => v } };
+      if ( a.length == 1 ) { return { name: a[0], adapt: v => v }; }
+
       return {
         name: a[1],
         adapt: {
@@ -15,11 +24,17 @@ function CLASS(model) {
             if ( typeof v == 'string' ) return [ v ];
             return v;
           },
+          BigInt: BigInt,
+          IMM8: v => typeof v === 'number' ? IMM8(v) : v,
+          IMM16: v => typeof v === 'number' ? IMM16(v) : v,
+          IMM32: v => typeof v === 'number' ? IMM32(v) : v,
+          IMM64: v => typeof v === 'bigint' || typeof v == 'number' ? IMM64(v) : v,
           Expr: v => {
             if ( typeof v === 'number'   ) return LITERAL(v);
             if ( typeof v === 'string'   ) return LITERAL(v);
             if ( typeof v === 'function' ) return LITERAL(v);
             if ( typeof v === 'boolean'  ) return LITERAL(v);
+            if ( v === null              ) return LITERAL(v);
             return v;
           },
         }[a[0]]
@@ -48,6 +63,9 @@ function CLASS(model) {
       for ( var i = 0 ; i < model.properties.length && i < args.length ; i++ ) {
         this[model.properties[i].name] = model.properties[i].adapt(args[i]);
       }
+    },
+    toBinary(x) {
+      return model.properties.map(p => this[p.name].toBinary(x));
     }
   };
 
@@ -576,6 +594,9 @@ CLASS({
     function toJS(x) {
       // TODO: Whats the right way to return the final value?
       return this.args.map(a => a.toJS(x)).join(';\n');
+    },
+    function toBinary(x) {
+      return this.args.map(a => a.toBinary(x)).flat();
     }
   ]
 });
@@ -892,7 +913,7 @@ test(LET('StringPStream',
             SEQ(LET('obj', FRAME()),
                 SET(VAR('obj'), 'string', VAR('string')),
                 SET(VAR('obj'), 'position', 0),
-                SET(VAR('obj'), 'value', LITERAL(null)),
+                SET(VAR('obj'), 'value', null),
                 VAR('obj'))),
          EQ(VAR('name'), 'head'),
          FN('ps', APPLY(function(ps) { return ps.string.eval()[ps.position.eval()] }, VAR('ps'))),
@@ -900,7 +921,7 @@ test(LET('StringPStream',
          FN('ps', SEQ(LET('tail', FRAME()),
                       SET(VAR('tail'), 'string', GET(VAR('ps'), 'string')),
                       SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
-                      SET(VAR('tail'), 'value', LITERAL(null)),
+                      SET(VAR('tail'), 'value', null),
                       VAR('tail'))),
          EQ(VAR('name'), 'value'), FN('ps', GET(VAR('ps'), 'value')),
          EQ(VAR('name'), 'setValue'),
