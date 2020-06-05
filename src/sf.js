@@ -1,5 +1,13 @@
 const TEST_JS = false;
 
+if ( typeof performance == 'undefined' ) {
+  var start = Date.now();
+  performance = {
+    now: function() {
+      return Date.now() - start;
+    }
+  };
+}
 
 function CLASS(model) {
   if ( ! model.properties ) {
@@ -577,6 +585,9 @@ CLASS({
     function toJS(x) {
       // TODO: Whats the right way to return the final value?
       return this.args.map(a => a.toJS(x)).join(';\n');
+    },
+    function toBinary(x) {
+      return this.args.map(a => a.toBinary(x)).flat();
     }
   ]
 });
