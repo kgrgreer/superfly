@@ -968,7 +968,7 @@ test(SET(VAR('foo'), 'key', 'value'));
 
 test(GET(VAR('foo'), 'key', 'value'));
 
-
+/*
 test(LET('StringPStream',
     FN('name',
        COND(
@@ -1004,5 +1004,54 @@ test(GET(VAR('ps'), 'string'));
 
 test(SEQ(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
          PRINT(APPLY(APPLY(VAR('StringPStream'), 'head'), VAR('ps')))));
+
+*/
+
+test(LET('StringPStream',
+  SWITCH([
+    'create', FN('string', SEQ(
+      LET('obj', FRAME()),
+      SET(VAR('obj'), 'string',   VAR('string')),
+      SET(VAR('obj'), 'position', 0),
+      SET(VAR('obj'), 'value',    null),
+      VAR('obj')
+    )),
+
+    'head', FN('ps',
+      function(ps) { return ps.string.eval()[ps.position.eval()] },
+      VAR('ps')
+    ),
+
+    'tail', FN('ps', SEQ(
+      LET('tail', FRAME()),
+      SET(VAR('tail'), 'string', GET(VAR('ps'), 'string')),
+      SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
+      SET(VAR('tail'), 'value', null),
+      VAR('tail')
+    )),
+
+    'value', FN('ps', GET(VAR('ps'), 'value')),
+
+    'setValue', FN('ps', FN('value', SEQ(
+      LET('ret', FRAME()),
+      SET(VAR('ret'), 'string', GET(VAR('ps'), 'string')),
+      SET(VAR('ret'), 'position', GET(VAR('ps'), 'position')),
+      SET(VAR('ret'), 'value', VAR('value')),
+      VAR('ret')
+    )))
+  ])
+));
+
+test(APPLY(VAR('StringPStream'), 'head'));
+
+test(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')));
+
+test(GET(VAR('ps'), 'string'));
+
+test(SEQ(
+  LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
+  PRINT(APPLY(APPLY(VAR('StringPStream'), 'head'), VAR('ps')))
+));
+
 
 console.log('done');
