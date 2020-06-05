@@ -9,6 +9,28 @@ if ( typeof performance == 'undefined' ) {
   };
 }
 
+const TYPES = {
+  'String[]': v => {
+    if ( typeof v == 'string' ) return [ v ];
+    return v;
+  },
+  'Map': v => v ? v.map(TYPES.Expr) : [],
+  BigInt: BigInt,
+  IMM8:  v => typeof v === 'number' ? IMM8(v) : v,
+  IMM16: v => typeof v === 'number' ? IMM16(v) : v,
+  IMM32: v => typeof v === 'number' ? IMM32(v) : v,
+  IMM64: v => typeof v === 'bigint' || typeof v == 'number' ? IMM64(v) : v,
+  Expr:  v => {
+    if ( typeof v === 'number'   ) return LITERAL(v);
+    if ( typeof v === 'string'   ) return LITERAL(v);
+    if ( typeof v === 'function' ) return LITERAL(v);
+    if ( typeof v === 'boolean'  ) return LITERAL(v);
+    if ( v === null              ) return LITERAL(v);
+    return v;
+  },
+};
+
+
 function CLASS(model) {
   if ( ! model.properties ) {
     model.properties = [];
@@ -19,25 +41,7 @@ function CLASS(model) {
 
       return {
         name: a[1],
-        adapt: {
-          'String[]': v => {
-            if ( typeof v == 'string' ) return [ v ];
-            return v;
-          },
-          BigInt: BigInt,
-          IMM8: v => typeof v === 'number' ? IMM8(v) : v,
-          IMM16: v => typeof v === 'number' ? IMM16(v) : v,
-          IMM32: v => typeof v === 'number' ? IMM32(v) : v,
-          IMM64: v => typeof v === 'bigint' || typeof v == 'number' ? IMM64(v) : v,
-          Expr: v => {
-            if ( typeof v === 'number'   ) return LITERAL(v);
-            if ( typeof v === 'string'   ) return LITERAL(v);
-            if ( typeof v === 'function' ) return LITERAL(v);
-            if ( typeof v === 'boolean'  ) return LITERAL(v);
-            if ( v === null              ) return LITERAL(v);
-            return v;
-          },
-        }[a[0]]
+        adapt: TYPES[a[0]]
       };
     });
   }
@@ -468,6 +472,7 @@ CLASS({
   ]
 });
 
+
 CLASS({
   name: 'LITERAL_APPLY',
   properties: [ 'fn', 'Expr args' ],
@@ -544,10 +549,11 @@ CLASS({
   ]
 });
 
+
 CLASS({
   name: 'COND',
   // Lisp COND like series of conditions and bodies to execute.
-  //
+
   properties: [
     'args'
   ],
@@ -560,6 +566,38 @@ CLASS({
         var c = this.args[i].eval(x);
         if ( c ) return this.args[i + 1].eval(x);
       }
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'SWITCH',
+  // Chainable switch statement
+
+  properties: [
+    'Map choices',
+    'Expr defaultExpr'
+  ],
+  methods: [
+    /*
+    function initArgs(expr, choices, defaultExpr) {
+      this.expr = TYPES.Expr(expr);
+      this.choices = choices.map(c =>
+      if ( defaultExpr != undefined ) this.defaultExpr = TYPES.Expr(defaultExpr);
+    },*/
+    function eval(x) {
+      return expr => {
+        for ( var i = 0 ; i < this.choices.length ; i += 2 ) {
+          var val = this.choices[i].eval(x);
+          if ( val == expr ) return this.choices[i + 1].eval(x);
+        }
+
+        if ( this.defaultExpr != undefined ) {
+          var dExpr = this.defaultExpr.eval(x);
+          return typeof dExpr == 'function' ? dExpr(expr) : dExpr;
+        }
+      };
     }
   ]
 });
@@ -887,6 +925,38 @@ for ( var i = 0 ; i < 100 ; i++ ) f.eval(frame);
 console.profileEnd();
 console.log('__________________END');
 */
+
+title('SWITCH');
+test(PRINT(APPLY(SWITCH([],'default'), 1)));
+test(PRINT(APPLY(SWITCH(undefined,'default'), 1)));
+test(PRINT(APPLY(SWITCH(
+  [
+    1, 'Monday',
+    2, 'Tuesday',
+    3, 'Wednesday',
+    4, 'Thursday',
+    5, 'Friday'
+  ], 'Weekend'
+), 3)));
+test(PRINT(APPLY(SWITCH(
+  [
+    1, 'Monday',
+    2, 'Tuesday',
+    3, 'Wednesday',
+    4, 'Thursday',
+    5, 'Friday'
+  ], 'Weekend'
+), 0)));
+test(PRINT(APPLY(SWITCH(
+  [
+    1, 'Monday',
+    2, 'Tuesday',
+    3, 'Wednesday',
+    4, 'Thursday',
+    5, 'Friday'
+  ], SWITCH([ 0, 'Sunday', 6, 'Saturday' ])
+), 0)));
+
 
 title('CONST');
 LET('PI', Math.PI).eval(frame);
