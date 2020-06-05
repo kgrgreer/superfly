@@ -20,6 +20,7 @@ function CLASS(model) {
             if ( typeof v === 'string'   ) return LITERAL(v);
             if ( typeof v === 'function' ) return LITERAL(v);
             if ( typeof v === 'boolean'  ) return LITERAL(v);
+            if ( v === null              ) return LITERAL(v);
             return v;
           },
         }[a[0]]
@@ -890,7 +891,7 @@ test(LET('StringPStream',
             SEQ(LET('obj', FRAME()),
                 SET(VAR('obj'), 'string', VAR('string')),
                 SET(VAR('obj'), 'position', 0),
-                SET(VAR('obj'), 'value', LITERAL(null)),
+                SET(VAR('obj'), 'value', null),
                 VAR('obj'))),
          EQ(VAR('name'), 'head'),
          FN('ps', APPLY(function(ps) { return ps.string.eval()[ps.position.eval()] }, VAR('ps'))),
@@ -898,7 +899,7 @@ test(LET('StringPStream',
          FN('ps', SEQ(LET('tail', FRAME()),
                       SET(VAR('tail'), 'string', GET(VAR('ps'), 'string')),
                       SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
-                      SET(VAR('tail'), 'value', LITERAL(null)),
+                      SET(VAR('tail'), 'value', null),
                       VAR('tail'))),
          EQ(VAR('name'), 'value'), FN('ps', GET(VAR('ps'), 'value')),
          EQ(VAR('name'), 'setValue'),
