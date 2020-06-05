@@ -112,6 +112,20 @@ CLASS({
 
 
 CLASS({
+  name: 'CHAR_AT',
+  properties: [ 'Expr str', 'Expr pos' ],
+  methods: [
+    function eval(x) {
+      return this.str.eval(x).charAt(this.pos.eval(x));
+    },
+    function toJS(x) {
+      return `(${this.str.toJS(x)}.charAt(${this.pos.toJS(x)}))`;
+    }
+  ]
+});
+
+
+CLASS({
   name: 'EQ',
   properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
@@ -959,6 +973,10 @@ test(MUL(2, VAR('PI')));
 CONST('PI_CONST', Math.PI).eval(frame);
 test(MUL(2, VAR('PI_CONST')));
 
+title('CHAR_AT');
+test(CHAR_AT('abcdef', 0));
+test(CHAR_AT('abcdef', 1));
+test(CHAR_AT('abcdef', 2));
 
 title('Objects');
 
@@ -1007,6 +1025,29 @@ test(SEQ(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
 
 */
 
+/*
+CLASS({
+  name: 'StringPStream',
+  properties: [ 'String str', 'Int pos', 'Expr value' ],
+  methods: {
+    head: FN(this, CHAR_AT(GET('this', 'string'), GET('this', 'position'))),
+    tail: FN('ps', SEQ(
+      LET('tail', FRAME()),
+      SET(VAR('tail'), 'string',   GET(VAR('ps'), 'string')),
+      SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
+      SET(VAR('tail'), 'value',    null),
+      VAR('tail')
+    )),
+    setValue: FN('ps', FN('value', SEQ(
+      LET('ret', FRAME()),
+      SET(VAR('ret'), 'string',   GET(VAR('ps'), 'string')),
+      SET(VAR('ret'), 'position', GET(VAR('ps'), 'position')),
+      SET(VAR('ret'), 'value',    VAR('value')),
+      VAR('ret')
+    )))
+  ]
+});
+*/
 
 test(LET('StringPStream',
   SWITCH([
@@ -1018,26 +1059,23 @@ test(LET('StringPStream',
       VAR('obj')
     )),
 
-    'head', FN('ps',
-      function(ps) { return ps.string.eval()[ps.position.eval()] },
-      VAR('ps')
-    ),
+    'head', FN('this', CHAR_AT(GET(VAR('this'), 'string'), GET(VAR('this'), 'position'))),
 
-    'tail', FN('ps', SEQ(
+    'tail', FN('this', SEQ(
       LET('tail', FRAME()),
-      SET(VAR('tail'), 'string',   GET(VAR('ps'), 'string')),
-      SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
+      SET(VAR('tail'), 'string',   GET(VAR('this'), 'string')),
+      SET(VAR('tail'), 'position', GET(VAR('this'), 'position')),
       SET(VAR('tail'), 'value',    null),
       VAR('tail')
     )),
 
-    'value', FN('ps', GET(VAR('ps'), 'value')),
+    'value', FN('this', GET(VAR('this'), 'value')),
 
-    'setValue', FN('ps', FN('value', SEQ(
+    'setValue', FN('this', FN('value', SEQ(
       LET('ret', FRAME()),
-      SET(VAR('ret'), 'string', GET(VAR('ps'), 'string')),
-      SET(VAR('ret'), 'position', GET(VAR('ps'), 'position')),
-      SET(VAR('ret'), 'value', VAR('value')),
+      SET(VAR('ret'), 'string',   GET(VAR('this'), 'string')),
+      SET(VAR('ret'), 'position', GET(VAR('this'), 'position')),
+      SET(VAR('ret'), 'value',    VAR('value')),
       VAR('ret')
     )))
   ])
