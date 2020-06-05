@@ -265,5 +265,5 @@ var prog = SEQ(
   MOV64(IMM64(0), RDI()), // exit value of 0
   SYSCALL());
 
-var fd = require('fs').openSync('test.linux', 'w', 0o755);
-require('fs').writeSync(fd, link(prog));
+var fd = require('fs').openSync('test.x86', 'w');
+require('fs').writeSync(fd, Buffer.from(flatten(prog.toBinary())));
