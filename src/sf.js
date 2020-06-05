@@ -25,9 +25,9 @@ const TYPES = {
     if ( typeof v === 'string'   ) return LITERAL(v);
     if ( typeof v === 'function' ) return LITERAL(v);
     if ( typeof v === 'boolean'  ) return LITERAL(v);
-    if ( v === null              ) return LITERAL(v);
+    if (        v === null       ) return LITERAL(v);
     return v;
-  },
+  }
 };
 
 
@@ -1007,6 +1007,7 @@ test(SEQ(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
 
 */
 
+
 test(LET('StringPStream',
   SWITCH([
     'create', FN('string', SEQ(
@@ -1024,9 +1025,9 @@ test(LET('StringPStream',
 
     'tail', FN('ps', SEQ(
       LET('tail', FRAME()),
-      SET(VAR('tail'), 'string', GET(VAR('ps'), 'string')),
+      SET(VAR('tail'), 'string',   GET(VAR('ps'), 'string')),
       SET(VAR('tail'), 'position', GET(VAR('ps'), 'position')),
-      SET(VAR('tail'), 'value', null),
+      SET(VAR('tail'), 'value',    null),
       VAR('tail')
     )),
 
