@@ -573,19 +573,13 @@ CLASS({
 
 CLASS({
   name: 'SWITCH',
-  // Chainable switch statement
+  // Chainable switch function
 
   properties: [
     'Map choices',
     'Expr defaultExpr'
   ],
   methods: [
-    /*
-    function initArgs(expr, choices, defaultExpr) {
-      this.expr = TYPES.Expr(expr);
-      this.choices = choices.map(c =>
-      if ( defaultExpr != undefined ) this.defaultExpr = TYPES.Expr(defaultExpr);
-    },*/
     function eval(x) {
       return expr => {
         for ( var i = 0 ; i < this.choices.length ; i += 2 ) {
