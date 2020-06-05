@@ -682,13 +682,14 @@ CLASS({
   ]
 });
 
+
 var frame = FRAME();
 
 function test(expr) {
   var partial = expr.partialEval(frame);
-  var start = performance.now();
-  var result = partial.eval(frame);
-  var end   = performance.now();
+  var start   = performance.now();
+  var result  = partial.eval(frame);
+  var end     = performance.now();
   console.log('SF', expr.toString(), '->', partial.toString(), '->', result, ' Time: ' + (end-start).toFixed(3) + " ms");
 
   if ( ! TEST_JS ) return;
@@ -827,7 +828,7 @@ var FACT = LET('FACT', FN('I',
     1,
     MUL(
       VAR('I'),
-          APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
+      APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
 
 test(SEQ(FACT, APPLY(VAR('FACT'), 1)));
 test(SEQ(FACT, APPLY(VAR('FACT'), 5)));
@@ -841,11 +842,12 @@ CONST('FIB', FN('I',
       APPLY(VAR('FIB'), MINUS(VAR('I'), 1)),
       APPLY(VAR('FIB'), MINUS(VAR('I'), 2)))))).eval(frame);
 
-/*/
+
 test(APPLY(VAR('FIB'), 1));
 test(APPLY(VAR('FIB'), 2));
 test(APPLY(VAR('FIB'), 3));
 test(APPLY(VAR('FIB'), 4));
+/*
 test(APPLY(VAR('FIB'), 5));
 test(APPLY(VAR('FIB'), 6));
 test(APPLY(VAR('FIB'), 7));
@@ -854,7 +856,7 @@ test(APPLY(VAR('FIB'), 9));
 test(APPLY(VAR('FIB'), 10));
 test(APPLY(VAR('FIB'), 20));
 test(APPLY(VAR('FIB'), 30));
-/*///*/
+*/
 
 /*
 var f = APPLY(VAR('FIB'), 25).partialEval(frame);
