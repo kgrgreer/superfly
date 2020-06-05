@@ -259,7 +259,7 @@ CLASS({
 
 
 CLASS({
-  name: 'PLUS',
+  name: 'ADD',
   properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
@@ -274,7 +274,7 @@ CLASS({
         return LITERAL(arg1.eval(x) + arg2.eval(x));
       }
 
-      return PLUS(arg1, arg2);
+      return ADD(arg1, arg2);
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} + ${this.arg2.toJS(x)})`;
@@ -352,7 +352,7 @@ CLASS({
 
 
 CLASS({
-  name: 'MINUS',
+  name: 'SUB',
   properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
     function eval(x) {
@@ -367,7 +367,7 @@ CLASS({
         return LITERAL(arg1.eval(x) - arg2.eval(x));
       }
 
-      return MINUS(arg1, arg2);
+      return SUB(arg1, arg2);
     },
 
     function toJS(x) {
@@ -741,25 +741,25 @@ test(EQ(5, 4));
 
 test(NOT(EQ(5, 4)));
 
-test(PLUS(5, 4));
+test(ADD(5, 4));
 
-PRINT(PLUS(5, 4)).eval();
+PRINT(ADD(5, 4)).eval();
 
-test(PRINT(PLUS(5, 4)));
+test(PRINT(ADD(5, 4)));
 
 test(PRINT(EQ(
-  PLUS(5, 4),
-  MINUS(10, 1)
+  ADD(5, 4),
+  SUB(10, 1)
 )));
 
 console.log(EQ(
-  PLUS(5, 4),
-  MINUS(10, 1)
+  ADD(5, 4),
+  SUB(10, 1)
 ).toString());
 
 console.log(EQ(
-  PLUS(5, 4),
-  MINUS(10, 1)
+  ADD(5, 4),
+  SUB(10, 1)
 ).toJS());
 
 title('LT');
@@ -780,19 +780,19 @@ test(SEQ(
 ));
 
 title('Partial-Eval');
-console.log('eval: ', PLUS(5, 4).eval());
-console.log('partialEval: ', PLUS(5, 4).partialEval().toString());
-console.log('partialEval + eval: ', PLUS(5, 4).partialEval().eval());
+console.log('eval: ', ADD(5, 4).eval());
+console.log('partialEval: ', ADD(5, 4).partialEval().toString());
+console.log('partialEval + eval: ', ADD(5, 4).partialEval().eval());
 
 title('Apply');
 test(APPLY(function(n) { return n*2; }, 2));
 
-title('Minus');
-test(MINUS(10, 1));
+title('SUB');
+test(SUB(10, 1));
 
 title('If');
-test(IF(EQ(1, 1), 42, PLUS(2, 4)));
-test(IF(EQ(1, 2), 42, PLUS(2, 4)));
+test(IF(EQ(1, 1), 42, ADD(2, 4)));
+test(IF(EQ(1, 2), 42, ADD(2, 4)));
 
 title('And');
 test(AND(false, false));
@@ -849,7 +849,7 @@ var FACT = LET('FACT', FN('I',
     1,
     MUL(
       VAR('I'),
-      APPLY(VAR('FACT'), MINUS(VAR('I'), 1))))));
+      APPLY(VAR('FACT'), SUB(VAR('I'), 1))))));
 
 test(SEQ(FACT, APPLY(VAR('FACT'), 1)));
 test(SEQ(FACT, APPLY(VAR('FACT'), 5)));
@@ -859,9 +859,9 @@ title('Fibonacci');
 CONST('FIB', FN('I',
   IF(LT(VAR('I'), 2),
     1,
-    PLUS(
-      APPLY(VAR('FIB'), MINUS(VAR('I'), 1)),
-      APPLY(VAR('FIB'), MINUS(VAR('I'), 2)))))).eval(frame);
+    ADD(
+      APPLY(VAR('FIB'), SUB(VAR('I'), 1)),
+      APPLY(VAR('FIB'), SUB(VAR('I'), 2)))))).eval(frame);
 
 
 test(APPLY(VAR('FIB'), 1));
