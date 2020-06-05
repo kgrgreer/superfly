@@ -176,7 +176,7 @@ var programheader = Buffer.from([
   0,
   0,
   0,
-  1 + 4, // flags: bitmask of 1 - execute, 2 - write, 4 - read, most programs to 5, but we'll have some self modifying code for funsies.  might cause problems on some systems
+  1 + 2 + 4, // flags: bitmask of 1 - execute, 2 - write, 4 - read, most programs to 5, but we'll have some self modifying code for funsies.  might cause problems on some systems
   0,
   0,
   0,
@@ -283,7 +283,7 @@ var elfheader = Buffer.from([
   0
 ]);
 
-var fd = require('fs').openSync('test', 'w', 0o755);
+var fd = require('fs').openSync('test.linux', 'w', 0o755);
 
 require('fs').writeSync(fd, elfheader);
 require('fs').writeSync(fd, programheader);
