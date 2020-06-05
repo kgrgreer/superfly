@@ -15,7 +15,8 @@ function CLASS(model) {
   } else {
     model.properties = model.properties.map((p) => {
       var a = p.split(' ');
-      if ( a.length == 1 ) { return { name: a[0], adapt: v => v } };
+      if ( a.length == 1 ) { return { name: a[0], adapt: v => v }; }
+
       return {
         name: a[1],
         adapt: {
@@ -23,6 +24,11 @@ function CLASS(model) {
             if ( typeof v == 'string' ) return [ v ];
             return v;
           },
+          BigInt: BigInt,
+          IMM8: v => typeof v === 'number' ? IMM8(v) : v,
+          IMM16: v => typeof v === 'number' ? IMM16(v) : v,
+          IMM32: v => typeof v === 'number' ? IMM32(v) : v,
+          IMM64: v => typeof v === 'bigint' || typeof v == 'number' ? IMM64(v) : v,
           Expr: v => {
             if ( typeof v === 'number'   ) return LITERAL(v);
             if ( typeof v === 'string'   ) return LITERAL(v);
@@ -57,6 +63,9 @@ function CLASS(model) {
       for ( var i = 0 ; i < model.properties.length && i < args.length ; i++ ) {
         this[model.properties[i].name] = model.properties[i].adapt(args[i]);
       }
+    },
+    toBinary(x) {
+      return model.properties.map(p => this[p.name].toBinary(x));
     }
   };
 

@@ -1,4 +1,6 @@
-eval(require('fs').readFileSync(__dirname + '/sf.js', { encoding: 'utf8' }));
+if ( typeof process !== 'undefined' ) {
+  eval(require('fs').readFileSync(__dirname + '/sf.js', { encoding: 'utf8' }));
+}
 
 CLASS({
   name: 'RAX',
@@ -75,18 +77,20 @@ CLASS({
 CLASS({
   name: 'IMM64',
   properties: [
-    'value'
+    'BigInt value'
   ],
   methods: [
     function toBinary(x) {
-      // TODO: JS only support 32-bit integers with bitwise operations.
       var v = this.value;
       return [
-        v & 0x000000ff,
-        v & 0x0000ff00,
-        v & 0x00ff0000,
-        v & 0xff000000,
-        0, 0, 0, 0,
+        Number(v & 0xffn),
+        Number(( v >> 8n ) & 0xffn),
+        Number(( v >> 16n ) & 0xffn),
+        Number(( v >> 24n ) & 0xffn),
+        Number(( v >> 32n ) & 0xffn),
+        Number(( v >> 40n ) & 0xffn),
+        Number(( v >> 48n ) & 0xffn),
+        Number(( v >> 56n ) & 0xffn)
       ];
     }
   ]
@@ -95,17 +99,16 @@ CLASS({
 CLASS({
   name: 'IMM32',
   properties: [
-    'value'
+    'value',
   ],
   methods: [
     function toBinary(x) {
-      // TODO: JS only support 32-bit integers with bitwise operations.
       var v = this.value;
       return [
-        v & 0x000000ff,
-        v & 0x0000ff00,
-        v & 0x00ff0000,
-        v & 0xff000000,
+        v & 0xff,
+        ( v >> 8 ) & 0xff,
+        ( v >> 16 ) & 0xff,
+        ( v >> 24 ) & 0xff
       ];
     }
   ]
@@ -120,8 +123,8 @@ CLASS({
     function toBinary(x) {
       var v = this.value;
       return [
-        v & 0x00ff,
-        v & 0xff00,
+        v & 0xff,
+        ( v >> 8 ) & 0xff
       ];
     }
   ]
@@ -163,128 +166,104 @@ CLASS({
   ]
 });
 
+CLASS({
+  name: 'ElfHeader',
+  properties: [
+    'IMM32 magic',
+    'IMM8 cpu',
+    'IMM8 endianness',
+    'IMM8 version1',
+    'IMM8 osAbi',
+    'IMM64 abiVersion', // technically just 1 byte with 7 bytes of padding, but what do we care
+    'IMM16 type',
+    'IMM16 isa',
+    'IMM32 version2',
+    'IMM64 entryPoint',
+    'IMM64 programHeaderOffset',
+    'IMM64 sectionHeaderOffset',
+    'IMM32 flags',
+    'IMM16 mySize',
+    'IMM16 programHeaderSize',
+    'IMM16 programHeaderCount',
+    'IMM16 sectonHeaderSize',
+    'IMM16 sectionHeaderCount',
+    'IMM16 sectionNamesHeaderIndex'
+  ]
+});
+
+CLASS({
+  name: 'ElfProgramHeader',
+  properties: [
+    'IMM32 type',
+    'IMM32 flags',
+    'IMM64 offset',
+    'IMM64 virtualAddress',
+    'IMM64 physicalAddress',
+    'IMM64 segmentFileSize',
+    'IMM64 segmentMemorySize',
+    'IMM64 alignment'
+  ]
+});
+
+const ELF_MAGIC = IMM32(0x464c457f);
+const ELF_LOADABLE_SEGMENT = IMM32(1);
+const ELF_EXECUTABLE = IMM16(2);
+const ELF_ISA_AMD64 = IMM16(0x3e);
+const ELF_ISA_X86 = IMM16(3);
+
+function flatten(array) {
+  return array.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatten(val) : val), []);
+}
+
+function link(prog) {
+  var code = prog.toBinary().flat();
+
+  var header =  ElfProgramHeader(
+    ELF_LOADABLE_SEGMENT,
+    1 + 2 + 4, // flags X + W + R
+    0,
+    0x400000n,
+    0x400000n,
+    code.length + 0x38 + 0x40, // code size + ELF Header + Program Header
+    code.length + 0x38 + 0x40, // code size + ELF Header + Program Header
+    0x200000n, // alignment
+  );
+  var elf = ElfHeader(
+    ELF_MAGIC,
+    2, // 64-bit
+    1, // little-endian
+    1, // version
+    0, // OS ABI - System V
+    0, // ABI Version
+    ELF_EXECUTABLE,
+    ELF_ISA_AMD64,
+    1, // version
+    0x400078n,
+    0x40,
+    0,
+    0,
+    0x40,
+    0x38,
+    1, // 1 program header
+    0x40, // size of section headedrs
+    0, // # of section headers
+    0 // no section header names section either
+  );
+
+  console.log(elf.toBinary());
+
+  return Buffer.from(flatten([
+    elf.toBinary(),
+    header.toBinary(),
+    code
+  ]));
+}
+
+
 var prog = SEQ(
   MOV64(IMM64(0x3c), RAX()),  // 0x3c - exit()
   MOV64(IMM64(0), RDI()), // exit value of 0
   SYSCALL());
 
-
-var textsection = Buffer.from(prog.toBinary());
-
-var programheader = Buffer.from([
-  1, // type: 1 - loadable segment
-  0,
-  0,
-  0,
-  1 + 2 + 4, // flags: bitmask of 1 - execute, 2 - write, 4 - read, most programs to 5, but we'll have some self modifying code for funsies.  might cause problems on some systems
-  0,
-  0,
-  0,
-  0, // offset into image to load from, left at 0 to load ELF header and code all at once. I tried ot just load the code section but it no work
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0, // virtual address of segment : 0x00000000 00400000
-  0,
-  0x40,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0, // physical address, not relevant on most systems, set same as physical address
-  0,
-  0x40,
-  0,
-  0,
-  0,
-  0,
-  0,
-  IMM64(textsection.length).toBinary(), // size of segment on image
-  IMM64(textsection.length).toBinary(), // size of segment in memory
-  0,
-  0,
-  0x20,
-  0,
-  0,
-  0,
-  0,
-  0
-].flat());
-
-var elfheader = Buffer.from([
-  0x7f, // MAGIC 7f 'ELF'
-  0x45,
-  0x4c,
-  0x46,
-  0x02, // 1 - 32-bit, 2 - 64-bit
-  0x01, // 1 - little-endian, 2 - big-endain
-  0x01, // Version 1
-  0, // OS ABI - 0 - System V
-  0, // ABI Version
-  0, // padding 7 bytes
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  2, // type - 0002 executable
-  0,
-  0x3e, // ISA: 003e - AMD64
-  0,
-  1, // ELF Version 1
-  0,
-  0,
-  0,
-  0x78, // 0x00000000 00400078 - Entry point ( 8 bytes for 64-bit )
-  0,
-  0x40,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0x40, // 0x0000000 00000040 - Program header offest 0x40 is immediate after 64-bit header
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0, // Section header offset
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0,
-  0, // flags
-  0,
-  0,
-  0,
-  0x40, // size of this header
-  0,
-  0x38, // size of a program header
-  0,
-  1, // number of program headers
-  0,
-  0x40, // size of section headers
-  0,
-  0, // number of section headers
-  0,
-  0, // index of section header that contains section names
-  0
-]);
-
 var fd = require('fs').openSync('test.linux', 'w', 0o755);
-
-require('fs').writeSync(fd, elfheader);
-require('fs').writeSync(fd, programheader);
-require('fs').writeSync(fd, textsection);
+require('fs').writeSync(fd, link(prog));
