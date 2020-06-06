@@ -100,6 +100,72 @@ function CLASS(model) {
   globalThis[model.name] = cls;
 }
 
+CLASS({
+  name: 'SuperflyParser',
+  properties: [ 'str' ],
+  methods: [
+    function head(s, opt_i) { opt_i = opt_i || 0; return this.str.charAt(s[0] + opt_i); },
+
+    function prep(args) {
+      return args;
+    },
+
+    function literal(str, opt_value) {
+      return (s) => {
+        for ( var i = 0 ; i < str.length ; i++ ) {
+          console.log('*****',str.charAt(i), this.head(s, i));
+          if ( str.charAt(i) != this.head(s, i) ) return;
+        }
+        return [s[0]+str.length, opt_value || str];
+      }
+    },
+
+    function seq(...ps) {
+      ps = this.prep(ps);
+
+      var f = function(s) {
+        var ret = [];
+
+        for ( var i = 0 ; i < ps.length ; i++ ) {
+          if ( ! ( s = ps[i](s) ) ) return;
+          ret.push(s[1]);
+        }
+
+        return [s[0], ret];
+      };
+
+      f.toString = function() { return 'seq(' + ps.join(',') + ')'; };
+
+      return f;
+    },
+
+    function alt(...ps) {
+      ps = this.prep(ps);
+
+      var f = function(s) {
+        for ( var i = 0 ; i < ps.length ; i++ ) {
+          var s2;
+          if ( s2 = ps[i](s) ) return s2;
+        }
+      };
+
+      f.toString = function() { return 'alt(' + ps.join(',') + ')'; };
+
+      return f;
+    },
+
+    function parse() {
+      return this.alt(
+        this.literal('funning'),
+        this.seq(
+          this.literal('test'),
+          this.literal('ing')))([0])[1];
+    }
+  ]
+});
+
+console.log('------------------------------- ', SuperflyParser('testing').parse());
+console.log('------------------------------- ', SuperflyParser('funning').parse());
 
 CLASS({
   name: 'LITERAL',
@@ -481,7 +547,7 @@ CLASS({
     function partialEval(x) {
       var fn   = this.fn.partialEval(x);
       var args = this.args.partialEval(x);
-      if ( LITERAL.isInstance(fn) ) { return LITERAL_APPLY(fn.eval(x), args); }
+      if ( LITERAL.isInstance(fn) ) return LITERAL_APPLY(fn.eval(x), args);
       return APPLY(fn, args);
     },
     function toJS(x) {
@@ -697,6 +763,7 @@ CLASS({
     }
   ]
 });
+
 
 CLASS({
   name: 'GET',
@@ -920,7 +987,6 @@ test(APPLY(VAR('FIB'), 1));
 test(APPLY(VAR('FIB'), 2));
 test(APPLY(VAR('FIB'), 3));
 test(APPLY(VAR('FIB'), 4));
-/*
 test(APPLY(VAR('FIB'), 5));
 test(APPLY(VAR('FIB'), 6));
 test(APPLY(VAR('FIB'), 7));
@@ -929,7 +995,6 @@ test(APPLY(VAR('FIB'), 9));
 test(APPLY(VAR('FIB'), 10));
 test(APPLY(VAR('FIB'), 20));
 test(APPLY(VAR('FIB'), 30));
-*/
 
 /*
 var f = APPLY(VAR('FIB'), 25).partialEval(frame);
