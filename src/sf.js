@@ -106,8 +106,11 @@ CLASS({
   methods: [
     function head(s, opt_i) { opt_i = opt_i || 0; return this.str.charAt(s[0] + opt_i); },
 
-    function prep(args) {
-      return args;
+    function prep(ps) {
+      return ps.map(p => {
+        if ( typeof p === 'string' ) return this.literal(p);
+        return p;
+      });
     },
 
     function literal(str, opt_value) {
@@ -156,10 +159,10 @@ CLASS({
 
     function parse() {
       return this.alt(
-        this.literal('funning'),
+        'funning',
         this.seq(
-          this.literal('test'),
-          this.literal('ing')))([0])[1];
+          'test',
+          'ing'))([0])[1];
     }
   ]
 });
