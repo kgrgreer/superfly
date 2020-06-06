@@ -157,6 +157,18 @@ CLASS({
       return f;
     },
 
+    function range(c1, c2) {
+      var f = s => {
+        var h = this.head(s);
+        if ( h === '' || h < c1 || h > c2 ) return;
+        return [s[0]+1, h];
+      };
+
+      f.toString = function() { return 'range(' + c1 + ', ' + c2 + ')'; };
+
+      return f;
+    },
+
     function parse() {
       return this.alt(
         'funning',
@@ -169,6 +181,8 @@ CLASS({
 
 console.log('------------------------------- ', SuperflyParser('testing').parse());
 console.log('------------------------------- ', SuperflyParser('funning').parse());
+console.log('------------------------------- ', SuperflyParser('a').range('a','z')([0]));
+console.log('------------------------------- ', SuperflyParser('A').range('a','z')([0]));
 
 CLASS({
   name: 'LITERAL',
