@@ -481,7 +481,7 @@ CLASS({
     function partialEval(x) {
       var fn   = this.fn.partialEval(x);
       var args = this.args.partialEval(x);
-      if ( LITERAL.isInstance(fn) ) { console.log('---------------- Creating LITERAL_APPLY', fn.eval(x)); return LITERAL_APPLY(fn.eval(x), args); }
+      if ( LITERAL.isInstance(fn) ) { return LITERAL_APPLY(fn.eval(x), args); }
       return APPLY(fn, args);
     },
     function toJS(x) {
@@ -1064,7 +1064,7 @@ test(LET('StringPStream',
       SET('obj', 'value',    null)
     )),
 
-    'head', FN('this', CHAR_AT(GET(VAR('this'), 'string'), GET('this', 'position'))),
+    'head', FN('this', CHAR_AT(GET('this', 'string'), GET('this', 'position'))),
 
     'tail', FN('this', SEQ(
       LET('tail', FRAME()),
