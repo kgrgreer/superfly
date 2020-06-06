@@ -116,13 +116,16 @@ CLASS({
     },
 
     function literal(str, opt_value) {
-      return (s) => {
+      var f = (s) => {
         for ( var i = 0 ; i < str.length ; i++ ) {
-          console.log('*****',str.charAt(i), this.head(s, i));
           if ( str.charAt(i) != this.head(s, i) ) return;
         }
         return [s[0]+str.length, opt_value || str];
       }
+
+      f.toString = function() { return 'literal(' + str + ')'; };
+
+      return f;
     },
 
     function seq(...ps) {
