@@ -183,6 +183,61 @@ CLASS({
       return f;
     },
 
+    function repeat(p, opt_delim, opt_min, opt_max) {
+      p = this.prep(p);
+      opt_delim = this.prep(opt_delim);
+
+      var f = function(s) {
+        var ret = [];
+
+        for ( var i = 0 ; ! opt_max || i < opt_max ; i++ ) {
+          var res;
+
+          if ( opt_delim && ret.length != 0 ) {
+            if ( ! ( res = opt_delim[s] ) ) break;
+            s = res;
+          }
+
+          if ( ! ( res = p(s) ) ) break;
+
+          ret.push(res[1]);
+          s = res;
+        }
+
+        if ( opt_min && ret.length < opt_min ) return;
+
+        return [s[0], ret];
+      };
+
+      f.toString = function() { return 'repeat(' + p + ', ' + opt_delim + ', ' + opt_min + ', ' + opt_max + ')'; };
+
+      return f;
+    },
+
+    function plus(p) {
+      return this.repeat(p, null, 1);
+    },
+
+    /** Takes a parser which returns an array, and converts its result to a String. **/
+    function toStr(p) {
+      p = this.prep(p);
+      var f = s => {
+        s = p(s);
+        return s && [s[0], s[1].join('')];
+      };
+
+      f.toString = function() { return 'toStr(' + p + ')'; };
+
+      return f;
+    },
+
+    // Above: generic parse combinators
+    // Below: superly parsers
+
+    function whitespaceChar() { return this.alt(' ', '\t', '\n', '\r'); },
+
+    function whitespace() { return this.toStr(this.plus(this.whitespaceChar())); },
+
     function parse() {
       return this.alt(
         'funning',
@@ -195,10 +250,13 @@ CLASS({
 
 console.log('------------------------------- ', SuperflyParser('testing').parse());
 console.log('------------------------------- ', SuperflyParser('funning').parse());
-console.log('------------------------------- ', SuperflyParser('a').range('a','z')([0]));
-console.log('------------------------------- ', SuperflyParser('A').range('a','z')([0]));
-console.log('------------------------------- ', SuperflyParser('abc').optional('a')([0]));
-console.log('------------------------------- ', SuperflyParser('bc').optional('a')([0]));
+console.log('------------------------------- range', SuperflyParser('a').range('a','z')([0]));
+console.log('------------------------------- range', SuperflyParser('A').range('a','z')([0]));
+console.log('------------------------------- optional', SuperflyParser('abc').optional('a')([0]));
+console.log('------------------------------- optional', SuperflyParser('bc').optional('a')([0]));
+console.log('------------------------------- wschar', SuperflyParser(' ').whitespaceChar()([0]));
+console.log('------------------------------- wschar', SuperflyParser('a').whitespaceChar()([0]));
+console.log('------------------------------- ws', SuperflyParser(' \r\n\t    \nhello').whitespace()([0]));
 
 CLASS({
   name: 'LITERAL',
