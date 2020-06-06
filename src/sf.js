@@ -162,11 +162,11 @@ CLASS({
       return f;
     },
 
-    function optional(p) {
+    function opt(p) {
       p = this.prep(p);
       var f = function(s) { return p(s) || [s[0]]; };
 
-      f.toString = function() { return 'optional(' + p + ')'; };
+      f.toString = function() { return 'opt(' + p + ')'; };
 
       return f;
     },
@@ -261,6 +261,15 @@ CLASS({
 
     function notWhitespace() { return this.toStr(this.plus(this.not(this.whitespaceChar(), this.anyChar()))); },
 
+    function numChar() { return this.range('0', '9'); },
+
+    function number() {
+      return this.toStr(this.seq(
+        this.opt('-'),
+        this.toStr(this.plus(this.numChar()))
+      ));
+    },
+
     function parse() {
       return this.alt(
         'funning',
@@ -275,12 +284,14 @@ console.log('------------------------------- ', SuperflyParser('testing').parse(
 console.log('------------------------------- ', SuperflyParser('funning').parse());
 console.log('------------------------------- range', SuperflyParser('a').range('a','z')([0]));
 console.log('------------------------------- range', SuperflyParser('A').range('a','z')([0]));
-console.log('------------------------------- optional', SuperflyParser('abc').optional('a')([0]));
-console.log('------------------------------- optional', SuperflyParser('bc').optional('a')([0]));
+console.log('------------------------------- opt', SuperflyParser('abc').opt('a')([0]));
+console.log('------------------------------- opt', SuperflyParser('bc').opt('a')([0]));
 console.log('------------------------------- wschar', SuperflyParser(' ').whitespaceChar()([0]));
 console.log('------------------------------- wschar', SuperflyParser('a').whitespaceChar()([0]));
 console.log('------------------------------- ws', SuperflyParser(' \r\n\t    \nhello').whitespace()([0]));
 console.log('------------------------------- !ws', SuperflyParser('this is a test').notWhitespace()([0]));
+console.log('------------------------------- number', SuperflyParser('1234').number()([0]));
+console.log('------------------------------- number', SuperflyParser('-1234').number()([0]));
 
 
 CLASS({
