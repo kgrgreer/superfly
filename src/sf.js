@@ -719,6 +719,7 @@ CLASS({
     'Expr key',
     'Expr value'
   ],
+  // Returns frame
   methods: [
     function eval(x) {
       return this.frame.eval(x).set(this.key.eval(x), SLOT(this.value.eval(x)));
@@ -749,6 +750,7 @@ CLASS({
     },
     function set(name, slot) {
       this[name] = slot;
+      return this;
     }
   ]
 });
@@ -1059,18 +1061,16 @@ test(LET('StringPStream',
       LET('obj', FRAME()),
       SET('obj', 'string',   VAR('string')),
       SET('obj', 'position', 0),
-      SET('obj', 'value',    null),
-      VAR('obj')
+      SET('obj', 'value',    null)
     )),
 
-    'head', FN('this', CHAR_AT(GET(VAR('this'), 'string'), GET(VAR('this'), 'position'))),
+    'head', FN('this', CHAR_AT(GET(VAR('this'), 'string'), GET('this', 'position'))),
 
     'tail', FN('this', SEQ(
       LET('tail', FRAME()),
       SET('tail', 'string',   GET('this', 'string')),
       SET('tail', 'position', GET('this', 'position')),
-      SET('tail', 'value',    null),
-      VAR('tail')
+      SET('tail', 'value',    null)
     )),
 
     'value', FN('this', GET(VAR('this'), 'value')),
@@ -1081,7 +1081,6 @@ test(LET('StringPStream',
       SET('ret', 'string',   GET('this', 'string')),
       SET('ret', 'position', GET('this', 'position')),
       SET('ret', 'value',    VAR('value')),
-      VAR('ret')
     )))
   ])
 ));
