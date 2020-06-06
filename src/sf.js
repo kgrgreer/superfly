@@ -27,6 +27,10 @@ const TYPES = {
     if ( typeof v === 'boolean'  ) return LITERAL(v);
     if (        v === null       ) return LITERAL(v);
     return v;
+  },
+  Frame:  v => {
+    if ( typeof v === 'string' ) return VAR(v);
+    return TYPES.Expr(v);
   }
 };
 
@@ -697,7 +701,7 @@ CLASS({
 CLASS({
   name: 'GET',
   properties: [
-    'Expr frame',
+    'Frame frame',
     'Expr key',
   ],
   methods: [
@@ -711,7 +715,7 @@ CLASS({
 CLASS({
   name: 'SET',
   properties: [
-    'Expr frame',
+    'Frame frame',
     'Expr key',
     'Expr value'
   ],
@@ -982,7 +986,7 @@ title('Objects');
 
 test(LET('foo', FRAME()))
 
-test(SET(VAR('foo'), 'key', 'value'));
+test(SET('foo', 'key', 'value'));
 
 test(GET(VAR('foo'), 'key', 'value'));
 
@@ -1053,9 +1057,9 @@ test(LET('StringPStream',
   SWITCH([
     'create', FN('string', SEQ(
       LET('obj', FRAME()),
-      SET(VAR('obj'), 'string',   VAR('string')),
-      SET(VAR('obj'), 'position', 0),
-      SET(VAR('obj'), 'value',    null),
+      SET('obj', 'string',   VAR('string')),
+      SET('obj', 'position', 0),
+      SET('obj', 'value',    null),
       VAR('obj')
     )),
 
@@ -1063,19 +1067,20 @@ test(LET('StringPStream',
 
     'tail', FN('this', SEQ(
       LET('tail', FRAME()),
-      SET(VAR('tail'), 'string',   GET(VAR('this'), 'string')),
-      SET(VAR('tail'), 'position', GET(VAR('this'), 'position')),
-      SET(VAR('tail'), 'value',    null),
+      SET('tail', 'string',   GET('this', 'string')),
+      SET('tail', 'position', GET('this', 'position')),
+      SET('tail', 'value',    null),
       VAR('tail')
     )),
 
     'value', FN('this', GET(VAR('this'), 'value')),
 
+    // TODO: use 3 arg constructor when available
     'setValue', FN('this', FN('value', SEQ(
       LET('ret', FRAME()),
-      SET(VAR('ret'), 'string',   GET(VAR('this'), 'string')),
-      SET(VAR('ret'), 'position', GET(VAR('this'), 'position')),
-      SET(VAR('ret'), 'value',    VAR('value')),
+      SET('ret', 'string',   GET('this', 'string')),
+      SET('ret', 'position', GET('this', 'position')),
+      SET('ret', 'value',    VAR('value')),
       VAR('ret')
     )))
   ])
@@ -1085,7 +1090,7 @@ test(APPLY(VAR('StringPStream'), 'head'));
 
 test(LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')));
 
-test(GET(VAR('ps'), 'string'));
+test(GET('ps', 'string'));
 
 test(SEQ(
   LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
