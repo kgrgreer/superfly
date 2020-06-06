@@ -183,6 +183,17 @@ CLASS({
       return f;
     },
 
+    function anyChar() {
+      var f = s => {
+        var h = this.head(s);
+        if ( h != '' ) return [ s[0]+1, h ];
+      };
+
+      f.toString = function() { return 'anyChar()'; };
+
+      return f;
+    },
+
     function repeat(p, opt_delim, opt_min, opt_max) {
       p = this.prep(p);
       opt_delim = this.prep(opt_delim);
@@ -231,12 +242,24 @@ CLASS({
       return f;
     },
 
+    function not(p, opt_else) {
+      p        = this.prep(p);
+      opt_else = this.prep(opt_else);
+
+      var f = s => p(s) ? undefined : opt_else ? opt_else(s) : s;
+      f.toString = function() { return 'not(' + p + ')'; };
+
+      return f;
+    },
+
     // Above: generic parse combinators
     // Below: superly parsers
 
     function whitespaceChar() { return this.alt(' ', '\t', '\n', '\r'); },
 
     function whitespace() { return this.toStr(this.plus(this.whitespaceChar())); },
+
+    function notWhitespace() { return this.toStr(this.plus(this.not(this.whitespaceChar(), this.anyChar()))); },
 
     function parse() {
       return this.alt(
@@ -257,6 +280,8 @@ console.log('------------------------------- optional', SuperflyParser('bc').opt
 console.log('------------------------------- wschar', SuperflyParser(' ').whitespaceChar()([0]));
 console.log('------------------------------- wschar', SuperflyParser('a').whitespaceChar()([0]));
 console.log('------------------------------- ws', SuperflyParser(' \r\n\t    \nhello').whitespace()([0]));
+console.log('------------------------------- !ws', SuperflyParser('this is a test').notWhitespace()([0]));
+
 
 CLASS({
   name: 'LITERAL',
