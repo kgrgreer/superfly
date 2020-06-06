@@ -106,11 +106,13 @@ CLASS({
   methods: [
     function head(s, opt_i) { opt_i = opt_i || 0; return this.str.charAt(s[0] + opt_i); },
 
-    function prep(ps) {
-      return ps.map(p => {
-        if ( typeof p === 'string' ) return this.literal(p);
-        return p;
-      });
+    function prepPs(ps) {
+      return ps.map(this.prep.bind(this));
+    },
+
+    function prep(p) {
+      if ( typeof p === 'string' ) return this.literal(p);
+      return p;
     },
 
     function literal(str, opt_value) {
@@ -124,7 +126,7 @@ CLASS({
     },
 
     function seq(...ps) {
-      ps = this.prep(ps);
+      ps = this.prepPs(ps);
 
       var f = function(s) {
         var ret = [];
@@ -143,7 +145,7 @@ CLASS({
     },
 
     function alt(...ps) {
-      ps = this.prep(ps);
+      ps = this.prepPs(ps);
 
       var f = function(s) {
         for ( var i = 0 ; i < ps.length ; i++ ) {
@@ -153,6 +155,15 @@ CLASS({
       };
 
       f.toString = function() { return 'alt(' + ps.join(',') + ')'; };
+
+      return f;
+    },
+
+    function optional(p) {
+      p = this.prep(p);
+      var f = function(s) { return p(s) || [s[0]]; };
+
+      f.toString = function() { return 'optional(' + p + ')'; };
 
       return f;
     },
@@ -183,6 +194,8 @@ console.log('------------------------------- ', SuperflyParser('testing').parse(
 console.log('------------------------------- ', SuperflyParser('funning').parse());
 console.log('------------------------------- ', SuperflyParser('a').range('a','z')([0]));
 console.log('------------------------------- ', SuperflyParser('A').range('a','z')([0]));
+console.log('------------------------------- ', SuperflyParser('abc').optional('a')([0]));
+console.log('------------------------------- ', SuperflyParser('bc').optional('a')([0]));
 
 CLASS({
   name: 'LITERAL',
