@@ -195,7 +195,7 @@ CLASS({
     },
 
     function repeat(p, opt_delim, opt_min, opt_max) {
-      p = this.prep(p);
+      p         = this.prep(p);
       opt_delim = this.prep(opt_delim);
 
       var f = function(s) {
@@ -205,7 +205,7 @@ CLASS({
           var res;
 
           if ( opt_delim && ret.length != 0 ) {
-            if ( ! ( res = opt_delim[s] ) ) break;
+            if ( ! ( res = opt_delim(s) ) ) break;
             s = res;
           }
 
@@ -274,16 +274,24 @@ CLASS({
       return this.seq('(', this.expr(), ')');
     },
 
+    function block() {
+      return this.seq('{', this.repeat(this.expr(), ','), '}');
+    },
+
     function symbol() {
       return this.notWhitespace();
     },
 
     function expr() {
-      return this.alt(
-        this.number(),
-        this.parens(),
-        this.symbol()
-      );
+      var p;
+      return (s) => {
+        if ( ! p ) p = this.alt(
+          this.number(),
+          this.block(),
+          this.parens(),
+          this.symbol());
+        return p(s);
+      };
     },
 
     function parse() {
@@ -298,20 +306,28 @@ CLASS({
     },
 
     function tests() {
-      this.test('alt', 'a', this.alt('a', 'b'));
-      this.test('alt', 'b', this.alt('a', 'b'));
-      this.test('alt', 'c', this.alt('a', 'b'));
-      this.test('seq', 'abc', this.seq('a', 'b', 'c'));
-      this.test('range', 'a', this.range('a','z'));
-      this.test('range', 'A', this.range('a','z'));
-      this.test('opt', 'abc', this.opt('a'));
-      this.test('opt', 'ab', this.opt('a'));
+      this.test('alt', 'a',    this.alt('a', 'b'));
+      this.test('alt', 'b',    this.alt('a', 'b'));
+      this.test('alt', 'c',    this.alt('a', 'b'));
+      this.test('seq', 'abc',  this.seq('a', 'b', 'c'));
+      this.test('range', 'a',  this.range('a','z'));
+      this.test('range', 'A',  this.range('a','z'));
+      this.test('opt', 'abc',  this.opt('a'));
+      this.test('opt', 'ab',   this.opt('a'));
       this.test('wschar', ' ', this.whitespaceChar());
       this.test('wschar', 'a', this.whitespaceChar());
       this.test('ws', ' \r\n\t    \nhello', this.whitespace());
       this.test('!ws', 'this is a test', this.notWhitespace());
       this.test('number', '1234', this.number());
       this.test('-number', '-1234', this.number());
+      this.test('block', '{}', this.block());
+      this.test('block', '{1,2,3}', this.block());
+      this.test('number expr', '1', this.expr());
+      this.test('number expr', '1234', this.expr());
+      this.test('symbol expr', 'abc', this.expr());
+      this.test('paren expr', '(123)', this.expr());
+      this.test('block expr', '{1,2,3}', this.expr());
+
 //      this.test('', '', this.());
     }
   ]
