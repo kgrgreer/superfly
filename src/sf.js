@@ -253,7 +253,7 @@ CLASS({
     },
 
     // Above: generic parse combinators
-    // Below: superly parsers
+    // Below: superfly parsers
 
     function whitespaceChar() { return this.alt(' ', '\t', '\n', '\r'); },
 
@@ -270,28 +270,55 @@ CLASS({
       ));
     },
 
-    function parse() {
+    function parens() {
+      return this.seq('(', this.expr(), ')');
+    },
+
+    function symbol() {
+      return this.notWhitespace();
+    },
+
+    function expr() {
       return this.alt(
-        'funning',
-        this.seq(
-          'test',
-          'ing'))([0])[1];
+        this.number(),
+        this.parens(),
+        this.symbol()
+      );
+    },
+
+    function parse() {
+      return ([0])[1];
+    },
+
+    // Testing
+    function test(name, str, p) {
+      this.str = str;
+      var s = p([0]);
+      console.log('Parser Test: ', name, p, '"' + str + '"', s ? s[1] : '<NO PARSE>');
+    },
+
+    function tests() {
+      this.test('alt', 'a', this.alt('a', 'b'));
+      this.test('alt', 'b', this.alt('a', 'b'));
+      this.test('alt', 'c', this.alt('a', 'b'));
+      this.test('seq', 'abc', this.seq('a', 'b', 'c'));
+      this.test('range', 'a', this.range('a','z'));
+      this.test('range', 'A', this.range('a','z'));
+      this.test('opt', 'abc', this.opt('a'));
+      this.test('opt', 'ab', this.opt('a'));
+      this.test('wschar', ' ', this.whitespaceChar());
+      this.test('wschar', 'a', this.whitespaceChar());
+      this.test('ws', ' \r\n\t    \nhello', this.whitespace());
+      this.test('!ws', 'this is a test', this.notWhitespace());
+      this.test('number', '1234', this.number());
+      this.test('-number', '-1234', this.number());
+//      this.test('', '', this.());
     }
   ]
 });
 
-console.log('------------------------------- ', SuperflyParser('testing').parse());
-console.log('------------------------------- ', SuperflyParser('funning').parse());
-console.log('------------------------------- range', SuperflyParser('a').range('a','z')([0]));
-console.log('------------------------------- range', SuperflyParser('A').range('a','z')([0]));
-console.log('------------------------------- opt', SuperflyParser('abc').opt('a')([0]));
-console.log('------------------------------- opt', SuperflyParser('bc').opt('a')([0]));
-console.log('------------------------------- wschar', SuperflyParser(' ').whitespaceChar()([0]));
-console.log('------------------------------- wschar', SuperflyParser('a').whitespaceChar()([0]));
-console.log('------------------------------- ws', SuperflyParser(' \r\n\t    \nhello').whitespace()([0]));
-console.log('------------------------------- !ws', SuperflyParser('this is a test').notWhitespace()([0]));
-console.log('------------------------------- number', SuperflyParser('1234').number()([0]));
-console.log('------------------------------- number', SuperflyParser('-1234').number()([0]));
+var sfp = SuperflyParser();
+sfp.tests();
 
 
 CLASS({
