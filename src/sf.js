@@ -305,7 +305,7 @@ CLASS({
     function block() {
       return this.action(
         this.seq('{', this.repeat(this.expr(), ','), '}'),
-        function(b) { return SEQ(b[1]); });
+        function(b) { return SEQ.apply(null, b[1]); });
     },
 
     function symbol() {
@@ -335,20 +335,29 @@ CLASS({
 
     function operator() {
       return this.alt(
-        '-',
-        '+',
-        '*',
-        '/',
-        '&&',
-        '||',
-        '=',
-        '<',
-        '>'
+        this.literal('-',  SUB),
+        this.literal('+',  ADD),
+        this.literal('*',  MUL),
+        this.literal('/',  DIV),
+        this.literal('&&', AND),
+        this.literal('||', OR),
+        this.literal('=',  EQ),
+        this.literal('<',  LT),
+        this.literal('>',  GT)
       );
     },
 
     function expr() {
-      return this.repeat(this.expr0(), this.operator(), 1);
+      var p;
+      return (s) => {
+        if ( ! p ) p = this.alt(
+          this.action(
+            this.seq(this.expr0(), this.whitespace(), this.operator(), this.whitespace(), this.expr()),
+            function (es) { return es[2](es[0], es[4]); }
+          ),
+          this.expr0());
+        return p(s);
+      };
     },
 
     function parse() {
@@ -385,6 +394,10 @@ CLASS({
       this.doTest('paren expr', '(123)', this.expr());
       this.doTest('string expr', "'foobar'", this.expr());
       this.doTest('block expr', '{1,2,3}', this.expr());
+      this.doTest('+ expr', '1 + 2', this.expr());
+      this.doTest('> expr', '1 > 2', this.expr());
+      this.doTest('expr', '(1 + 2) > (1 * 2)', this.expr());
+      this.doTest('+ expr', "{1,2,'FOO BAR',(1 + 2) > (1 * 2)}", this.expr());
 
 //      this.test('', '', this.());
     }
