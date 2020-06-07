@@ -376,6 +376,7 @@ CLASS({
         this.literal('/',  DIV),
         this.literal('&&', AND),
         this.literal('||', OR),
+        this.literal('!=', NEQ),
         this.literal('=',  EQ),
         this.literal('<',  LT),
         this.literal('>',  GT),
@@ -442,6 +443,8 @@ CLASS({
       this.doTest('fn expr', "fn square(x){x * x}", this.expr());
       this.doTest('not expr', "! 1 = 1", this.expr());
       this.doTest('not expr', "! 1 = 2", this.expr());
+      this.doTest('not expr', "! 1 != 1", this.expr());
+      this.doTest('not expr', "! 1 != 2", this.expr());
 
 //      this.test('', '', this.());
     }
@@ -486,6 +489,20 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} == ${this.arg2.toJS(x)})`;
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'NEQ',
+  properties: [ 'Expr arg1', 'Expr arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) != this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `(${this.arg1.toJS(x)} != ${this.arg2.toJS(x)})`;
     }
   ]
 });
