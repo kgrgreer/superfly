@@ -324,10 +324,20 @@ CLASS({
         function(s) { return LITERAL(s); });
     },
 
+    function let() {
+      return this.action(
+        this.seq('let', this.whitespace(), this.symbol(), this.opt(this.seq(this.whitespace(), '=', this.whitespace(), this.expr()))),
+        function(l) {
+          return LET(l[2], l[3] && l[3][3]);
+        }
+      );
+    },
+
     function expr0() {
       var p;
       return (s) => {
         if ( ! p ) p = this.alt(
+          this.let(),
           this.number(),
           this.string(),
           this.block(),
@@ -403,6 +413,9 @@ CLASS({
       this.doTest('> expr', '1 > 2', this.expr());
       this.doTest('expr', '(1 + 2) > (1 * 2)', this.expr());
       this.doTest('+ expr', "{1,2,x,y,'FOO BAR',(i + 2) > (1 * 2)}", this.expr());
+      this.doTest('let expr', "let x = 5", this.expr());
+      this.doTest('let expr', "{let x = 5,x}", this.expr());
+      this.doTest('let expr', "{let x = 5,x + x}", this.expr());
 
 //      this.test('', '', this.());
     }
