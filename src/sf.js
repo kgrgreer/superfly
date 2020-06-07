@@ -287,6 +287,10 @@ CLASS({
 
     function notWhitespace() { return this.toStr(this.plus(this.not(this.whitespaceChar(), this.anyChar()))); },
 
+    function alpha() { return this.alt(this.range('a', 'z'), this.range('A', 'Z')); },
+
+    function alphaNum() { return this.alt(this.alpha(), this.numChar()); },
+
     function numChar() { return this.range('0', '9'); },
 
     function number() {
@@ -310,7 +314,7 @@ CLASS({
 
     function symbol() {
       return this.action(
-        this.notWhitespace(),
+        this.repeat(this.alphaNum()),
         function(s) { return VAR(s); });
     },
 
@@ -394,10 +398,11 @@ CLASS({
       this.doTest('paren expr', '(123)', this.expr());
       this.doTest('string expr', "'foobar'", this.expr());
       this.doTest('block expr', '{1,2,3}', this.expr());
+      this.doTest('var expr', 'i', this.expr());
       this.doTest('+ expr', '1 + 2', this.expr());
       this.doTest('> expr', '1 > 2', this.expr());
       this.doTest('expr', '(1 + 2) > (1 * 2)', this.expr());
-      this.doTest('+ expr', "{1,2,'FOO BAR',(1 + 2) > (1 * 2)}", this.expr());
+      this.doTest('+ expr', "{1,2,x,y,'FOO BAR',(i + 2) > (1 * 2)}", this.expr());
 
 //      this.test('', '', this.());
     }
