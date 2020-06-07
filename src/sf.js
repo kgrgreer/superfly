@@ -295,7 +295,7 @@ CLASS({
           this.opt('-'),
           this.toStr(this.plus(this.numChar()))
         )),
-        function(n) { return parseInt(n); });
+        function(n) { return LITERAL(parseInt(n)); });
     },
 
     function parens() {
@@ -303,18 +303,24 @@ CLASS({
     },
 
     function block() {
-      return this.seq('{', this.repeat(this.expr(), ','), '}');
+      return this.action(
+        this.seq('{', this.repeat(this.expr(), ','), '}'),
+        function(b) { return SEQ(b[1]); });
     },
 
     function symbol() {
-      return this.notWhitespace();
+      return this.action(
+        this.notWhitespace(),
+        function(s) { return VAR(s); });
     },
 
     function string() {
-      return this.pick(1, this.seq("'", this.toStr(this.repeat(this.not("'", this.anyChar()))), "'"));
+      return this.action(
+        this.pick(1, this.seq("'", this.toStr(this.repeat(this.not("'", this.anyChar()))), "'")),
+        function(s) { return LITERAL(s); });
     },
 
-    function expr() {
+    function expr0() {
       var p;
       return (s) => {
         if ( ! p ) p = this.alt(
@@ -327,6 +333,24 @@ CLASS({
       };
     },
 
+    function operator() {
+      return this.alt(
+        '-',
+        '+',
+        '*',
+        '/',
+        '&&',
+        '||',
+        '=',
+        '<',
+        '>'
+      );
+    },
+
+    function expr() {
+      return this.repeat(this.expr0(), this.operator(), 1);
+    },
+
     function parse() {
       return ([0])[1];
     },
@@ -335,7 +359,7 @@ CLASS({
     function doTest(name, str, p) {
       this.str = str;
       var s = p([0]);
-      console.log('Parser Test: ', name, /* p,*/ '"' + str + '"', s ? s[1] : '<NO PARSE>');
+      console.log('Parser Test: ', name, /* p,*/ '"' + str + '"', s ? s[1].toString() : '<NO PARSE>');
     },
 
     function test() {
@@ -366,9 +390,6 @@ CLASS({
     }
   ]
 });
-
-var sfp = SuperflyParser();
-sfp.test();
 
 
 CLASS({
@@ -1364,6 +1385,10 @@ test(SEQ(
   LET('ps', APPLY(APPLY(VAR('StringPStream'), 'create'), 'hello')),
   PRINT(APPLY(APPLY(VAR('StringPStream'), 'head'), VAR('ps')))
 ));
+
+
+var sfp = SuperflyParser();
+sfp.test();
 
 
 console.log('done');
