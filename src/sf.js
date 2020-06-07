@@ -371,7 +371,9 @@ CLASS({
         this.literal('||', OR),
         this.literal('=',  EQ),
         this.literal('<',  LT),
-        this.literal('>',  GT)
+        this.literal('>',  GT),
+        this.literal('<=', LTE),
+        this.literal('>=', GTE)
       );
     },
 
@@ -495,6 +497,20 @@ CLASS({
 
 
 CLASS({
+  name: 'LTE',
+  properties: [ 'Expr arg1', 'Expr arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) <= this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `(${this.arg1.toJS(x)} <= ${this.arg2.toJS(x)})`;
+    }
+  ]
+});
+
+
+CLASS({
   name: 'GT',
   properties: [ 'Expr arg1', 'Expr arg2' ],
   methods: [
@@ -503,6 +519,20 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} > ${this.arg2.toJS(x)})`;
+    }
+  ]
+});
+
+
+CLASS({
+  name: 'GTE',
+  properties: [ 'Expr arg1', 'Expr arg2' ],
+  methods: [
+    function eval(x) {
+      return this.arg1.eval(x) >= this.arg2.eval(x);
+    },
+    function toJS(x) {
+      return `(${this.arg1.toJS(x)} >= ${this.arg2.toJS(x)})`;
     }
   ]
 });
