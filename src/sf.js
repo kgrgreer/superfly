@@ -324,6 +324,19 @@ CLASS({
         function(s) { return LITERAL(s); });
     },
 
+    function args() {
+      return this.repeat(this.symbol(), ',');
+    },
+
+    function fn() {
+      return this.action(
+        this.seq('fn', this.whitespace(), this.symbol(), '(', this.args(), ')', this.block()),
+        function(a) {
+          return FN(a[4], a[6]);
+        }
+      );
+    },
+
     function let() {
       return this.action(
         this.seq('let', this.whitespace(), this.symbol(), this.opt(this.seq(this.whitespace(), '=', this.whitespace(), this.expr()))),
@@ -337,6 +350,7 @@ CLASS({
       var p;
       return (s) => {
         if ( ! p ) p = this.alt(
+          this.fn(),
           this.let(),
           this.number(),
           this.string(),
@@ -416,6 +430,7 @@ CLASS({
       this.doTest('let expr', "let x = 5", this.expr());
       this.doTest('let expr', "{let x = 5,x}", this.expr());
       this.doTest('let expr', "{let x = 5,x + x}", this.expr());
+      this.doTest('fn expr', "fn square(x){x * x}", this.expr());
 
 //      this.test('', '', this.());
     }
