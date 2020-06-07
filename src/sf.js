@@ -403,10 +403,11 @@ CLASS({
     },
 
     // Testing
-    function doTest(name, str, p) {
+    function doTest(name, str, opt_p) {
+      opt_p = opt_p || this.expr();
       this.str = str;
-      var s = p([0]);
-      console.log('Parser Test: ', name, /* p,*/ '"' + str + '"', s ? s[1].toString() : '<NO PARSE>');
+      var s = opt_p([0]);
+      console.log('Parser Test: ', name, /* opt_p,*/ '"' + str + '"', s ? s[1].toString() : '<NO PARSE>');
     },
 
     function test() {
@@ -426,25 +427,28 @@ CLASS({
       this.doTest('-number', '-1234', this.number());
       this.doTest('block', '{}', this.block());
       this.doTest('block', '{1,2,3}', this.block());
-      this.doTest('number expr', '1', this.expr());
-      this.doTest('number expr', '1234', this.expr());
-      this.doTest('symbol expr', 'abc', this.expr());
-      this.doTest('paren expr', '(123)', this.expr());
-      this.doTest('string expr', "'foobar'", this.expr());
-      this.doTest('block expr', '{1,2,3}', this.expr());
-      this.doTest('var expr', 'i', this.expr());
-      this.doTest('+ expr', '1 + 2', this.expr());
-      this.doTest('> expr', '1 > 2', this.expr());
-      this.doTest('expr', '(1 + 2) > (1 * 2)', this.expr());
-      this.doTest('+ expr', "{1,2,x,y,'FOO BAR',(i + 2) > (1 * 2)}", this.expr());
-      this.doTest('let expr', "let x = 5", this.expr());
-      this.doTest('let expr', "{let x = 5,x}", this.expr());
-      this.doTest('let expr', "{let x = 5,x + x}", this.expr());
-      this.doTest('fn expr', "fn square(x){x * x}", this.expr());
-      this.doTest('not expr', "! 1 = 1", this.expr());
-      this.doTest('not expr', "! 1 = 2", this.expr());
-      this.doTest('not expr', "! 1 != 1", this.expr());
-      this.doTest('not expr', "! 1 != 2", this.expr());
+      this.doTest('number expr', '1');
+      this.doTest('number expr', '1234');
+      this.doTest('symbol expr', 'abc');
+      this.doTest('paren expr', '(123)');
+      this.doTest('string expr', "'foobar'");
+      this.doTest('block expr', '{1,2,3}');
+      this.doTest('var expr', 'i');
+      this.doTest('+ expr', '1 + 2');
+      this.doTest('> expr', '1 > 2');
+      this.doTest('expr', '(1 + 2) > (1 * 2)');
+      this.doTest('+ expr', "{1,2,x,y,'FOO BAR',(i + 2) > (1 * 2)}");
+      this.doTest('let expr', "let x = 5");
+      this.doTest('let expr', "{let x = 5,x}");
+      this.doTest('let expr', "{let x = 5,x + x}");
+      this.doTest('fn expr', "fn square(x){x * x}");
+      this.doTest('not expr', "! 1 = 1");
+      this.doTest('not expr', "! 1 = 2");
+      this.doTest('not expr', "! 1 != 1");
+      this.doTest('not expr', "! 1 != 2");
+      this.doTest('if expr', "1 == 1 if: {1} else: {2}");
+      this.doTest('if expr', "1 == 2 if: {1} else: {2}");
+      this.doTest('cond expr', "cond 1 == 2 {1} {2}");
 
 //      this.test('', '', this.());
     }
