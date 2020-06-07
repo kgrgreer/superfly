@@ -346,10 +346,17 @@ CLASS({
       );
     },
 
+    function not() {
+      return this.action(
+        this.seq('!', this.whitespace(), this.expr()),
+        function (a) { return NOT(a[2]); });
+    },
+
     function expr0() {
       var p;
       return (s) => {
         if ( ! p ) p = this.alt(
+          this.not(),
           this.fn(),
           this.let(),
           this.number(),
@@ -433,6 +440,8 @@ CLASS({
       this.doTest('let expr', "{let x = 5,x}", this.expr());
       this.doTest('let expr', "{let x = 5,x + x}", this.expr());
       this.doTest('fn expr', "fn square(x){x * x}", this.expr());
+      this.doTest('not expr', "! 1 = 1", this.expr());
+      this.doTest('not expr', "! 1 = 2", this.expr());
 
 //      this.test('', '', this.());
     }
