@@ -282,11 +282,16 @@ CLASS({
       return this.notWhitespace();
     },
 
+    function string() {
+      return this.seq("'", this.toStr(this.repeat(this.not("'", this.anyChar()))), "'");
+    },
+
     function expr() {
       var p;
       return (s) => {
         if ( ! p ) p = this.alt(
           this.number(),
+          this.string(),
           this.block(),
           this.parens(),
           this.symbol());
@@ -326,6 +331,7 @@ CLASS({
       this.test('number expr', '1234', this.expr());
       this.test('symbol expr', 'abc', this.expr());
       this.test('paren expr', '(123)', this.expr());
+      this.test('string expr', "'foobar'", this.expr());
       this.test('block expr', '{1,2,3}', this.expr());
 
 //      this.test('', '', this.());
