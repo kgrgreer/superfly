@@ -252,6 +252,32 @@ CLASS({
       return f;
     },
 
+    function pick(i, p) {
+      p = this.prep(p);
+
+      var f = s => {
+        s = p(s);
+        return s && [s[0], s[1][i]];
+      };
+
+      f.toString = function() { return p.toString(); };
+
+      return f;
+    },
+
+    function action(p, a) {
+      p = this.prep(p);
+
+      var f = s => {
+        s = p(s);
+        return s && [s[0], a(s[1])];
+      };
+
+      f.toString = function() { return p.toString(); };
+
+      return f;
+    },
+
     // Above: generic parse combinators
     // Below: superfly parsers
 
@@ -264,14 +290,16 @@ CLASS({
     function numChar() { return this.range('0', '9'); },
 
     function number() {
-      return this.toStr(this.seq(
-        this.opt('-'),
-        this.toStr(this.plus(this.numChar()))
-      ));
+      return this.action(
+        this.toStr(this.seq(
+          this.opt('-'),
+          this.toStr(this.plus(this.numChar()))
+        )),
+        function(n) { return parseInt(n); });
     },
 
     function parens() {
-      return this.seq('(', this.expr(), ')');
+      return this.pick(1, this.seq('(', this.expr(), ')'));
     },
 
     function block() {
@@ -283,7 +311,7 @@ CLASS({
     },
 
     function string() {
-      return this.seq("'", this.toStr(this.repeat(this.not("'", this.anyChar()))), "'");
+      return this.pick(1, this.seq("'", this.toStr(this.repeat(this.not("'", this.anyChar()))), "'"));
     },
 
     function expr() {
@@ -304,35 +332,35 @@ CLASS({
     },
 
     // Testing
-    function test(name, str, p) {
+    function doTest(name, str, p) {
       this.str = str;
       var s = p([0]);
-      console.log('Parser Test: ', name, p, '"' + str + '"', s ? s[1] : '<NO PARSE>');
+      console.log('Parser Test: ', name, /* p,*/ '"' + str + '"', s ? s[1] : '<NO PARSE>');
     },
 
-    function tests() {
-      this.test('alt', 'a',    this.alt('a', 'b'));
-      this.test('alt', 'b',    this.alt('a', 'b'));
-      this.test('alt', 'c',    this.alt('a', 'b'));
-      this.test('seq', 'abc',  this.seq('a', 'b', 'c'));
-      this.test('range', 'a',  this.range('a','z'));
-      this.test('range', 'A',  this.range('a','z'));
-      this.test('opt', 'abc',  this.opt('a'));
-      this.test('opt', 'ab',   this.opt('a'));
-      this.test('wschar', ' ', this.whitespaceChar());
-      this.test('wschar', 'a', this.whitespaceChar());
-      this.test('ws', ' \r\n\t    \nhello', this.whitespace());
-      this.test('!ws', 'this is a test', this.notWhitespace());
-      this.test('number', '1234', this.number());
-      this.test('-number', '-1234', this.number());
-      this.test('block', '{}', this.block());
-      this.test('block', '{1,2,3}', this.block());
-      this.test('number expr', '1', this.expr());
-      this.test('number expr', '1234', this.expr());
-      this.test('symbol expr', 'abc', this.expr());
-      this.test('paren expr', '(123)', this.expr());
-      this.test('string expr', "'foobar'", this.expr());
-      this.test('block expr', '{1,2,3}', this.expr());
+    function test() {
+      this.doTest('alt', 'a',    this.alt('a', 'b'));
+      this.doTest('alt', 'b',    this.alt('a', 'b'));
+      this.doTest('alt', 'c',    this.alt('a', 'b'));
+      this.doTest('seq', 'abc',  this.seq('a', 'b', 'c'));
+      this.doTest('range', 'a',  this.range('a','z'));
+      this.doTest('range', 'A',  this.range('a','z'));
+      this.doTest('opt', 'abc',  this.opt('a'));
+      this.doTest('opt', 'ab',   this.opt('a'));
+      this.doTest('wschar', ' ', this.whitespaceChar());
+      this.doTest('wschar', 'a', this.whitespaceChar());
+      this.doTest('ws', ' \r\n\t    \nhello', this.whitespace());
+      this.doTest('!ws', 'this is a doTest', this.notWhitespace());
+      this.doTest('number', '1234', this.number());
+      this.doTest('-number', '-1234', this.number());
+      this.doTest('block', '{}', this.block());
+      this.doTest('block', '{1,2,3}', this.block());
+      this.doTest('number expr', '1', this.expr());
+      this.doTest('number expr', '1234', this.expr());
+      this.doTest('symbol expr', 'abc', this.expr());
+      this.doTest('paren expr', '(123)', this.expr());
+      this.doTest('string expr', "'foobar'", this.expr());
+      this.doTest('block expr', '{1,2,3}', this.expr());
 
 //      this.test('', '', this.());
     }
@@ -340,7 +368,7 @@ CLASS({
 });
 
 var sfp = SuperflyParser();
-sfp.tests();
+sfp.test();
 
 
 CLASS({
