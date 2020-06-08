@@ -28,6 +28,7 @@ const TYPES = {
     if (        v === null       ) return LITERAL(v);
     return v;
   },
+  Symbol: v => typeof v === 'string' ? SYMBOL(v) : v,
   Frame:  v => {
     if ( typeof v === 'string' ) return VAR(v);
     return TYPES.Expr(v);
@@ -471,6 +472,42 @@ CLASS({
 
 
 CLASS({
+  name: '_SYMBOL',
+  properties: [
+    'name',
+    'ordinal',
+    'sym'
+  ],
+  methods: [
+    function initArgs(name) {
+      this.name = name;
+      this.sym = Symbol(name);
+      this.ordinal = ++SYMBOL.MAX;
+
+      // Reverse lookup table for debugging.
+      SYMBOL.reverse[this.ordinal] = this;
+    },
+    function eval(x) {
+      return this.sym;
+    },
+    function partialEval(x) {
+      return LITERAL(this.eval(x));
+    },
+    function toString() {
+      return 'SYMBOL(' + this.name + ')';
+    }
+  ]
+});
+
+function SYMBOL(name) {
+  return SYMBOL.syms[name] ? SYMBOL.syms[name] :
+    SYMBOL.syms[name] = _SYMBOL(name);
+}
+SYMBOL.syms = {};
+SYMBOL.reverse = {};
+SYMBOL.MAX = -1;
+
+CLASS({
   name: 'CHAR_AT',
   properties: [ 'Expr str', 'Expr pos' ],
   methods: [
@@ -798,7 +835,7 @@ CLASS({
 
 CLASS({
   name: 'LET',
-  properties: [ 'Expr key', 'Expr value' ],
+  properties: [ 'Symbol key', 'Expr value' ],
   methods: [
     function eval(x) {
       x.set(this.key.eval(x), SLOT(this.value.partialEval(x).eval(x)));
@@ -814,7 +851,7 @@ CLASS({
 CLASS({
   name: 'CONST',
   documentation: "The same as LET but can partialEval() the lookup becuase it doesn't change.",
-  properties: [ 'Expr key', 'Expr value' ],
+  properties: [ 'Symbol key', 'Expr value' ],
   methods: [
     function eval(x) {
       x.set(this.key.eval(x), CONSTANT_SLOT(this.value.partialEval(x).eval(x)));
@@ -831,7 +868,7 @@ CLASS({
 
 CLASS({
   name: 'VAR',
-  properties: [ 'Expr key' ],
+  properties: [ 'Symbol key' ],
   methods: [
     function eval(x) {
       return x.get(this.key.eval(x)).eval();
@@ -890,10 +927,10 @@ CLASS({
 
 CLASS({
   name: 'LITERAL_APPLY',
-  properties: [ 'fn', 'Expr args' ],
+  properties: [ 'fn', 'Expr arg' ],
   methods: [
     function eval(x) {
-      return this.fn(this.args.eval(x));
+      return this.fn(this.arg.eval(x));
     },
     function partialEval(x) {
       return this;
@@ -907,20 +944,18 @@ CLASS({
 
 CLASS({
   name: 'FN',
-  properties: [ 'String[] args', 'Expr expr' ],
+  properties: [ 'Symbol arg', 'Expr expr' ],
   methods: [
     function eval(x) {
       var self = this;
-      return function() {
+      return function(arg) {
         var y = x.subFrame();
-        for ( var i = 0 ; i < self.args.length ; i++ ) {
-          y.set(self.args[i], SLOT(arguments[i]));
-        }
+        y.set(self.arg.eval(x), SLOT(arg));
         return self.expr.eval(y);
       }
     },
     function partialEval(x) {
-      return FN(this.args, this.expr.partialEval(x));
+      return FN(this.arg, this.expr.partialEval(x));
     },
     function toJS(x) {
       return `function(${this.args.join(',')}) { return ${this.expr.toJS(x)} }`;
@@ -1100,7 +1135,7 @@ CLASS({
   name: 'GET',
   properties: [
     'Frame frame',
-    'Expr key',
+    'Symbol key',
   ],
   methods: [
     function eval(x) {
@@ -1114,7 +1149,7 @@ CLASS({
   name: 'SET',
   properties: [
     'Frame frame',
-    'Expr key',
+    'Symbol key',
     'Expr value'
   ],
   // Returns frame
@@ -1327,14 +1362,16 @@ test(APPLY(VAR('FIB'), 10));
 test(APPLY(VAR('FIB'), 20));
 test(APPLY(VAR('FIB'), 30));
 
-/*
+//*
 var f = APPLY(VAR('FIB'), 25).partialEval(frame);
 console.log('__________________START');
-console.profile();
+//console.profile();
+var start = Date.now();
 for ( var i = 0 ; i < 100 ; i++ ) f.eval(frame);
-console.profileEnd();
-console.log('__________________END');
-*/
+var end = Date.now();
+//console.profileEnd();
+console.log('__________________END', end - start);
+//*/
 
 title('SWITCH');
 test(PRINT(APPLY(SWITCH([],'default'), 1)));
