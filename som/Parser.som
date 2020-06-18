@@ -1,5 +1,7 @@
 Parser = (
 
+  parseStr: s = ( self parse: (PStream newWithStr: s) )
+
   || parser = ( ^ Alt new: self or: parser )
 
   ,  parser = ( ^ Seq new: self then: parser )

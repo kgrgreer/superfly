@@ -1,9 +1,5 @@
 Grammar = Parser (
 
-  Integer = Range from: $0 to: $9 +;
-
-  Double: Range from: $0 to $9 , Literal new: '.' , Range from: $0 to: $9 +;
-
   ----
 
 

@@ -25,7 +25,7 @@ Hello = (
     )
 
     testParser = (
-      | p ps |
+      | p ps som |
       ps := PStream newWithStr: 'testing 1 2 3'.
       ps head println.
       (ps tail) head println.
@@ -65,6 +65,11 @@ Hello = (
       p println.
       (p parse: ps) println.
       ((Literal new: 'a') plus) parse: ps println.
+
+      '============ SOM parser =============' println.
+      som := SOMParser new.
+      (som Integer) parseStr: '1234  '.
+      (som Integer) parseStr: '1234abc  '.
     )
 
     "The 'run' method is called when initializing the system"

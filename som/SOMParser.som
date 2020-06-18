@@ -1,5 +1,10 @@
 SOMParser = Grammar (
 
+Integer = ( ^ (Range from: '0' to: '9') plus )
+
+Double = ( ^ (Range from: '0' to: '9') , (Literal new: '.') , (Range from: '0' to: '9') plus )
+
+
 ----
 
 )
