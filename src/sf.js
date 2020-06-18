@@ -1,5 +1,8 @@
 const TEST_JS = false;
 
+// TODO: break up into multiple files
+// TODO: add QUOTE
+
 if ( typeof performance == 'undefined' ) {
   var start = Date.now();
   performance = {
@@ -448,7 +451,9 @@ CLASS({
       this.doTest('not expr', "! 1 != 2");
       this.doTest('if expr', "1 == 1 if: {1} else: {2}");
       this.doTest('if expr', "1 == 2 if: {1} else: {2}");
-      this.doTest('cond expr', "cond 1 == 2 {1} {2}");
+      //this.doTest('cond expr', "cond 1 == 2 {1} {2}");
+      this.doTest('cond expr', "x == 1 ? {1} : {2}");
+      this.doTest('cond expr', "x == 1 ? {'a'} :? x == 2 {'b'} : 'c'");
 
 //      this.test('', '', this.());
     }
