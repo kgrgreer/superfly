@@ -1,7 +1,7 @@
 Repeat = Parser (
   | parser min |
 
-  parser: v = ( parser := v )
+  parser: v = ( parser := self prepare: v )
   min:    v = ( min    := v )
 
   parse: ps = ( | v ps2 |

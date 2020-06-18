@@ -1,8 +1,8 @@
 Alt = Parser (
   | a b |
 
-  a: aa = ( a := aa )
-  b: ba = ( b := ba )
+  a: v = ( a := self prepare: v )
+  b: v = ( b := self prepare: v )
 
   parse: ps = ( | ps2 |
     ps2 := a parse: ps.

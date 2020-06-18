@@ -1,10 +1,266 @@
 SOMParser = Grammar (
+  "translated from: https://github.com/SOM-st/SOM/blob/master/specification/SOM.g4"
 
-Integer = ( ^ (Range from: '0' to: '9') plus )
+  classdef = ( ^
+      (self Identifier) , (self Equal) , (self superclass) ,
+      (self instanceFields) , (self method)  star ,
+      ( (self Separator) , (self classFields) , ((self method)  star) ) optional ,
+      (self EndTerm)
+  )
 
-Double = ( ^ (Range from: '0' to: '9') , (Literal new: '.') , (Range from: '0' to: '9') plus )
+  superclass = ( ^
+    (self Identifier) optional , (self NewTerm)
+  )
+
+  instanceFields = ( ^
+    ( (self Or) , (self variable)  star , (self Or) ) optional
+  )
+
+  classFields = ( ^
+    ( (self Or) , (self variable)  star , (self Or) ) optional
+  )
+"
 
 
+method = ( ^
+  pattern Equal ( Primitive || methodBlock )
+)
+
+pattern = ( ^
+  unaryPattern || keywordPattern || binaryPattern)
+
+unaryPattern = ( ^
+  unarySelector)
+
+binaryPattern = ( ^
+  binarySelector argument)
+
+keywordPattern = ( ^
+  ( keyword argument ) plus)
+
+methodBlock = ( ^
+  NewTerm blockContents optional EndTerm)
+
+unarySelector = ( ^
+  identifier)
+
+binarySelector = ( ^
+  Or || Comma || Minus || Equal || Not || And ||  star || Div || Mod ||  plus || More ||
+  Less || At || Per || OperatorSequence)
+
+identifier = ( ^
+  Primitive || Identifier)
+
+keyword = ( ^
+  Keyword)
+
+argument = ( ^
+  variable)
+
+blockContents = ( ^
+  ( Or localDefs Or ) optional
+  blockBody)
+
+localDefs = ( ^
+  variable star)
+
+blockBody = ( ^
+    Exit result
+  || expression ( Period blockBody optional ) optional)
+
+result = ( ^
+  expression Period optional)
+
+expression = ( ^
+  assignation || evaluation)
+
+assignation = ( ^
+  assignments evaluation)
+
+assignments = ( ^
+  assignment plus)
+
+assignment = ( ^
+  variable Assign)
+
+evaluation = ( ^
+  primary messages optional)
+
+primary = ( ^
+  variable || nestedTerm || nestedBlock || literal)
+
+variable = ( ^
+  identifier)
+
+messages = ( ^
+    unaryMessage plus binaryMessage star keywordMessage optional
+  || binaryMessage plus keywordMessage optional
+  || keywordMessage)
+
+unaryMessage = ( ^
+  unarySelector)
+
+binaryMessage = ( ^
+  binarySelector binaryOperand)
+
+binaryOperand = ( ^
+  primary unaryMessage star)
+
+keywordMessage = ( ^
+  ( keyword formula ) plus)
+
+formula = ( ^
+  binaryOperand binaryMessage star)
+
+nestedTerm = ( ^
+  NewTerm expression EndTerm)
+
+literal = ( ^
+  literalArray || literalSymbol || literalString || literalNumber)
+
+literalArray = ( ^
+  Pound NewTerm
+  literal star
+  EndTerm)
+
+literalNumber = ( ^ (self negativeDecimal || (self literalDecimal) ) )
+
+literalDecimal = ( ^ (self literalInteger) || (self literalDouble))
+
+negativeDecimal = ( ^ (self Minus) (self literalDecimal) )
+
+literalInteger = ( ^ (self Integer) )
+
+literalDouble = ( ^ (self Double) )
+
+literalSymbol = ( ^ (self Pound) ( (self string) || (self selector) ))
+
+literalString = ( ^ (self string) )
+
+selector = ( ^ (self binarySelector) || (self keywordSelector) || (self unarySelector))
+
+keywordSelector = ( ^ (self Keyword) || (self KeywordSequence) )
+
+string = ( ^ (self STString) )
+
+nestedBlock = ( ^
+  (self NewBlock) , (self blockPattern) optional , (self blockContents) optional , (self EndBlock)
+)
+
+blockPattern = ( ^ (self blockArguments) , (self Or) )
+
+blockArguments = ( ^ ((self Colon) , (self argument)) plus )
+
+"
+  Integer = ( ^ (self Num)  plus )
+
+  Double = ( ^ (self Num) , '.' , (self Num)  plus )
+
+  Alpha = ( ^ (Range from: 'a' to: 'Z') | (Range from: 'A' to: 'Z') )
+
+  Num = ( ^ Range from: '0' to: '9' )
+
+  AlphaNum = ( ^ (self Alpha) | (self Num) )
+
+  Identifier = ( ^ (self Alpha) , ((self AlphaNum)  star) )
+
+  Comment = ( ^ (Literal new: '"') , '"' not  star , '"' )
+
+  Whitespace = ( ^ (Literal new: ' ') | '\t' | '\r' | '\n'  plus )
+
+  Primitive = ( ^ (Literal new: 'primitive') )
+
+  Equal = ( ^ (Literal new: '=') )
+
+  Separator = ( ^ (Literal new: '----') , '-'  star )
+
+  NewTerm = ( ^ (Literal new: '(') )
+
+  EndTerm = ( ^ (Literal new: ')') )
+
+  Or = ( ^ (Literal new: '|') )
+
+  Comma = ( ^ (Literal new: ',') )
+
+  Minus = ( ^ (Literal new: '-') )
+
+  Not = ( ^ (Literal new: '~') )
+
+  And = ( ^ (Literal new: '&') )
+
+   star = ( ^ (Literal new: '*') )
+
+  Div = ( ^ (Literal new: '/') )
+
+  Mod = ( ^ (Literal new: '\\') )
+
+   plus = ( ^ (Literal new: '+') )
+
+  More = ( ^ (Literal new: '>') )
+
+  Less = ( ^ (Literal new: '<') )
+
+  At = ( ^ (Literal new: '@') )
+
+  Per = ( ^ (Literal new: '%') )
+
+  OperatorSequence = ( ^
+    (this Not)   | (this And)  | (this Or)    | (this  star) | (this Div)  |
+    (this Mod)   | (this  plus) | (this Equal) | (this More) | (this Less) |
+    (this Comma) | (this At)   | (this Per)   | (this Minus)  plus
+  )
+
+  Colon = ( ^ (Literal new: ':') )
+
+  NewBlock = ( ^ (Literal new: '[') )
+
+  EndBlock = ( ^ (Literal new: ']') )
+
+  Pound = ( ^ (Literal new: '#') )
+
+  Exit= ( ^ (Literal new: '^') )
+
+  Period = ( ^ (Literal new: '.') )
+
+  Assign = ( ^ (Literal new: ':=') )
+
+  Keyword = ( ^ (self Identifier) , (self Colon) )
+
+  KeywordSequence = ( ^ (self Keyword)  plus )
+
+  STStringChar = ( ^
+    (Literal new: '\\t')  ||
+    (Literal new: '\\b')  ||
+    (Literal new: '\\n')  ||
+    (Literal new: '\\r')  ||
+    (Literal new: '\\f')  ||
+    (Literal new: '\\0')  ||
+    (Literal new: '\\\')  ||
+    (Literal new: '\\\\') ||
+    ((Literal new: '\'') || (Literal new: '\\') not)
+  )
+
+  STString = ( ^
+    (Literal new: '\''), ((self STStringChar)  star) , '\''
+  )
+
+"
+= ( ^ (Literal new: '') )
+
+STString:
+    '\''
+    (   '\\t'
+      | '\\b'
+      | '\\n'
+      | '\\r'
+      | '\\f'
+      | '\\0'
+      | '\\\''
+      | '\\\\'
+      |  ~('\''| '\\')
+    )*
+    '\'';
+"
 ----
 
 )

@@ -1,8 +1,8 @@
 Seq = Parser (
   | a b |
 
-  a: v = ( a := v )
-  b: v = ( b := v )
+  a: v = ( a := self prepare: v )
+  b: v = ( b := self prepare: v )
 
   parse: ps = ( | ps2 |
     ps := a parse: ps.
