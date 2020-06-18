@@ -1,0 +1,28 @@
+Literal = Parser (
+  | str value |
+
+  str:   s = ( str := s )
+  value: v = ( value := v )
+
+  parse: ps = (
+    1 to: (str length) do: [ :i |
+      (str charAt: i) = (ps head) ifFalse: [ ^ nil ].
+      ps := ps tail
+    ].
+    ^ ps value: value
+  )
+
+  ----
+  new: str = ( | l |
+    l := Literal new.
+    l str: str.
+    l value: str.
+    ^l
+  )
+  new: str value: value = ( | l |
+    l := Literal new.
+    l str: str.
+    l value: value.
+    ^l
+  )
+)

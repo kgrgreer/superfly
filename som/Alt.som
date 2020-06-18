@@ -1,0 +1,22 @@
+Alt = Parser (
+  | a b |
+
+  a: aa = ( a := aa )
+  b: ba = ( b := ba )
+
+  parse: ps = ( | ps2 |
+    ps2 := a parse: ps.
+    ps2 notNil ifTrue: [ ^ ps2 ].
+    ps2 := b parse: ps.
+    ps2 notNil ifTrue: [ ^ ps2 ].
+    ^ nil
+  )
+
+  ----
+  new: a or: b = ( | p |
+    p := Alt new.
+    p a: a.
+    p b: b.
+    ^p
+  )
+)

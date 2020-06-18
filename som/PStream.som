@@ -1,0 +1,42 @@
+PStream = (
+  | str pos value |
+
+  str:   s = ( str   := s )
+  value: v = ( value := v ) value = ( ^value )
+  pos:   p = ( pos   := p ) pos   = ( ^pos )
+
+  head = (
+    ^ str charAt: pos
+  )
+
+  tail = (
+    | newPS |
+    newPS := PStream new.
+    newPS str: str.
+    newPS pos: (pos + 1).
+    newPS value: (newPS head).
+    ^newPS
+  )
+
+  tail: value = (
+    | newPS |
+    newPS := PStream new.
+    newPS str: str.
+    newPS pos: (pos + 1).
+    newPS value: value.
+    ^newPS
+  )
+
+  asString = (
+    ^ 'PStream(' + pos + ',' + str + ',' + (self head) + ',' + value + ')'
+  )
+
+  ----
+
+   newWithStr: str = ( | newPS |
+     newPS := PStream new.
+     newPS str: str.
+     newPS pos: 1.
+     ^newPS
+   )
+)

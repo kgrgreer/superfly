@@ -1,0 +1,10 @@
+Parser = (
+
+  || parser = ( ^ Alt new: self or: parser )
+
+  ,  parser = ( ^ Seq new: self then: parser )
+
+  star = ( ^ Repeat parser: self )
+
+  plus = ( ^ Repeat parser: self min: 1 )
+)

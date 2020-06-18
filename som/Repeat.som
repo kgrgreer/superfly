@@ -1,0 +1,38 @@
+Repeat = Parser (
+  | parser min |
+
+  parser: v = ( parser := v )
+  min:    v = ( min    := v )
+
+  parse: ps = ( | v ps2 |
+    v := Vector new.
+    [ true ] whileTrue: [
+      '---------------- parse (1) ' print.
+      ps println.
+      ps2 := (parser parse: ps).
+      (ps2 isNil) ifTrue: [
+        (v size) < min ifTrue: [ ^ nil ].
+
+        ^ ps tail: v
+      ].
+
+      v , (ps value).
+      ps := ps2.
+    ]
+  )
+
+  ----
+  parser: parser min: min = ( | r |
+    r := Repeat new.
+    r parser: parser.
+    r min:    min.
+    ^r
+  )
+
+  parser: parser = ( | r |
+    r := Repeat new.
+    r parser: parser.
+    r min:    0.
+    ^r
+  )
+)

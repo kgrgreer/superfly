@@ -1,0 +1,74 @@
+
+
+Hello = (
+
+    test = ( | str parser b |
+      str := 'fooba r was here'.
+      'Inside test' println.
+      'More inside' println.
+      str println.
+      str length println.
+      1 to: str length do: [ :i | i println. (str charAt: i) println. ].
+      ('Abc' charAt: 1) println.
+      '========= TESTING BLOCKS ==========' println.
+      b := [ 42 println ].
+      b value.
+      b value.
+      b value.
+      b := [ :a | a println ].
+      b value: 42.
+      #( 1 2 3 4 5 ) asString println.
+      #( 1 2 3 4 5 ) do: [ :i | i println ].
+      (Vector new) , 1 , 2 , 3, 4, 5 println.
+
+      self testParser
+    )
+
+    testParser = (
+      | p ps |
+      ps := PStream newWithStr: 'testing 1 2 3'.
+      ps head println.
+      (ps tail) head println.
+      ((ps tail) tail) head println.
+      ps value: '<code>' value println.
+      [ 442 ] value println. "^ not required"
+
+      '============ Testing LITERAL =============' println.
+      ((Literal new: 'test') parse: ps) value println.
+
+      '============ Testing ALT =============' println.
+      ((Alt
+        new: (Literal new: 'ing')
+        or:  (Literal new: 'test'))
+       parse: ps ) value println.
+       ((Alt
+         new: (Literal new: 'test')
+         or:  (Literal new: 'ing'))
+        parse: ps ) value println.
+
+      (((Literal new: 'ing') || (Literal new: 'test')) parse: ps) println.
+
+      '============ Testing Seq =============' println.
+
+      (((((Literal new: 'test') , (Literal new: 'ing')) parse: ps) value) at: 1) println.
+
+      '============ Testing Range =============' println.
+      ((Range from: 'a' to: 'z') inRange: 'm' hashcode ) println.
+      ((Range from: 'a' to: 'z') inRange: 'M' hashcode ) println.
+      ((Range from: 'a' to: 'z') parse: ps) println.
+      ((Range from: 'A' to: 'Z') parse: ps) println.
+
+      '============ Testing Repeat =============' println.
+      ps := PStream newWithStr: 'aaaaaabbbb'.
+      p := (Repeat parser: (Literal new: 'a')).
+      ps println.
+      p println.
+      (p parse: ps) println.
+      ((Literal new: 'a') plus) parse: ps println.
+    )
+
+    "The 'run' method is called when initializing the system"
+    run = ('Hello, World from SOM' println. self test )
+
+
+)

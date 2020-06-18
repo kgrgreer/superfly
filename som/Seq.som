@@ -1,0 +1,22 @@
+Seq = Parser (
+  | a b |
+
+  a: v = ( a := v )
+  b: v = ( b := v )
+
+  parse: ps = ( | ps2 |
+    ps := a parse: ps.
+    ps isNil ifTrue: [ ^ nil ].
+    ps2 := b parse: ps.
+    ps2 isNil ifTrue: [ ^ nil ].
+    ^ Array with: (ps value) with: (ps2 value)
+  )
+
+  ----
+  new: a then: b = ( | p |
+    p := Seq new.
+    p a: a.
+    p b: b.
+    ^p
+  )
+)
