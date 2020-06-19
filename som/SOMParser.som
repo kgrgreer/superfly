@@ -19,109 +19,111 @@ SOMParser = Grammar (
   classFields = ( ^
     ( (self Or) , (self variable)  star , (self Or) ) optional
   )
-"
+
+  method = ( ^
+    (self pattern) , (self Equal) , ( self Primitive || self methodBlock )
+  )
+
+  pattern = ( ^
+    (self unaryPattern) || (self keywordPattern) || (self binaryPattern)
+  )
 
 
-method = ( ^
-  pattern Equal ( Primitive || methodBlock )
-)
+unaryPattern = ( ^ (self unarySelector) )
 
-pattern = ( ^
-  unaryPattern || keywordPattern || binaryPattern)
-
-unaryPattern = ( ^
-  unarySelector)
-
-binaryPattern = ( ^
-  binarySelector argument)
+binaryPattern = ( ^ (self binarySelector) , (self argument) )
 
 keywordPattern = ( ^
-  ( keyword argument ) plus)
+  ( (self keyword) , (self argument) ) plus
+)
 
 methodBlock = ( ^
-  NewTerm blockContents optional EndTerm)
+  (self NewTerm) , (self blockContents) optional , (self EndTerm)
+)
 
-unarySelector = ( ^
-  identifier)
+unarySelector = ( ^ (self identifier) )
 
 binarySelector = ( ^
-  Or || Comma || Minus || Equal || Not || And ||  star || Div || Mod ||  plus || More ||
-  Less || At || Per || OperatorSequence)
+  (self Or)   || (self Comma) || (self Minus) || (self Equal) || (self Not)  ||
+  (self And)  || (self Star)  || (self Div)   || (self Mod)   || (self Plus) ||
+  (self More) || (self Less)  || (self At)    || (self Per)   || (self OperatorSequence)
+)
 
-identifier = ( ^
-  Primitive || Identifier)
 
-keyword = ( ^
-  Keyword)
+identifier = ( ^ (self Primitive) || (self Identifier) )
 
-argument = ( ^
-  variable)
+keyword = ( ^ (self Keyword) )
+
+argument = ( ^ (self variable) )
+
 
 blockContents = ( ^
-  ( Or localDefs Or ) optional
-  blockBody)
+  ( (self Or) (self localDefs) (self Or) ) optional , (self blockBody)
+)
 
-localDefs = ( ^
-  variable star)
+localDefs = ( ^ (self variable) star )
 
 blockBody = ( ^
-    Exit result
-  || expression ( Period blockBody optional ) optional)
+    (self Exit) (self result) ||
+    (self expression) ( (self Period) , (self blockBody) optional ) optional)
+)
 
 result = ( ^
-  expression Period optional)
+  (self expression) , (self Period) , (self optional)
+)
 
-expression = ( ^
-  assignation || evaluation)
+expression = ( ^ (self assignation) || (self evaluation) )
 
-assignation = ( ^
-  assignments evaluation)
+assignation = ( ^ (self assignments) , (self evaluation) )
 
-assignments = ( ^
-  assignment plus)
+assignments = ( ^ (self assignment) , (self plus) )
 
-assignment = ( ^
-  variable Assign)
+assignment = ( ^ (self variable) , (self Assign) )
 
-evaluation = ( ^
-  primary messages optional)
+evaluation = ( ^ (self primary) , (self messages) optional )
 
 primary = ( ^
-  variable || nestedTerm || nestedBlock || literal)
+  (self variable)    ||
+  (self nestedTerm)  ||
+  (self nestedBlock) ||
+  (self literal)
+)
 
-variable = ( ^
-  identifier)
+variable = ( ^ (self identifier) )
 
 messages = ( ^
-    unaryMessage plus binaryMessage star keywordMessage optional
+  unaryMessage plus binaryMessage star keywordMessage optional
   || binaryMessage plus keywordMessage optional
   || keywordMessage)
 
-unaryMessage = ( ^
-  unarySelector)
+unaryMessage = ( ^ (self unarySelector) )
 
-binaryMessage = ( ^
-  binarySelector binaryOperand)
+binaryMessage = ( ^ (self binarySelector) , (self binaryOperand) ) )
 
-binaryOperand = ( ^
-  primary unaryMessage star)
+binaryOperand = ( ^ (self primary) , (self unaryMessage) star)
 
 keywordMessage = ( ^
-  ( keyword formula ) plus)
+  ( (self keyword) (self formula) ) plus
+)
 
-formula = ( ^
-  binaryOperand binaryMessage star)
+formula = ( ^ (self binaryOperand) , (self binaryMessage) star) )
 
 nestedTerm = ( ^
-  NewTerm expression EndTerm)
+  (self NewTerm) , (self expression) , (self EndTerm)
+)
 
 literal = ( ^
-  literalArray || literalSymbol || literalString || literalNumber)
+  (self literalArray)  ||
+  (self literalSymbol) ||
+  (self literalString) ||
+  (self literalNumber)
+)
 
 literalArray = ( ^
-  Pound NewTerm
-  literal star
-  EndTerm)
+  (self Pound) , (self NewTerm) ,
+  (self literal) star ,
+  (self EndTerm)
+)
 
 literalNumber = ( ^ (self negativeDecimal || (self literalDecimal) ) )
 
@@ -205,9 +207,9 @@ blockArguments = ( ^ ((self Colon) , (self argument)) plus )
   Per = ( ^ (Literal new: '%') )
 
   OperatorSequence = ( ^
-    (this Not)   | (this And)  | (this Or)    | (this  star) | (this Div)  |
-    (this Mod)   | (this  plus) | (this Equal) | (this More) | (this Less) |
-    (this Comma) | (this At)   | (this Per)   | (this Minus)  plus
+    (this Not)   | (this And)   | (this Or)    | (this  star) | (this Div)  |
+    (this Mod)   | (this  plus) | (this Equal) | (this More)  | (this Less) |
+    (this Comma) | (this At)    | (this Per)   | (this Minus)  plus
   )
 
   Colon = ( ^ (Literal new: ':') )
