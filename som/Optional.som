@@ -5,7 +5,7 @@ Optional = Parser (
 
   parse: ps = ( | ps2 |
     ps2 := parser parse: ps.
-    [ ps2 isNil ] ifTrue: [ ^ ps ].
+    ( ps2 isNil ) ifTrue: [ ^ ps ].
     ^ ps2
   )
 

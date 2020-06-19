@@ -5,12 +5,12 @@ Range = Parser (
   end:   v = ( end   := v )
 
   inRange: h = (
-    ^ ( ( h >= start ) && [ ^ ( h <= end ) ])
+    ^ ( ( h >= start ) && [ ^ ( h <= end ) ] )
   )
 
   parse: ps = ( | h |
     h := (ps head) hashcode.
-    (self inRange: h) ifTrue: [ ^ ps tail: (ps head) ].
+    (self inRange: h) ifTrue: [ ^ ps tail: h ].
     ^ nil
   )
 

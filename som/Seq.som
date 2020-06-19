@@ -9,7 +9,7 @@ Seq = Parser (
     ps isNil ifTrue: [ ^ nil ].
     ps2 := b parse: ps.
     ps2 isNil ifTrue: [ ^ nil ].
-    ^ Array with: (ps value) with: (ps2 value)
+    ^ ps2 value: (Array with: (ps value) with: (ps2 value))
   )
 
   ----

@@ -5,7 +5,9 @@ Literal = Parser (
   value: v = ( value := v )
 
   parse: ps = (
+
     1 to: (str length) do: [ :i |
+"('---literal ' + (str charAt: i) + ' = ' + (ps head)) println."
       (str charAt: i) = (ps head) ifFalse: [ ^ nil ].
       ps := ps tail
     ].

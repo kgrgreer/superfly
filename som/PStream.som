@@ -11,6 +11,7 @@ PStream = (
 
   tail = (
     | newPS |
+"self println."
     newPS := PStream new.
     newPS str: str.
     newPS pos: (pos + 1).
@@ -20,6 +21,7 @@ PStream = (
 
   tail: value = (
     | newPS |
+"self println."
     newPS := PStream new.
     newPS str: str.
     newPS pos: (pos + 1).

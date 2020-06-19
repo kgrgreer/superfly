@@ -61,13 +61,12 @@ SOMParser = Grammar (
   localDefs = ( ^ (self variable) star )
 
   blockBody = ( ^
-    (self Exit) , (self result) ||
-    (self expression) , ( (self Period) , (self blockBody) optional ) optional
+    ((self Exit) , (self result)) ||
+    (self expression) , ( (self Period) , ((self blockBody) optional)) optional
   )
 
-
   result = ( ^
-    (self expression) , (self Period) , (self optional)
+    (self expression) , ((self Period) optional)
   )
 
   expression = ( ^ (self assignation) || (self evaluation) )
@@ -91,11 +90,11 @@ SOMParser = Grammar (
 
   messages = ( ^
     (
-      (self unaryMessage) plus ,
-      (self binaryMessage) star ,
-      (self keywordMessage) optional
+      ((self unaryMessage) plus) ,
+      ((self binaryMessage) star) ,
+      ((self keywordMessage) optional)
     ) ||
-    (self binaryMessage) plus , (self keywordMessage optional) ||
+    (((self binaryMessage) plus) , ((self keywordMessage) optional)) ||
     (self keywordMessage)
   )
 
@@ -149,8 +148,8 @@ SOMParser = Grammar (
 
   nestedBlock = ( ^
     (self NewBlock) ,
-    (self blockPattern) optional ,
-    (self blockContents) optional ,
+    ((self blockPattern) optional) ,
+    ((self blockContents) optional) ,
     (self EndBlock)
   )
 
@@ -160,25 +159,25 @@ SOMParser = Grammar (
 
   Integer = ( ^ (self Num) plus )
 
-  Double = ( ^ (self Num) , '.' , (self Num) plus )
+  Double = ( ^ ((self Num) plus) , '.' , ((self Num) plus) )
 
-  Alpha = ( ^ (Range from: 'a' to: 'Z') | (Range from: 'A' to: 'Z') )
+  Alpha = ( ^ (Range from: 'a' to: 'z') || (Range from: 'A' to: 'Z') )
 
   Num = ( ^ Range from: '0' to: '9' )
 
-  AlphaNum = ( ^ (self Alpha) | (self Num) )
+  AlphaNum = ( ^ (self Alpha) || (self Num) )
 
   Identifier = ( ^ (self Alpha) , ((self AlphaNum) star) )
 
-  Comment = ( ^ (Literal new: '"') , '"' not star , '"' )
+  Comment = ( ^ (Literal new: '"') , ((NotChars new: '"') star) , '"' )
 
-  Whitespace = ( ^ (Literal new: ' ') | '\t' | '\r' | '\n' plus )
+  Whitespace = ( ^ ((Literal new: ' ') || '\t' || '\r' || '\n') plus )
 
   Primitive = ( ^ (Literal new: 'primitive') )
 
   Equal = ( ^ (Literal new: '=') )
 
-  Separator = ( ^ (Literal new: '----') , '-' star )
+  Separator = ( ^ (Repeat parser: '-' min: 4) )
 
   NewTerm = ( ^ (Literal new: '(') )
 
@@ -187,33 +186,24 @@ SOMParser = Grammar (
   Or = ( ^ (Literal new: '|') )
 
   Comma = ( ^ (Literal new: ',') )
-
   Minus = ( ^ (Literal new: '-') )
-
-  Not = ( ^ (Literal new: '~') )
-
-  And = ( ^ (Literal new: '&') )
-
-  Star = ( ^ (Literal new: '*') )
-
-  Div = ( ^ (Literal new: '/') )
-
-  Mod = ( ^ (Literal new: '\\') )
-
-  Plus = ( ^ (Literal new: '+') )
-
-  More = ( ^ (Literal new: '>') )
-
-  Less = ( ^ (Literal new: '<') )
-
-  At = ( ^ (Literal new: '@') )
-
-  Per = ( ^ (Literal new: '%') )
+  Not   = ( ^ (Literal new: '~') )
+  And   = ( ^ (Literal new: '&') )
+  Star  = ( ^ (Literal new: '*') )
+  Div   = ( ^ (Literal new: '/') )
+  Mod   = ( ^ (Literal new: '\\') )
+  Plus  = ( ^ (Literal new: '+') )
+  More  = ( ^ (Literal new: '>') )
+  Less  = ( ^ (Literal new: '<') )
+  At    = ( ^ (Literal new: '@') )
+  Per   = ( ^ (Literal new: '%') )
 
   OperatorSequence = ( ^
-    (this Not)   | (this And)   | (this Or)    | (this  star) | (this Div)  |
-    (this Mod)   | (this  plus) | (this Equal) | (this More)  | (this Less) |
-    (this Comma) | (this At)    | (this Per)   | (this Minus) plus
+    (
+      (self Not)   || (self And)  || (self Or)    || (self Star) || (self Div)  ||
+      (self Mod)   || (self Plus) || (self Equal) || (self More) || (self Less) ||
+      (self Comma) || (self At)   || (self Per)   || (self Minus)
+    ) plus
   )
 
   Colon = ( ^ (Literal new: ':') )
@@ -241,13 +231,13 @@ SOMParser = Grammar (
     (Literal new: '\\r')  ||
     (Literal new: '\\f')  ||
     (Literal new: '\\0')  ||
-    (Literal new: '\\\')  ||
+    (Literal new: '\\\'') ||
     (Literal new: '\\\\') ||
-    ((Literal new: '\'') || (Literal new: '\\') not)
+    (NotChars new: '\\\'')
   )
 
   STString = ( ^
-    (Literal new: '\''), ((self STStringChar) star) , '\''
+    (Literal new: '\'') , ((self STStringChar) star) , '\''
   )
 
 ----
