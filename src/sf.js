@@ -350,7 +350,7 @@ CLASS({
       );
     },
 
-    function not() {
+    function notOp() {
       return this.action(
         this.seq('!', this.whitespace(), this.expr()),
         function (a) { return NOT(a[2]); });
@@ -360,7 +360,7 @@ CLASS({
       var p;
       return (s) => {
         if ( ! p ) p = this.alt(
-          this.not(),
+          this.notOp(),
           this.fn(),
           this.let(),
           this.number(),
