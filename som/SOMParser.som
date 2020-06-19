@@ -28,135 +28,137 @@ SOMParser = Grammar (
     (self unaryPattern) || (self keywordPattern) || (self binaryPattern)
   )
 
+  unaryPattern = ( ^ (self unarySelector) )
 
-unaryPattern = ( ^ (self unarySelector) )
+  binaryPattern = ( ^ (self binarySelector) , (self argument) )
 
-binaryPattern = ( ^ (self binarySelector) , (self argument) )
+  keywordPattern = ( ^
+    ( (self keyword) , (self argument) ) plus
+  )
 
-keywordPattern = ( ^
-  ( (self keyword) , (self argument) ) plus
-)
+  methodBlock = ( ^
+    (self NewTerm) , (self blockContents) optional , (self EndTerm)
+  )
 
-methodBlock = ( ^
-  (self NewTerm) , (self blockContents) optional , (self EndTerm)
-)
+  unarySelector = ( ^ (self identifier) )
 
-unarySelector = ( ^ (self identifier) )
+  binarySelector = ( ^
+    (self Or)   || (self Comma) || (self Minus) || (self Equal) || (self Not)  ||
+    (self And)  || (self Star)  || (self Div)   || (self Mod)   || (self Plus) ||
+    (self More) || (self Less)  || (self At)    || (self Per)   || (self OperatorSequence)
+  )
 
-binarySelector = ( ^
-  (self Or)   || (self Comma) || (self Minus) || (self Equal) || (self Not)  ||
-  (self And)  || (self Star)  || (self Div)   || (self Mod)   || (self Plus) ||
-  (self More) || (self Less)  || (self At)    || (self Per)   || (self OperatorSequence)
-)
+  identifier = ( ^ (self Primitive) || (self Identifier) )
 
+  keyword = ( ^ (self Keyword) )
 
-identifier = ( ^ (self Primitive) || (self Identifier) )
+  argument = ( ^ (self variable) )
 
-keyword = ( ^ (self Keyword) )
+  blockContents = ( ^
+    ( (self Or) , (self localDefs) , (self Or) ) optional , (self blockBody)
+  )
 
-argument = ( ^ (self variable) )
+  localDefs = ( ^ (self variable) star )
 
+  blockBody = ( ^
+    (self Exit) , (self result) ||
+    (self expression) , ( (self Period) , (self blockBody) optional ) optional)
+  )
 
-blockContents = ( ^
-  ( (self Or) (self localDefs) (self Or) ) optional , (self blockBody)
-)
+  result = ( ^
+    (self expression) , (self Period) , (self optional)
+  )
 
-localDefs = ( ^ (self variable) star )
+  expression = ( ^ (self assignation) || (self evaluation) )
 
-blockBody = ( ^
-    (self Exit) (self result) ||
-    (self expression) ( (self Period) , (self blockBody) optional ) optional)
-)
+  assignation = ( ^ (self assignments) , (self evaluation) )
 
-result = ( ^
-  (self expression) , (self Period) , (self optional)
-)
+  assignments = ( ^ (self assignment) , (self plus) )
 
-expression = ( ^ (self assignation) || (self evaluation) )
+  assignment = ( ^ (self variable) , (self Assign) )
 
-assignation = ( ^ (self assignments) , (self evaluation) )
+  evaluation = ( ^ (self primary) , (self messages) optional )
 
-assignments = ( ^ (self assignment) , (self plus) )
+  primary = ( ^
+    (self variable)    ||
+    (self nestedTerm)  ||
+    (self nestedBlock) ||
+    (self literal)
+  )
 
-assignment = ( ^ (self variable) , (self Assign) )
+  variable = ( ^ (self identifier) )
 
-evaluation = ( ^ (self primary) , (self messages) optional )
+  messages = ( ^
+    (
+      (self unaryMessage) plus ,
+      (self binaryMessage) star ,
+      (self keywordMessage) optional
+    ) ||
+    (self binaryMessage) plus , (self keywordMessage optional) ||
+    (self keywordMessage)
+  )
 
-primary = ( ^
-  (self variable)    ||
-  (self nestedTerm)  ||
-  (self nestedBlock) ||
-  (self literal)
-)
+  unaryMessage = ( ^ (self unarySelector) )
 
-variable = ( ^ (self identifier) )
+  binaryMessage = ( ^ (self binarySelector) , (self binaryOperand) ) )
 
-messages = ( ^
-  unaryMessage plus binaryMessage star keywordMessage optional
-  || binaryMessage plus keywordMessage optional
-  || keywordMessage)
+  binaryOperand = ( ^ (self primary) , (self unaryMessage) star)
 
-unaryMessage = ( ^ (self unarySelector) )
+  keywordMessage = ( ^ ( (self keyword) , (self formula) ) plus )
 
-binaryMessage = ( ^ (self binarySelector) , (self binaryOperand) ) )
+  formula = ( ^ (self binaryOperand) , (self binaryMessage) star) )
 
-binaryOperand = ( ^ (self primary) , (self unaryMessage) star)
+  nestedTerm = ( ^
+    (self NewTerm) , (self expression) , (self EndTerm)
+  )
 
-keywordMessage = ( ^
-  ( (self keyword) (self formula) ) plus
-)
+  literal = ( ^
+    (self literalArray)  ||
+    (self literalSymbol) ||
+    (self literalString) ||
+    (self literalNumber)
+  )
 
-formula = ( ^ (self binaryOperand) , (self binaryMessage) star) )
+  literalArray = ( ^
+    (self Pound) , (self NewTerm) ,
+    (self literal) star ,
+    (self EndTerm)
+  )
 
-nestedTerm = ( ^
-  (self NewTerm) , (self expression) , (self EndTerm)
-)
+  literalNumber = ( ^ (self negativeDecimal || (self literalDecimal) ) )
 
-literal = ( ^
-  (self literalArray)  ||
-  (self literalSymbol) ||
-  (self literalString) ||
-  (self literalNumber)
-)
+  literalDecimal = ( ^ (self literalInteger) || (self literalDouble))
 
-literalArray = ( ^
-  (self Pound) , (self NewTerm) ,
-  (self literal) star ,
-  (self EndTerm)
-)
+  negativeDecimal = ( ^ (self Minus) (self literalDecimal) )
 
-literalNumber = ( ^ (self negativeDecimal || (self literalDecimal) ) )
+  literalInteger = ( ^ (self Integer) )
 
-literalDecimal = ( ^ (self literalInteger) || (self literalDouble))
+  literalDouble = ( ^ (self Double) )
 
-negativeDecimal = ( ^ (self Minus) (self literalDecimal) )
+  literalSymbol = ( ^ (self Pound) ( (self string) || (self selector) ))
 
-literalInteger = ( ^ (self Integer) )
+  literalString = ( ^ (self string) )
 
-literalDouble = ( ^ (self Double) )
+  selector = ( ^ (self binarySelector) || (self keywordSelector) || (self unarySelector))
 
-literalSymbol = ( ^ (self Pound) ( (self string) || (self selector) ))
+  keywordSelector = ( ^ (self Keyword) || (self KeywordSequence) )
 
-literalString = ( ^ (self string) )
+  string = ( ^ (self STString) )
 
-selector = ( ^ (self binarySelector) || (self keywordSelector) || (self unarySelector))
+  nestedBlock = ( ^
+    (self NewBlock) ,
+    (self blockPattern) optional ,
+    (self blockContents) optional ,
+    (self EndBlock)
+  )
 
-keywordSelector = ( ^ (self Keyword) || (self KeywordSequence) )
+  blockPattern = ( ^ (self blockArguments) , (self Or) )
 
-string = ( ^ (self STString) )
+  blockArguments = ( ^ ((self Colon) , (self argument)) plus )
 
-nestedBlock = ( ^
-  (self NewBlock) , (self blockPattern) optional , (self blockContents) optional , (self EndBlock)
-)
+  Integer = ( ^ (self Num) plus )
 
-blockPattern = ( ^ (self blockArguments) , (self Or) )
-
-blockArguments = ( ^ ((self Colon) , (self argument)) plus )
-
-"
-  Integer = ( ^ (self Num)  plus )
-
-  Double = ( ^ (self Num) , '.' , (self Num)  plus )
+  Double = ( ^ (self Num) , '.' , (self Num) plus )
 
   Alpha = ( ^ (Range from: 'a' to: 'Z') | (Range from: 'A' to: 'Z') )
 
@@ -164,17 +166,17 @@ blockArguments = ( ^ ((self Colon) , (self argument)) plus )
 
   AlphaNum = ( ^ (self Alpha) | (self Num) )
 
-  Identifier = ( ^ (self Alpha) , ((self AlphaNum)  star) )
+  Identifier = ( ^ (self Alpha) , ((self AlphaNum) star) )
 
-  Comment = ( ^ (Literal new: '"') , '"' not  star , '"' )
+  Comment = ( ^ (Literal new: '"') , '"' not star , '"' )
 
-  Whitespace = ( ^ (Literal new: ' ') | '\t' | '\r' | '\n'  plus )
+  Whitespace = ( ^ (Literal new: ' ') | '\t' | '\r' | '\n' plus )
 
   Primitive = ( ^ (Literal new: 'primitive') )
 
   Equal = ( ^ (Literal new: '=') )
 
-  Separator = ( ^ (Literal new: '----') , '-'  star )
+  Separator = ( ^ (Literal new: '----') , '-' star )
 
   NewTerm = ( ^ (Literal new: '(') )
 
@@ -209,7 +211,7 @@ blockArguments = ( ^ ((self Colon) , (self argument)) plus )
   OperatorSequence = ( ^
     (this Not)   | (this And)   | (this Or)    | (this  star) | (this Div)  |
     (this Mod)   | (this  plus) | (this Equal) | (this More)  | (this Less) |
-    (this Comma) | (this At)    | (this Per)   | (this Minus)  plus
+    (this Comma) | (this At)    | (this Per)   | (this Minus) plus
   )
 
   Colon = ( ^ (Literal new: ':') )
@@ -228,7 +230,7 @@ blockArguments = ( ^ ((self Colon) , (self argument)) plus )
 
   Keyword = ( ^ (self Identifier) , (self Colon) )
 
-  KeywordSequence = ( ^ (self Keyword)  plus )
+  KeywordSequence = ( ^ (self Keyword) plus )
 
   STStringChar = ( ^
     (Literal new: '\\t')  ||
@@ -243,26 +245,9 @@ blockArguments = ( ^ ((self Colon) , (self argument)) plus )
   )
 
   STString = ( ^
-    (Literal new: '\''), ((self STStringChar)  star) , '\''
+    (Literal new: '\''), ((self STStringChar) star) , '\''
   )
 
-"
-= ( ^ (Literal new: '') )
-
-STString:
-    '\''
-    (   '\\t'
-      | '\\b'
-      | '\\n'
-      | '\\r'
-      | '\\f'
-      | '\\0'
-      | '\\\''
-      | '\\\\'
-      |  ~('\''| '\\')
-    )*
-    '\'';
-"
 ----
 
 )
