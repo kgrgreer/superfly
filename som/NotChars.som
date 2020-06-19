@@ -1,0 +1,20 @@
+NotChars = Parser (
+  | str |
+
+  str: v = ( str := v )
+
+  parse: ps = ( | h |
+    h := (ps head).
+    1 to: (str length) do: [ :i |
+      ( h = (str charAt: i) ) ifTrue: [ ^ nil ].
+    ].
+    ^ ps tail: h.
+  )
+
+  ----
+  new: str = ( | r |
+    r := NotChars new.
+    r str: str.
+    ^r
+  )
+)

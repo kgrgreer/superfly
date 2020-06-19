@@ -1,0 +1,80 @@
+SOMInterpreterTest = (
+  | interp |
+
+  test: m with: str = ( | res |
+    ('--------------Testing: ' + m + ' with ' + str) println.
+    res := ((interp perform: m) parse: (PStream newWithStr: (str + '    EOF'))).
+    ('result: ' + res) println.
+    '' println.
+  )
+
+  run = (
+    interp := SOMParser new.
+    interp perform: #Integer.
+
+"
+    self test: # with: ''.
+"
+    self test: #Num with: '9'.
+    self test: #Num with: 'a'.
+
+    self test: #Alpha with: 'a'.
+    self test: #Alpha with: '9'.
+
+    self test: #AlphaNum with: '9'.
+    self test: #AlphaNum with: 'a'.
+
+    self test: #Identifier with: 'a'.
+    self test: #Identifier with: 'abc'.
+    self test: #Identifier with: 'abc123'.
+
+    self test: #Integer with: '1'.
+    self test: #Integer with: '123'.
+
+    self test: #Double with: '1.2'.
+    self test: #Double with: '123.456'.
+
+    self test: #Comment with: '" comment "'.
+
+    self test: #Whitespace with: ' \r\n\t  '.
+
+    self test: #STStringChar with: 'a'.
+
+    self test: #string with: '\'\''.
+    self test: #string with: '\'abc\''.
+
+    self test: #negativeDecimal with: '-1'.
+    self test: #negativeDecimal with: '-1.2'.
+
+    self test: #Separator with: '---'.
+    self test: #Separator with: '----'.
+    self test: #Separator with: '-----'.
+
+    self test: #OperatorSequence with: ',-~&*/\\+><@%'.
+
+    self test: #Keyword with: 'abc:'.
+
+    self test: #blockArguments with: ':abc'.
+    self test: #blockArguments with: ':abc:def'.
+
+    self test: #blockPattern with: ':abc|'.
+    self test: #blockPattern with: ':abc:def|'.
+
+    self test: #primary with '1'.
+
+    self test: #assignation with '1'.
+
+    self test: #expression with '1'.
+
+    self test: #result with '1'.
+
+    self test: #blockBody with: '^1.'.
+
+    self test: #blockContents with: '|a|^1.'.
+
+    self test: #nestedBlock with: '[]'.
+
+
+    'Done.' println.
+  )
+)
