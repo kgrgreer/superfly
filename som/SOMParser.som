@@ -2,10 +2,10 @@ SOMParser = Grammar (
   "translated from: https://github.com/SOM-st/SOM/blob/master/specification/SOM.g4"
 
   classdef = ( ^
-      (self Identifier) , (self Equal) , (self superclass) ,
-      (self instanceFields) , (self method)  star ,
-      ( (self Separator) , (self classFields) , ((self method)  star) ) optional ,
-      (self EndTerm)
+    (self Identifier) , (self Equal) , (self superclass) ,
+    (self instanceFields) , (self method)  star ,
+    ( (self Separator) , (self classFields) , ((self method)  star) ) optional ,
+    (self EndTerm)
   )
 
   superclass = ( ^
@@ -13,11 +13,11 @@ SOMParser = Grammar (
   )
 
   instanceFields = ( ^
-    ( (self Or) , (self variable)  star , (self Or) ) optional
+    ( (self Or) , (self variable) star , (self Or) ) optional
   )
 
   classFields = ( ^
-    ( (self Or) , (self variable)  star , (self Or) ) optional
+    ( (self Or) , (self variable) star , (self Or) ) optional
   )
 
   method = ( ^
@@ -62,8 +62,9 @@ SOMParser = Grammar (
 
   blockBody = ( ^
     (self Exit) , (self result) ||
-    (self expression) , ( (self Period) , (self blockBody) optional ) optional)
+    (self expression) , ( (self Period) , (self blockBody) optional ) optional
   )
+
 
   result = ( ^
     (self expression) , (self Period) , (self optional)
@@ -100,13 +101,13 @@ SOMParser = Grammar (
 
   unaryMessage = ( ^ (self unarySelector) )
 
-  binaryMessage = ( ^ (self binarySelector) , (self binaryOperand) ) )
+  binaryMessage = ( ^ (self binarySelector) , (self binaryOperand) )
 
   binaryOperand = ( ^ (self primary) , (self unaryMessage) star)
 
   keywordMessage = ( ^ ( (self keyword) , (self formula) ) plus )
 
-  formula = ( ^ (self binaryOperand) , (self binaryMessage) star) )
+  formula = ( ^ (self binaryOperand) , (self binaryMessage) star )
 
   nestedTerm = ( ^
     (self NewTerm) , (self expression) , (self EndTerm)
@@ -120,22 +121,23 @@ SOMParser = Grammar (
   )
 
   literalArray = ( ^
-    (self Pound) , (self NewTerm) ,
+    (self Pound) ,
+    (self NewTerm) ,
     (self literal) star ,
     (self EndTerm)
   )
 
-  literalNumber = ( ^ (self negativeDecimal || (self literalDecimal) ) )
+  literalNumber = ( ^ (self negativeDecimal) || (self literalDecimal) )
 
-  literalDecimal = ( ^ (self literalInteger) || (self literalDouble))
+  literalDecimal = ( ^ (self literalInteger) || (self literalDouble) )
 
-  negativeDecimal = ( ^ (self Minus) (self literalDecimal) )
+  negativeDecimal = ( ^ (self Minus) , (self literalDecimal) )
 
   literalInteger = ( ^ (self Integer) )
 
   literalDouble = ( ^ (self Double) )
 
-  literalSymbol = ( ^ (self Pound) ( (self string) || (self selector) ))
+  literalSymbol = ( ^ (self Pound) , ( (self string) || (self selector) ))
 
   literalString = ( ^ (self string) )
 
@@ -192,13 +194,13 @@ SOMParser = Grammar (
 
   And = ( ^ (Literal new: '&') )
 
-   star = ( ^ (Literal new: '*') )
+  Star = ( ^ (Literal new: '*') )
 
   Div = ( ^ (Literal new: '/') )
 
   Mod = ( ^ (Literal new: '\\') )
 
-   plus = ( ^ (Literal new: '+') )
+  Plus = ( ^ (Literal new: '+') )
 
   More = ( ^ (Literal new: '>') )
 
@@ -222,7 +224,7 @@ SOMParser = Grammar (
 
   Pound = ( ^ (Literal new: '#') )
 
-  Exit= ( ^ (Literal new: '^') )
+  Exit = ( ^ (Literal new: '^') )
 
   Period = ( ^ (Literal new: '.') )
 

@@ -68,6 +68,7 @@ Hello = (
 
       '============ SOM parser =============' println.
       som := SOMParser new.
+      SOMParser methods do: [ :m | m println].
       (som Integer) parseStr: '1234  '.
       (som Integer) parseStr: '1234abc  '.
     )
