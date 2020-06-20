@@ -3,7 +3,7 @@ SOMInterpreterTest = (
 
   test: m with: str = ( | res |
     ('--------------Testing: ' + m + ' with ' + str) println.
-    res := ((interp perform: m) parse: (PStream newWithStr: (str + '    EOF'))).
+    res := ((interp perform: m) parse: (PStream newWithStr: (str + '  '))).
     ('result: ' + res) println.
     '' println.
   )
@@ -56,6 +56,7 @@ SOMInterpreterTest = (
     self test: #OperatorSequence with: ',-~&*/\\+><@%'.
 
     self test: #Keyword with: 'abc:'.
+    self test: #Keyword with: ' abc:'.
 
     self test: #literalArray with: '#(123)'.
     self test: #literalSymbol with: 'abc'.
