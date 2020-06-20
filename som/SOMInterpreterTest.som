@@ -10,7 +10,11 @@ SOMInterpreterTest = (
 
   run = (
     interp := SOMParser new.
+
+    interp compile.
     interp perform: #Integer.
+    )
+    run2 = (
 
     Sym grammar: self symbol: #foo.
 

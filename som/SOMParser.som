@@ -3,7 +3,7 @@ SOMParser = Grammar (
 
   classdef = ( ^
     (self Identifier) , (self Equal) , (self superclass) ,
-    (self instanceFields) , (self method)  star ,
+    (self instanceFields) , (self method) star ,
     ( (self Separator) , (self classFields) , ((self method)  star) ) optional ,
     (self EndTerm)
   )
