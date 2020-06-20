@@ -1,6 +1,9 @@
 Grammar = Parser (
 
-  ----
+  sym: s = (
+    ^ Sym grammar: self symbol: s
+  )
 
+  ----
 
 )

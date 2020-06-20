@@ -113,7 +113,7 @@ SOMParser = Grammar (
   )
 
   literal = ( ^
-    (self literalArray)  ||
+    (self sym: #literalArray)  ||
     (self literalSymbol) ||
     (self literalString) ||
     (self literalNumber)
@@ -122,7 +122,7 @@ SOMParser = Grammar (
   literalArray = ( ^
     (self Pound) ,
     (self NewTerm) ,
-    (self literal) star ,
+      ((self sym: #literal) star) ,
     (self EndTerm)
   )
 
@@ -165,7 +165,7 @@ SOMParser = Grammar (
 
   Num = ( ^ Range from: '0' to: '9' )
 
-  AlphaNum = ( ^ (self Alpha) || (self Num) )
+  AlphaNum = ( ^ (self sym: #Alpha) || (self sym: #Num) )
 
   Identifier = ( ^ (self Alpha) , ((self AlphaNum) star) )
 

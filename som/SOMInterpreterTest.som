@@ -12,6 +12,8 @@ SOMInterpreterTest = (
     interp := SOMParser new.
     interp perform: #Integer.
 
+    Sym grammar: self symbol: #foo.
+
 "
     self test: # with: ''.
 "
@@ -54,13 +56,18 @@ SOMInterpreterTest = (
 
     self test: #Keyword with: 'abc:'.
 
+    self test: #literalArray with: '#(123)'.
+    self test: #literalSymbol with: 'abc'.
+    self test: #literalString with: '\'abc\''.
+    self test: #literalNumber with: '123'.
+
     self test: #blockArguments with: ':abc'.
     self test: #blockArguments with: ':abc:def'.
 
     self test: #blockPattern with: ':abc|'.
     self test: #blockPattern with: ':abc:def|'.
 
-    self test: #primary with '1'.
+"    self test: #primary with '1'.
 
     self test: #assignation with '1'.
 
@@ -74,7 +81,7 @@ SOMInterpreterTest = (
 
     self test: #nestedBlock with: '[]'.
 
-
+"
     'Done.' println.
   )
 )

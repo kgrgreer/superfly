@@ -1,0 +1,18 @@
+Sym = Parser (
+  | grammar symbol |
+
+  grammar: v = ( grammar := v )
+  symbol:  v = ( symbol  := v )
+
+  parse: ps = (
+    ^ (grammar perform: symbol) parse: ps
+  )
+
+  ----
+  grammar: g symbol: s = ( | p |
+    p := Sym new.
+    p grammar: g.
+    p symbol: s.
+    ^p
+  )
+)
