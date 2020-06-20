@@ -1,12 +1,14 @@
 Sym = Parser (
-  | grammar symbol |
+  | grammar symbol parser |
 
   grammar: v = ( grammar := v )
   symbol:  v = ( symbol  := v )
 
   parse: ps = (
+    (parser isNil) ifTrue: [ parser := (grammar perform: symbol) ].
+
     ('   ------------------------------ SYM: ' + symbol) println.
-    ^ (grammar perform: symbol) parse: ps
+    ^ parser parse: ps
   )
 
   ----
