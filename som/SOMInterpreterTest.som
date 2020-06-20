@@ -81,6 +81,8 @@ SOMInterpreterTest = (
 
     self test: #nestedBlock with: '[]'.
 
+    self test: #SKIP with: '   "comment"   '.
+
     'Done.' println.
   )
 )

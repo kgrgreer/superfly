@@ -240,6 +240,8 @@ SOMParser = Grammar (
     (Literal new: '\'') , ((self STStringChar) star) , '\''
   )
 
+  SKIP = ( ^ ((self Whitespace) || (self Comment)) star )
+
 ----
 
 )
