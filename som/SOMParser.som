@@ -175,28 +175,32 @@ SOMParser = Grammar (
 
   Primitive = ( ^ self nt: 'primitive' )
 
-  Equal = ( ^ (Literal new: '=') )
 
   Separator = ( ^ (Repeat parser: '-' min: 4) )
 
-  NewTerm = ( ^ (Literal new: '(') )
-
-  EndTerm = ( ^ (Literal new: ')') )
-
-  Or = ( ^ (Literal new: '|') )
-
-  Comma = ( ^ (Literal new: ',') )
-  Minus = ( ^ (Literal new: '-') )
-  Not   = ( ^ (Literal new: '~') )
-  And   = ( ^ (Literal new: '&') )
-  Star  = ( ^ (Literal new: '*') )
-  Div   = ( ^ (Literal new: '/') )
-  Mod   = ( ^ (Literal new: '\\') )
-  Plus  = ( ^ (Literal new: '+') )
-  More  = ( ^ (Literal new: '>') )
-  Less  = ( ^ (Literal new: '<') )
-  At    = ( ^ (Literal new: '@') )
-  Per   = ( ^ (Literal new: '%') )
+  Equal    = ( ^ self nt: '='  )
+  NewTerm  = ( ^ self nt: '('  )
+  EndTerm  = ( ^ self nt: ')'  )
+  Or       = ( ^ self nt: '|'  )
+  Comma    = ( ^ self nt: ','  )
+  Minus    = ( ^ self nt: '-'  )
+  Not      = ( ^ self nt: '~'  )
+  And      = ( ^ self nt: '&'  )
+  Star     = ( ^ self nt: '*'  )
+  Div      = ( ^ self nt: '/'  )
+  Mod      = ( ^ self nt: '\\' )
+  Plus     = ( ^ self nt: '+'  )
+  More     = ( ^ self nt: '>'  )
+  Less     = ( ^ self nt: '<'  )
+  At       = ( ^ self nt: '@'  )
+  Per      = ( ^ self nt: '%'  )
+  Colon    = ( ^ self nt: ':'  )
+  NewBlock = ( ^ self nt: '['  )
+  EndBlock = ( ^ self nt: ']'  )
+  Pound    = ( ^ self nt: '#'  )
+  Exit     = ( ^ self nt: '^'  )
+  Period   = ( ^ self nt: '.'  )
+  Assign   = ( ^ self nt: ':=' )
 
   OperatorSequence = ( ^
     (
@@ -205,20 +209,6 @@ SOMParser = Grammar (
       (self Comma) || (self At)   || (self Per)   || (self Minus)
     ) plus
   )
-
-  Colon = ( ^ (Literal new: ':') )
-
-  NewBlock = ( ^ (Literal new: '[') )
-
-  EndBlock = ( ^ (Literal new: ']') )
-
-  Pound = ( ^ (Literal new: '#') )
-
-  Exit = ( ^ (Literal new: '^') )
-
-  Period = ( ^ (Literal new: '.') )
-
-  Assign = ( ^ (Literal new: ':=') )
 
   Keyword = ( ^ (self Identifier) , (self Colon) )
 
@@ -236,8 +226,8 @@ SOMParser = Grammar (
     (NotChars new: '\\\'')
   )
 
-  STString = ( ^
-    (Literal new: '\'') , ((self STStringChar) star) , '\''
+  STString = ( ^ self nt:
+    ((Literal new: '\'') , ((self STStringChar) star) , '\'')
   )
 
   SKIP = ( ^ ((self Whitespace) || (self Comment)) star )
