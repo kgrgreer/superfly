@@ -5,6 +5,7 @@ Sym = Parser (
   symbol:  v = ( symbol  := v )
 
   parse: ps = (
+    ('   ------------------------------ SYM: ' + symbol) println.
     ^ (grammar perform: symbol) parse: ps
   )
 

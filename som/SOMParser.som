@@ -62,7 +62,7 @@ SOMParser = Grammar (
 
   blockBody = ( ^
     ((self Exit) , (self result)) ||
-    (self expression) , ( (self Period) , ((self blockBody) optional)) optional
+    (self expression) , ( (self Period) , ((self sym: #blockBody) optional)) optional
   )
 
   result = ( ^
@@ -81,8 +81,8 @@ SOMParser = Grammar (
 
   primary = ( ^
     (self variable)    ||
-    (self nestedTerm)  ||
-    (self nestedBlock) ||
+    (self sym: #nestedTerm)  ||
+    (self sym: #nestedBlock) ||
     (self literal)
   )
 
@@ -109,7 +109,7 @@ SOMParser = Grammar (
   formula = ( ^ (self binaryOperand) , (self binaryMessage) star )
 
   nestedTerm = ( ^
-    (self NewTerm) , (self expression) , (self EndTerm)
+    (self NewTerm) , (self sym: #expression) , (self EndTerm)
   )
 
   literal = ( ^
@@ -148,8 +148,8 @@ SOMParser = Grammar (
 
   nestedBlock = ( ^
     (self NewBlock) ,
-    ((self blockPattern) optional) ,
-    ((self blockContents) optional) ,
+      ((self sym: #blockPattern) optional) ,
+      ((self sym: #blockContents) optional) ,
     (self EndBlock)
   )
 
