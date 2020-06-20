@@ -6,6 +6,7 @@ PStream = (
   pos:   p = ( pos   := p ) pos   = ( ^pos )
 
   head = (
+    pos > str length ifTrue: [ ^ nil ]. 
     ^ str charAt: pos
   )
 

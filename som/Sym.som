@@ -7,7 +7,7 @@ Sym = Parser (
   parse: ps = (
     (parser isNil) ifTrue: [ parser := (grammar perform: symbol) ].
 
-    ('   ------------------------------ SYM: ' + symbol) println.
+"    ('   ------------------------------ SYM: ' + symbol) println."
     ^ parser parse: ps
   )
 

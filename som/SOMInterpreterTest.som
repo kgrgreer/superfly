@@ -59,7 +59,7 @@ SOMInterpreterTest = (
     self test: #Keyword with: ' abc:'.
 
     self test: #literalArray with: '#(123)'.
-    self test: #literalSymbol with: 'abc'.
+    self test: #literalSymbol with: '#abc'.
     self test: #literalString with: '\'abc\''.
     self test: #literalNumber with: '123'.
 

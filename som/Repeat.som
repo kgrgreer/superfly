@@ -7,7 +7,7 @@ Repeat = Parser (
   parse: ps = ( | v ps2 |
     v := Vector new.
     [ true ] whileTrue: [
-('repeat: ' + ps) println.
+"('repeat: ' + ps) println."
       ps2 := (parser parse: ps).
       (ps2 isNil) ifTrue: [
         (v size) < min ifTrue: [ ^ nil ].
