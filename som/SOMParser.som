@@ -157,9 +157,9 @@ SOMParser = Grammar (
 
   blockArguments = ( ^ ((self Colon) , (self argument)) plus )
 
-  Integer = ( ^ (self Num) plus )
+  Integer = ( ^ self nt: (self Num) plus )
 
-  Double = ( ^ ((self Num) plus) , '.' , ((self Num) plus) )
+  Double = ( ^ self nt: ((self Num) plus) , '.' , ((self Num) plus) )
 
   Alpha = ( ^ (Range from: 'a' to: 'z') || (Range from: 'A' to: 'Z') )
 
@@ -167,16 +167,12 @@ SOMParser = Grammar (
 
   AlphaNum = ( ^ (self sym: #Alpha) || (self sym: #Num) )
 
-  Identifier = ( ^ (self Alpha) , ((self AlphaNum) star) )
-
-  Comment = ( ^ (Literal new: '"') , ((NotChars new: '"') star) , '"' )
-
-  Whitespace = ( ^ ((Literal new: ' ') || '\t' || '\r' || '\n') plus )
+  Identifier = ( ^ self nt: (self Alpha) , ((self AlphaNum) star) )
 
   Primitive = ( ^ self nt: 'primitive' )
 
 
-  Separator = ( ^ (Repeat parser: '-' min: 4) )
+  Separator = ( ^ self nt: (Repeat parser: '-' min: 4) )
 
   Equal    = ( ^ self nt: '='  )
   NewTerm  = ( ^ self nt: '('  )
@@ -210,7 +206,7 @@ SOMParser = Grammar (
     ) plus
   )
 
-  Keyword = ( ^ (self Identifier) , (self Colon) )
+  Keyword = ( ^ self nt: (self Identifier) , (self Colon) )
 
   KeywordSequence = ( ^ (self Keyword) plus )
 
@@ -229,6 +225,11 @@ SOMParser = Grammar (
   STString = ( ^ self nt:
     ((Literal new: '\'') , ((self STStringChar) star) , '\'')
   )
+
+
+  Comment = ( ^ (Literal new: '"') , ((NotChars new: '"') star) , '"' )
+
+  Whitespace = ( ^ ((Literal new: ' ') || '\t' || '\r' || '\n') plus )
 
   SKIP = ( ^ ((self Whitespace) || (self Comment)) star )
 
