@@ -173,7 +173,7 @@ SOMParser = Grammar (
 
   Whitespace = ( ^ ((Literal new: ' ') || '\t' || '\r' || '\n') plus )
 
-  Primitive = ( ^ (Literal new: 'primitive') )
+  Primitive = ( ^ self nt: 'primitive' )
 
   Equal = ( ^ (Literal new: '=') )
 

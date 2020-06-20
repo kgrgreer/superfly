@@ -4,17 +4,8 @@ Grammar = Parser (
     ^ Sym grammar: self symbol: s
   )
 
-  compile = (
-    ((self class) methods) do: [ :c |
-      | sig h p |
-      sig := ((c signature) asString).
-      sig := sig substringFrom: 1 to: (sig length).
-      h := (sig charAt: 1) hashcode.
-      ( h < (('a' hashcode) - 1) ) ifTrue: [
-        p := self perform: (c signature).
-        sig println.
-      ].
-    ]
+  nt: p = (
+    ^ NonTerminal grammar: self parser: p
   )
   ----
 

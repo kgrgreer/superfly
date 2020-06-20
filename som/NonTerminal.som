@@ -1,0 +1,17 @@
+NonTerminal = Parser (
+  | skip parser |
+
+  skip:    v = ( skip   := v )
+  parser:  v = ( parser := self prepare: v)
+
+  parse: ps = ( ^ parser parse: (skip parse: ps) )
+
+  ----
+
+  grammar: g parser: p = ( | n |
+    n := NonTerminal new.
+    n skip:    (g SKIP).
+    n parser:  p.
+    ^n
+  )
+)

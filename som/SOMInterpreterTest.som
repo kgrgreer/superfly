@@ -11,10 +11,7 @@ SOMInterpreterTest = (
   run = (
     interp := SOMParser new.
 
-    interp compile.
     interp perform: #Integer.
-    )
-    run2 = (
 
     Sym grammar: self symbol: #foo.
 
@@ -84,6 +81,9 @@ SOMInterpreterTest = (
     self test: #blockContents with: '|a|^1.'.
 
     self test: #nestedBlock with: '[]'.
+
+    self test: #Primitive with: 'primitive'.
+    self test: #Primitive with: '   primitive'.
 
     self test: #SKIP with: '   "comment"   '.
 
