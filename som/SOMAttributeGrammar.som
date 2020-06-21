@@ -1,14 +1,14 @@
 SOMAttributeGrammar = SOMParser (
 
   arrayToStr: a = (
+    "TODO: do this more efficiently"
     a class = Vector ifTrue: [ a := a asArray ].
-    ('----atoS ' + a) println.
     ^ a inject: '' into: [ :str :elem | str + (elem asString) ]
   )
 
   Identifier = (
     ^ super Identifier action: [ :a |
-    "a at: 1 + " self arrayToStr: (a at: 2) ]
+    (a at: 1) asString + (self arrayToStr: (a at: 2)) ]
   )
 
 ----

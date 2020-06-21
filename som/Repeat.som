@@ -15,7 +15,7 @@ Repeat = Parser (
         ^ ps value: v
       ].
 
-      v , (ps value).
+      v , (ps2 value).
       ps := ps2.
     ]
   )

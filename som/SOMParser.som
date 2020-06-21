@@ -165,7 +165,7 @@ SOMParser = Grammar (
 
   Num = ( ^ Range from: '0' to: '9' )
 
-  AlphaNum = ( ^ (self sym: #Alpha) || (self sym: #Num) )
+  AlphaNum = ( ^ (self Alpha) || (self Num) )
 
   Identifier = ( ^ self nt: (self Alpha) , ((self AlphaNum) star) )
 
