@@ -1,0 +1,20 @@
+Action = Parser (
+  | parser block |
+
+  parser: v = ( parser := self prepare: v )
+  block:  v = ( block  := v )
+
+  parse: ps = (
+    ps := parser parse: ps.
+    ps notNil ifTrue: [ ps := ps value: (block value: ps value) ].
+    ^ ps
+  )
+
+  ----
+  parser: parser block: block = ( | r |
+    r := Action new.
+    r parser: parser.
+    r block:  block.
+    ^r
+  )
+)

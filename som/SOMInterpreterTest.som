@@ -30,7 +30,7 @@ SOMInterpreterTest = (
     self test: #Identifier with: 'a'.
     self test: #Identifier with: 'abc'.
     self test: #Identifier with: 'abc123'.
-
+[
     self test: #Integer with: '1'.
     self test: #Integer with: '123'.
 
@@ -109,7 +109,7 @@ SOMInterpreterTest = (
     self test: #classdef with: 'Trig = Math (\"trig library\")'.
     self test: #classdef with: 'Trig = Math (\"trig library\" | x y z|)'.
     self test: #classdef with: 'Math = (\"math library\" pi=(^3))'.
-
+].
     'Done.' println.
   )
 )

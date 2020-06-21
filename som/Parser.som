@@ -18,4 +18,6 @@ Parser = (
   not = ( ^ Not parser: self )
 
   optional = ( ^ Optional parser: self )
+
+  action: block = ( ^ Action parser: self block: block )
 )

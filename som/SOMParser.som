@@ -171,7 +171,6 @@ SOMParser = Grammar (
 
   Primitive = ( ^ self nt: 'primitive' )
 
-
   Separator = ( ^ self nt: (Repeat parser: '-' min: 4) )
 
   Equal    = ( ^ self nt: '='  )

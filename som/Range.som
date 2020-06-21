@@ -10,7 +10,7 @@ Range = Parser (
 
   parse: ps = ( | h |
     h := (ps head) hashcode.
-    (self inRange: h) ifTrue: [ ^ ps tail: h ].
+    (self inRange: h) ifTrue: [ ^ ps tail: (ps head) ].
     ^ nil
   )
 
