@@ -9,7 +9,7 @@ SOMInterpreterTest = (
   )
 
   run = (
-    interp := SOMParser new.
+    interp := SOMAttributeGrammar  new.
 
     interp perform: #Integer.
 

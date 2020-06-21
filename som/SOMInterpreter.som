@@ -1,4 +1,4 @@
-SOMInterpreter = SOMParser (
+SOMInterpreter = SOMAttributeGrammar  (
 ----
 
 )
