@@ -2,7 +2,7 @@ SOMInterpreterTest = (
   | interp |
 
   test: m with: str = ( | res |
-    ('--------------Testing: ' + m + ' with ' + str) println.
+    ('TESTING: ' + m + ' with ' + str) println.
     res := ((interp perform: m) parse: (PStream newWithStr: (str + '  '))).
     ('result: ' + res) println.
     '' println.
@@ -36,6 +36,8 @@ SOMInterpreterTest = (
 
     self test: #Double with: '1.2'.
     self test: #Double with: '123.456'.
+    self test: #Double with: ' 1.2'.
+    self test: #Double with: '  123.456'.
 
     self test: #Comment with: '" comment "'.
 
@@ -87,6 +89,26 @@ SOMInterpreterTest = (
     self test: #Primitive with: '   primitive'.
 
     self test: #SKIP with: '   "comment"   '.
+    self test: #literalArray with: '#(1 12 123)'.
+    self test: #literalArray with: '#(1.2)'.
+    self test: #literal with: '1.2'.
+    self test: #literalArray with: '#(1 12 123 1.2 2.3)'.
+    self test: #method with: 'pi=primitive'.
+    self test: #method with: 'f = (^3)'.
+    self test: #blockContents with: '^3.14'.
+    self test: #blockBody with: '^3.14'.
+    self test: #methodBlock with: '(^3.14)'. "doesn't work"
+    self test: #methodBlock with: '(3.14)'.
+    self test: #result with: '3.14'.
+    self test: #methodBlock with: '()'. "doesn't work"
+    self test: #method with: 'f = (^3.14)'.
+    self test: #method with: 'f = (^5)'.
+    self test: #method with: 'f = (^\"foo\")'.
+    self test: #classdef with: 'Math = ()'.
+    self test: #classdef with: 'Math = (\"math library\")'.
+    self test: #classdef with: 'Trig = Math (\"trig library\")'.
+    self test: #classdef with: 'Trig = Math (\"trig library\" | x y z|)'.
+    self test: #classdef with: 'Math = (\"math library\" pi=(^3))'.
 
     'Done.' println.
   )

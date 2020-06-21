@@ -37,7 +37,7 @@ SOMParser = Grammar (
   )
 
   methodBlock = ( ^
-    (self NewTerm) , (self blockContents) optional , (self EndTerm)
+    (self NewTerm) , ((self blockContents) optional), (self EndTerm)
   )
 
   unarySelector = ( ^ (self identifier) )
@@ -61,8 +61,8 @@ SOMParser = Grammar (
   localDefs = ( ^ (self variable) star )
 
   blockBody = ( ^
-    ((self Exit) , (self result)) ||
-    (self expression) , ( (self Period) , ((self sym: #blockBody) optional)) optional
+    (self Exit) , (self result) ||
+    ((self expression) , ( (self Period) , ((self sym: #blockBody) optional)) optional)
   )
 
   result = ( ^
@@ -128,7 +128,7 @@ SOMParser = Grammar (
 
   literalNumber = ( ^ (self negativeDecimal) || (self literalDecimal) )
 
-  literalDecimal = ( ^ (self literalInteger) || (self literalDouble) )
+  literalDecimal = ( ^ (self literalDouble) || (self literalInteger) )
 
   negativeDecimal = ( ^ (self Minus) , (self literalDecimal) )
 
@@ -157,9 +157,9 @@ SOMParser = Grammar (
 
   blockArguments = ( ^ ((self Colon) , (self argument)) plus )
 
-  Integer = ( ^ self nt: (self Num) plus )
+  Integer = ( ^ self nt: self Num plus )
 
-  Double = ( ^ self nt: ((self Num) plus) , '.' , ((self Num) plus) )
+  Double = ( ^ self nt: self Num plus , '.' , self Num plus )
 
   Alpha = ( ^ (Range from: 'a' to: 'z') || (Range from: 'A' to: 'Z') )
 
