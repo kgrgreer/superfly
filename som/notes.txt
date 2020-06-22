@@ -12,6 +12,8 @@ Using hashCode of first character instead.
 
 Improvement Ideas:
 
+Very Easy (could be done in v1):
+
 1. Support array indexing syntax which is converted to at: and at:set:.
 Ex. a[1] -> a at: 1  and a[1]: 42 -> a at: 1 set: 42
 
@@ -22,24 +24,27 @@ so you can initialize when declaring.
 
 4. Add Smalltalk '.' syntax, which would make constructors easier to write.
 
-5. Add 'char' support.
-
-6. Add optional typing and have it affect method selection.
-
-7. Standardize assignment syntax: ie. fn = ( ... ) vs var := ( ... ).
+5. Standardize assignment syntax: ie. fn = ( ... ) vs var := ( ... ).
 Make always just use ':'.
 
-8. Replace instance variables with properties. Would get rid of implicit context
-which could then be used for 'self'.
+6. Rename 'self' to 'this' to be more familiar to Java/JS developers.
 
-9. Rename 'self' to 'this' to be more familiar to Java/JS developers.
-
-10. Add perl-style multi-line strings with user specified delimiter to avoid
+7. Add perl-style multi-line strings with user specified delimiter to avoid
 ever having to escape the terminator. Simpler syntax than perl would be XML-ish:
 <string opt-delim>
   blah blah blah
   </string>, not an issue because it didn't have the same opt-delim
 </string opt-delim>
+
+
+Later Versionss:
+
+8. Add 'char' support.
+
+9. Add optional typing and have it affect method selection.
+
+10. Replace instance variables with properties. Would get rid of implicit context
+which could then be used for 'self'.
 
 11. Remove 'classdef' from language and just create instances of Class directly.
 
