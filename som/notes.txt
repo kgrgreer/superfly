@@ -1,0 +1,53 @@
+Issues with implementing SOM in SOM:
+
+1. Strings aren't comparable, which is needed for the 'range' parser.
+Using hashCode of first character instead.
+
+2. No asDouble method on String.
+
+3. No array literals with expressions.
+
+
+
+
+Improvement Ideas:
+
+1. Support array indexing syntax which is converted to at: and at:set:.
+Ex. a[1] -> a at: 1  and a[1]: 42 -> a at: 1 set: 42
+
+2. Support Java/Js style comments, with nesting, instead of "" comments.
+
+3. Replace | x y z | local variable declaration with something like 'let' or 'var'
+so you can initialize when declaring.
+
+4. Add Smalltalk '.' syntax, which would make constructors easier to write.
+
+5. Add 'char' support.
+
+6. Add optional typing and have it affect method selection.
+
+7. Standardize assignment syntax: ie. fn = ( ... ) vs var := ( ... ).
+Make always just use ':'.
+
+8. Replace instance variables with properties. Would get rid of implicit context
+which could then be used for 'self'.
+
+9. Rename 'self' to 'this' to be more familiar to Java/JS developers.
+
+10. Add perl-style multi-line strings with user specified delimiter to avoid
+ever having to escape the terminator. Simpler syntax than perl would be XML-ish:
+<string opt-delim>
+  blah blah blah
+  </string>, not an issue because it didn't have the same opt-delim
+</string opt-delim>
+
+11. Remove 'classdef' from language and just create instances of Class directly.
+
+12. Superfly the types.
+
+13. Add Axioms and major axiom types.
+
+14. Some way to capture a block's AST for interpretation as an mlang rather than
+directly execute.
+
+15. Concurrency.
