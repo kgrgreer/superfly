@@ -6,7 +6,7 @@ PStream = (
   pos:   p = ( pos   := p ) pos   = ( ^pos )
 
   head = (
-    pos > str length ifTrue: [ ^ nil ]. 
+    pos > str length ifTrue: [ ^ nil ].
     ^ str charAt: pos
   )
 
@@ -26,6 +26,15 @@ PStream = (
     newPS := PStream new.
     newPS str: str.
     newPS pos: (pos + 1).
+    newPS value: value.
+    ^newPS
+  )
+
+  setValue: value = (
+    | newPS |
+    newPS := PStream new.
+    newPS str: str.
+    newPS pos: pos.
     newPS value: value.
     ^newPS
   )
