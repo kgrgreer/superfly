@@ -126,15 +126,11 @@ SOMParser = Grammar (
     (self EndTerm)
   )
 
-  literalNumber = ( ^ (self negativeDecimal) || (self literalDecimal) )
-
-  literalDecimal = ( ^ (self literalDouble) || (self literalInteger) )
-
-  negativeDecimal = ( ^ (self Minus) , (self literalDecimal) )
-
-  literalInteger = ( ^ (self Integer) )
-
-  literalDouble = ( ^ (self Double) )
+  "
+    Combines negative and positive Integer and Double into one symbol from
+    original grammar to avoid backtracking.
+  "
+  literalNumber = ( ^ (self Number) )
 
   literalSymbol = ( ^ (self Pound) , ( (self string) || (self selector) ))
 
@@ -160,6 +156,12 @@ SOMParser = Grammar (
   Integer = ( ^ self nt: self Num plus )
 
   Double = ( ^ self nt: self Num plus , '.' , self Num plus )
+
+  Number = ( ^ self nt:
+    (Literal new: '-') optional,
+    self Num plus ,
+    ((Literal new: '.') , self Num plus) optional
+  )
 
   Alpha = ( ^ (Range from: 'a' to: 'z') || (Range from: 'A' to: 'Z') )
 

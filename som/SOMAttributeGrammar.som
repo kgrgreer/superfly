@@ -1,5 +1,16 @@
 SOMAttributeGrammar = SOMParser (
 
+  print: v = (
+    v class = Vector ifTrue: [ v := v asArray ].
+    v class = Array ifTrue: [
+      '[' print.
+      v do: [ :i | self print: i. ' ' print ].
+      ']' print
+    ] ifFalse: [
+      v print
+    ]
+  )
+
   arrayToStr: a = (
     "TODO: do this more efficiently"
     a class = Vector ifTrue: [ a := a asArray ].
@@ -11,8 +22,23 @@ SOMAttributeGrammar = SOMParser (
     (a at: 1) asString + (self arrayToStr: (a at: 2)) ]
   )
 
-  Integer = (
-    ^ super Integer action: [ :a | (self arrayToStr: a) asInteger ]
+  Number = (
+    ^ super Number action: [ :a | | n |
+    self print: a. '' println.
+      n := ((self arrayToStr: (a at: 2)) asInteger).
+      (a at: 3) notNil ifTrue: [ | f |
+        f := 0.0 + ((self arrayToStr: ((a at: 3) at: 2)) asInteger).
+        ((a at: 3) at: 2) size timesRepeat: [ f := f // 10.0 ].
+        n := f + n
+      ].
+      (a at: 1) = '-' ifTrue: [ n := 0 - n ].
+      n
+    ]
+  )
+
+  STString = (
+    "TODO"
+    ^ super STString action: [ :a | self arrayToStr: a ]
   )
 
 ----
