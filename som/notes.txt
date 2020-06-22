@@ -56,3 +56,5 @@ which could then be used for 'self'.
 directly execute.
 
 15. Concurrency.
+
+16. Replace global variables with packages and requires:.
