@@ -11,6 +11,10 @@ SOMAttributeGrammar = SOMParser (
     (a at: 1) asString + (self arrayToStr: (a at: 2)) ]
   )
 
+  Integer = (
+    ^ super Integer action: [ :a | (self arrayToStr: a) asInteger ]
+  )
+
 ----
 
 )
