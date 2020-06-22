@@ -38,24 +38,16 @@ SOMInterpreterTest = (
     self test: #Number with: '123.12'.
     self test: #Number with: '-123.12'.
     self test: #Number with: ' 3.1415926'.
-    [
 
-    self test: #Double with: '1.2'.
-    self test: #Double with: '123.456'.
-    self test: #Double with: ' 1.2'.
-    self test: #Double with: '  123.456'.
+    self test: #STString with: '\'\''.
+    self test: #STString with: '\'abc\''.
+    [
 
     self test: #Comment with: '" comment "'.
 
     self test: #Whitespace with: ' \r\n\t  '.
 
     self test: #STStringChar with: 'a'.
-
-    self test: #string with: '\'\''.
-    self test: #string with: '\'abc\''.
-
-    self test: #negativeDecimal with: '-1'.
-    self test: #negativeDecimal with: '-1.2'.
 
     self test: #Separator with: '---'.
     self test: #Separator with: '----'.

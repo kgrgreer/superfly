@@ -37,8 +37,7 @@ SOMAttributeGrammar = SOMParser (
   )
 
   STString = (
-    "TODO"
-    ^ super STString action: [ :a | self arrayToStr: a ]
+    ^ super STString action: [ :a | self arrayToStr: (a at: 2) ]
   )
 
 ----
