@@ -220,7 +220,7 @@ SOMParser = Grammar (
   )
 
   STString = ( ^ self nt:
-    ((Literal new: '\'') , ((self STStringChar) star) , '\'')
+    ((Literal new: '\'') , self STStringChar star , '\'')
   )
 
 
