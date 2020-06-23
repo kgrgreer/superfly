@@ -20,4 +20,6 @@ Parser = (
   optional = ( ^ Optional parser: self )
 
   action: block = ( ^ Action parser: self block: block )
+
+  toStr = ( ^ StringAction parser: self )
 )

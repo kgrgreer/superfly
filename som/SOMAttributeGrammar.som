@@ -36,6 +36,10 @@ SOMAttributeGrammar = SOMParser (
     ]
   )
 
+  literalSymbol = (
+    ^ super literalSymbol toStr action: [ :s | s asSymbol ]
+  )
+
   STString = (
     ^ super STString action: [ :a | self arrayToStr: (a at: 2) ]
   )

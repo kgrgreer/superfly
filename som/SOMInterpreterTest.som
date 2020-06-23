@@ -41,7 +41,6 @@ SOMInterpreterTest = (
 
     self test: #STString with: '\'\''.
     self test: #STString with: '\'abc\''.
-    [
 
     self test: #Comment with: '" comment "'.
 
@@ -62,6 +61,8 @@ SOMInterpreterTest = (
     self test: #literalSymbol with: '#abc'.
     self test: #literalString with: '\'abc\''.
     self test: #literalNumber with: '123'.
+
+    [
 
     self test: #blockArguments with: ':abc'.
     self test: #blockArguments with: ':abc:def'.

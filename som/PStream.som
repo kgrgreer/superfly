@@ -4,6 +4,11 @@ PStream = (
   str:   s = ( str   := s )
   value: v = ( value := v ) value = ( ^value )
   pos:   p = ( pos   := p ) pos   = ( ^pos )
+  pos      = ( ^ pos )
+
+  substringFrom: start to: end = (
+    ^ str substringFrom: start to: end
+  )
 
   head = (
     pos > str length ifTrue: [ ^ nil ].
