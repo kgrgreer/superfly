@@ -18,8 +18,7 @@ SOMAttributeGrammar = SOMParser (
   )
 
   Identifier = (
-    ^ super Identifier action: [ :a |
-    (a at: 1) asString + (self arrayToStr: (a at: 2)) ]
+    ^ super Identifier toStr
   )
 
   Number = (
