@@ -153,10 +153,6 @@ SOMParser = Grammar (
 
   blockArguments = ( ^ ((self Colon) , (self argument)) plus )
 
-  Integer = ( ^ self nt: self Num plus )
-
-  Double = ( ^ self nt: self Num plus , '.' , self Num plus )
-
   Number = ( ^ self nt:
     (Literal new: '-') optional,
     self Num plus ,

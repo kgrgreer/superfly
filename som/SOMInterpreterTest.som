@@ -11,8 +11,6 @@ SOMInterpreterTest = (
   run = (
     interp := SOMAttributeGrammar  new.
 
-    interp perform: #Integer.
-
     Sym grammar: self symbol: #foo.
 
 "
