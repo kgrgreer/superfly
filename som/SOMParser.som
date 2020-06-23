@@ -2,10 +2,10 @@ SOMParser = Grammar (
   "translated from: https://github.com/SOM-st/SOM/blob/master/specification/SOM.g4"
 
   classdef = ( ^
-    (self Identifier) , (self Equal) , (self superclass) ,
-    (self instanceFields) , (self method) star ,
-    ( (self Separator) , (self classFields) , ((self method)  star) ) optional ,
-    (self EndTerm)
+    self Identifier , self Equal , self superclass ,
+    self instanceFields , self method star ,
+    ( self Separator , self classFields , (self method  star) ) optional ,
+    self EndTerm
   )
 
   superclass = ( ^
@@ -165,7 +165,7 @@ SOMParser = Grammar (
 
   AlphaNum = ( ^ self Alpha || self Num )
 
-  Identifier = ( ^ self nt: (self Alpha) , ((self AlphaNum) star) )
+  Identifier = ( ^ self nt: self Alpha , self AlphaNum star )
 
   Primitive = ( ^ self nt: 'primitive' )
 
@@ -203,19 +203,19 @@ SOMParser = Grammar (
     ) plus
   )
 
-  Keyword = ( ^ self nt: (self Identifier) , (self Colon) )
+  Keyword = ( ^ self nt: self Identifier , self Colon )
 
   KeywordSequence = ( ^ self Keyword plus )
 
   STStringChar = ( ^
-    (Literal new: '\\t')  ||
-    (Literal new: '\\b')  ||
-    (Literal new: '\\n')  ||
-    (Literal new: '\\r')  ||
-    (Literal new: '\\f')  ||
-    (Literal new: '\\0')  ||
-    (Literal new: '\\\'') ||
-    (Literal new: '\\\\') ||
+    (Literal new: '\\t') ||
+    '\\b'  ||
+    '\\n'  ||
+    '\\r'  ||
+    '\\f'  ||
+    '\\0'  ||
+    '\\\'' ||
+    '\\\\' ||
     (NotChars new: '\\\'')
   )
 
