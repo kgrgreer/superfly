@@ -55,12 +55,14 @@ SOMInterpreterTest = (
     self test: #Keyword with: 'abc:'.
     self test: #Keyword with: ' abc:'.
 
+    self test: #literalArray with: '#()'.
     self test: #literalArray with: '#(123)'.
+    self test: #literalArray with: '#(1 2 3 4 5)'.
+    [
     self test: #literalSymbol with: '#abc'.
     self test: #literalString with: '\'abc\''.
     self test: #literalNumber with: '123'.
 
-    [
 
     self test: #blockArguments with: ':abc'.
     self test: #blockArguments with: ':abc:def'.

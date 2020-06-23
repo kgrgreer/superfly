@@ -4,7 +4,7 @@ SOMAttributeGrammar = SOMParser (
     v class = Vector ifTrue: [ v := v asArray ].
     v class = Array ifTrue: [
       '[' print.
-      v do: [ :i | self print: i. ' ' print ].
+        v do: [ :i | self print: i. ' ' print ].
       ']' print
     ] ifFalse: [
       v print
@@ -37,6 +37,10 @@ SOMAttributeGrammar = SOMParser (
 
   literalSymbol = (
     ^ super literalSymbol toStr action: [ :s | s asSymbol ]
+  )
+
+  literalArray = (
+    ^ super literalArray action: [ :a | (self print: a). a at: 1 ]
   )
 
   STString = (

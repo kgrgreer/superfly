@@ -9,144 +9,144 @@ SOMParser = Grammar (
   )
 
   superclass = ( ^
-    (self Identifier) optional , (self NewTerm)
+    self Identifier optional , self NewTerm
   )
 
   instanceFields = ( ^
-    ( (self Or) , (self variable) star , (self Or) ) optional
+    ( self Or , self variable star , self Or ) optional
   )
 
   classFields = ( ^
-    ( (self Or) , (self variable) star , (self Or) ) optional
+    ( self Or , self variable star , self Or ) optional
   )
 
   method = ( ^
-    (self pattern) , (self Equal) , ( self Primitive || self methodBlock )
+    self pattern , self Equal , ( self Primitive || self methodBlock )
   )
 
   pattern = ( ^
-    (self unaryPattern) || (self keywordPattern) || (self binaryPattern)
+    self unaryPattern || self keywordPattern || self binaryPattern
   )
 
-  unaryPattern = ( ^ (self unarySelector) )
+  unaryPattern = ( ^ self unarySelector )
 
-  binaryPattern = ( ^ (self binarySelector) , (self argument) )
+  binaryPattern = ( ^ self binarySelector , self argument )
 
   keywordPattern = ( ^
-    ( (self keyword) , (self argument) ) plus
+    ( self keyword , self argument ) plus
   )
 
   methodBlock = ( ^
-    (self NewTerm) , ((self blockContents) optional), (self EndTerm)
+    self NewTerm , self blockContents optional, self EndTerm
   )
 
-  unarySelector = ( ^ (self identifier) )
+  unarySelector = ( ^ self identifier )
 
   binarySelector = ( ^
-    (self Or)   || (self Comma) || (self Minus) || (self Equal) || (self Not)  ||
-    (self And)  || (self Star)  || (self Div)   || (self Mod)   || (self Plus) ||
-    (self More) || (self Less)  || (self At)    || (self Per)   || (self OperatorSequence)
+    self Or   || self Comma || self Minus || self Equal || self Not  ||
+    self And  || self Star  || self Div   || self Mod   || self Plus ||
+    self More || self Less  || self At    || self Per   || self OperatorSequence
   )
 
-  identifier = ( ^ (self Primitive) || (self Identifier) )
+  identifier = ( ^ self Primitive || self Identifier )
 
-  keyword = ( ^ (self Keyword) )
+  keyword = ( ^ self Keyword )
 
-  argument = ( ^ (self variable) )
+  argument = ( ^ self variable )
 
   blockContents = ( ^
-    ( (self Or) , (self localDefs) , (self Or) ) optional , (self blockBody)
+    ( self Or , self localDefs , self Or ) optional , self blockBody
   )
 
-  localDefs = ( ^ (self variable) star )
+  localDefs = ( ^ self variable star )
 
   blockBody = ( ^
-    (self Exit) , (self result) ||
-    ((self expression) , ( (self Period) , ((self sym: #blockBody) optional)) optional)
+    self Exit , self result ||
+    (self expression , ( self Period , ((self sym: #blockBody) optional)) optional)
   )
 
   result = ( ^
-    (self expression) , ((self Period) optional)
+    self expression , self Period optional
   )
 
-  expression = ( ^ (self assignation) || (self evaluation) )
+  expression = ( ^ self assignation || self evaluation )
 
-  assignation = ( ^ (self assignments) , (self evaluation) )
+  assignation = ( ^ self assignments , self evaluation )
 
-  assignments = ( ^ (self assignment) , (self plus) )
+  assignments = ( ^ self assignment , self plus )
 
-  assignment = ( ^ (self variable) , (self Assign) )
+  assignment = ( ^ self variable , self Assign )
 
-  evaluation = ( ^ (self primary) , (self messages) optional )
+  evaluation = ( ^ self primary , self messages optional )
 
   primary = ( ^
-    (self variable)    ||
-    (self sym: #nestedTerm)  ||
-    (self sym: #nestedBlock) ||
-    (self literal)
+    self variable          ||
+    self sym: #nestedTerm  ||
+    self sym: #nestedBlock ||
+    self literal
   )
 
-  variable = ( ^ (self identifier) )
+  variable = ( ^ self identifier )
 
   messages = ( ^
     (
-      ((self unaryMessage) plus) ,
-      ((self binaryMessage) star) ,
-      ((self keywordMessage) optional)
+      self unaryMessage plus ,
+      self binaryMessage star ,
+      self keywordMessage optional
     ) ||
-    (((self binaryMessage) plus) , ((self keywordMessage) optional)) ||
-    (self keywordMessage)
+    (self binaryMessage plus , self keywordMessage optional ) ||
+    self keywordMessage
   )
 
-  unaryMessage = ( ^ (self unarySelector) )
+  unaryMessage = ( ^ self unarySelectors )
 
-  binaryMessage = ( ^ (self binarySelector) , (self binaryOperand) )
+  binaryMessage = ( ^ self binarySelector , self binaryOperand )
 
-  binaryOperand = ( ^ (self primary) , (self unaryMessage) star)
+  binaryOperand = ( ^ self primary , self unaryMessage star)
 
-  keywordMessage = ( ^ ( (self keyword) , (self formula) ) plus )
+  keywordMessage = ( ^ ( self keyword , self formula ) plus )
 
-  formula = ( ^ (self binaryOperand) , (self binaryMessage) star )
+  formula = ( ^ self binaryOperand , self binaryMessage star )
 
   nestedTerm = ( ^
-    (self NewTerm) , (self sym: #expression) , (self EndTerm)
+    self NewTerm , (self sym: #expression) , self EndTerm
   )
 
   literal = ( ^
-    (self sym: #literalArray)  ||
-    (self literalSymbol) ||
-    (self literalString) ||
-    (self literalNumber)
+    (self sym: #literalArray) ||
+    self literalSymbol        ||
+    self literalString        ||
+    self literalNumber
   )
 
   literalArray = ( ^
-    (self Pound) ,
-    (self NewTerm) ,
-      ((self sym: #literal) star) ,
-    (self EndTerm)
+    self Pound ,
+    self NewTerm ,
+      self literal star ,
+    self EndTerm
   )
 
   "
     Combines negative and positive Integer and Double into one symbol from
     original grammar to avoid backtracking.
   "
-  literalNumber = ( ^ (self Number) )
+  literalNumber = ( ^ self Number )
 
-  literalSymbol = ( ^ (self Pound) , ( (self string) || (self selector) ))
+  literalSymbol = ( ^ self Pound , ( self string || self selector ))
 
   literalString = ( ^ (self string) )
 
-  selector = ( ^ (self binarySelector) || (self keywordSelector) || (self unarySelector))
+  selector = ( ^ self binarySelector || self keywordSelector || self unarySelector )
 
-  keywordSelector = ( ^ (self Keyword) || (self KeywordSequence) )
+  keywordSelector = ( ^ self Keyword || self KeywordSequence )
 
-  string = ( ^ (self STString) )
+  string = ( ^ self STString )
 
   nestedBlock = ( ^
-    (self NewBlock) ,
-      ((self sym: #blockPattern) optional) ,
-      ((self sym: #blockContents) optional) ,
-    (self EndBlock)
+    self NewBlock ,
+      (self sym: #blockPattern)  optional ,
+      (self sym: #blockContents) optional ,
+    self EndBlock
   )
 
   blockPattern = ( ^ (self blockArguments) , (self Or) )
@@ -163,7 +163,7 @@ SOMParser = Grammar (
 
   Num = ( ^ Range from: '0' to: '9' )
 
-  AlphaNum = ( ^ (self Alpha) || (self Num) )
+  AlphaNum = ( ^ self Alpha || self Num )
 
   Identifier = ( ^ self nt: (self Alpha) , ((self AlphaNum) star) )
 
@@ -197,15 +197,15 @@ SOMParser = Grammar (
 
   OperatorSequence = ( ^
     (
-      (self Not)   || (self And)  || (self Or)    || (self Star) || (self Div)  ||
-      (self Mod)   || (self Plus) || (self Equal) || (self More) || (self Less) ||
-      (self Comma) || (self At)   || (self Per)   || (self Minus)
+      self Not   || self And  || self Or    || self Star || self Div  ||
+      self Mod   || self Plus || self Equal || self More || self Less ||
+      self Comma || self At   || self Per   || self Minus
     ) plus
   )
 
   Keyword = ( ^ self nt: (self Identifier) , (self Colon) )
 
-  KeywordSequence = ( ^ (self Keyword) plus )
+  KeywordSequence = ( ^ self Keyword plus )
 
   STStringChar = ( ^
     (Literal new: '\\t')  ||
@@ -228,7 +228,7 @@ SOMParser = Grammar (
 
   Whitespace = ( ^ ((Literal new: ' ') || '\t' || '\r' || '\n') plus )
 
-  SKIP = ( ^ ((self Whitespace) || (self Comment)) star )
+  SKIP = ( ^ (self Whitespace || self Comment) star )
 
 ----
 
