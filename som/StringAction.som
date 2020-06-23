@@ -1,0 +1,21 @@
+StringAction = Parser (
+  | parser |
+
+  parser: v = ( parser := self prepare: v )
+
+  parse: ps = ( | start end |
+    start := ps pos.
+    ps := parser parse: ps.
+    ps isNil ifTrue: [ ^ nil ].
+    end := ps pos.
+    ps := ps value: (ps substringFrom: start to: end).
+    ^ ps
+  )
+
+  ----
+  parser: parser = ( | r |
+    r := StringAction new.
+    r parser: parser.
+    ^r
+  )
+)
