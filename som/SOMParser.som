@@ -3,13 +3,18 @@ SOMParser = Grammar (
 
   classdef = ( ^
     self Identifier , self Equal , self superclass ,
-    self instanceFields , self method star ,
-    ( self Separator , self classFields , (self method  star) ) optional ,
+    self NewTerm ,
+      self instanceFields , self method star , "
+      (
+        self Separator ,
+        self classFields ,
+        (self method star)
+      ) optional ,"
     self EndTerm
   )
 
   superclass = ( ^
-    self Identifier optional , self NewTerm
+    self Identifier optional
   )
 
   instanceFields = ( ^
@@ -21,7 +26,7 @@ SOMParser = Grammar (
   )
 
   method = ( ^
-    self pattern , self Equal , ( self Primitive || self methodBlock )
+    self pattern , self Equal , ( self STPrimitive || self methodBlock )
   )
 
   pattern = ( ^
@@ -48,14 +53,15 @@ SOMParser = Grammar (
     self More || self Less  || self At    || self Per   || self OperatorSequence
   )
 
-  identifier = ( ^ self Primitive || self Identifier )
+  identifier = ( ^ self STPrimitive || self Identifier )
 
   keyword = ( ^ self Keyword )
 
   argument = ( ^ self variable )
 
   blockContents = ( ^
-    ( self Or , self localDefs , self Or ) optional , self blockBody
+    ( self Or , self localDefs , self Or ) optional ,
+    self blockBody
   )
 
   localDefs = ( ^ self variable star )
@@ -73,16 +79,16 @@ SOMParser = Grammar (
 
   assignation = ( ^ self assignments , self evaluation )
 
-  assignments = ( ^ self assignment , self plus )
+  assignments = ( ^ self assignment plus )
 
   assignment = ( ^ self variable , self Assign )
 
   evaluation = ( ^ self primary , self messages optional )
 
   primary = ( ^
-    self variable          ||
-    self sym: #nestedTerm  ||
-    self sym: #nestedBlock ||
+    self variable            ||
+    (self sym: #nestedTerm)  ||
+    (self sym: #nestedBlock) ||
     self literal
   )
 
@@ -98,7 +104,7 @@ SOMParser = Grammar (
     self keywordMessage
   )
 
-  unaryMessage = ( ^ self unarySelectors )
+  unaryMessage = ( ^ self unarySelector )
 
   binaryMessage = ( ^ self binarySelector , self binaryOperand )
 
@@ -167,7 +173,7 @@ SOMParser = Grammar (
 
   Identifier = ( ^ self nt: self Alpha , self AlphaNum star )
 
-  Primitive = ( ^ self nt: 'primitive' )
+  STPrimitive = ( ^ self nt: 'primitive' )
 
   Separator = ( ^ self nt: (Repeat parser: '-' min: 4) )
 

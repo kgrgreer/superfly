@@ -9,7 +9,9 @@ SOMInterpreterTest = (
   )
 
   run = (
-    interp := SOMAttributeGrammar  new.
+"    interp := SOMAttributeGrammar  new."
+    interp := SOMParser  new.
+
 
     Sym grammar: self symbol: #foo.
 
@@ -58,6 +60,26 @@ SOMInterpreterTest = (
     self test: #literalArray with: '#()'.
     self test: #literalArray with: '#(123)'.
     self test: #literalArray with: '#(1 2 3 4 5)'.
+
+    self test: #primary with: '3.14'.
+    self test: #evaluation with: '3.14'.
+    self test: #expression with: '3.14'.
+    self test: #result with: '3.14'.
+    self test: #blockBody with: '^3.14'.
+    self test: #blockContents with: '^3.14'.
+    self test: #method with: 'pi=(^3)'.
+    self test: #method with: 'pi=primitive'.
+    self test: #method with: 'f = (^3)'.
+    self test: #methodBlock with: '(^3.14)'. "doesn't work"
+    self test: #methodBlock with: '(3.14)'.
+    self test: #result with: '3.14'.
+    self test: #methodBlock with: '()'. "doesn't work"
+    self test: #method with: 'f = (^3.14)'.
+    self test: #method with: 'f = (^5)'.
+    self test: #method with: 'f = (^\"foo\")'.
+
+    self test: #classdef with: 'User = ( | firstName lastName | )'.
+
     [
     self test: #literalSymbol with: '#abc'.
     self test: #literalString with: '\'abc\''.
@@ -84,25 +106,14 @@ SOMInterpreterTest = (
 
     self test: #nestedBlock with: '[]'.
 
-    self test: #Primitive with: 'primitive'.
-    self test: #Primitive with: '   primitive'.
+    self test: #STPrimitive with: 'primitive'.
+    self test: #STPrimitive with: '   primitive'.
 
     self test: #SKIP with: '   "comment"   '.
     self test: #literalArray with: '#(1 12 123)'.
     self test: #literalArray with: '#(1.2)'.
     self test: #literal with: '1.2'.
     self test: #literalArray with: '#(1 12 123 1.2 2.3)'.
-    self test: #method with: 'pi=primitive'.
-    self test: #method with: 'f = (^3)'.
-    self test: #blockContents with: '^3.14'.
-    self test: #blockBody with: '^3.14'.
-    self test: #methodBlock with: '(^3.14)'. "doesn't work"
-    self test: #methodBlock with: '(3.14)'.
-    self test: #result with: '3.14'.
-    self test: #methodBlock with: '()'. "doesn't work"
-    self test: #method with: 'f = (^3.14)'.
-    self test: #method with: 'f = (^5)'.
-    self test: #method with: 'f = (^\"foo\")'.
     self test: #classdef with: 'Math = ()'.
     self test: #classdef with: 'Math = (\"math library\")'.
     self test: #classdef with: 'Trig = Math (\"trig library\")'.

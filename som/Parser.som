@@ -15,8 +15,6 @@ Parser = (
 
   plus = ( ^ Repeat parser: self min: 1 )
 
-  not = ( ^ Not parser: self )
-
   optional = ( ^ Optional parser: self )
 
   action: block = ( ^ Action parser: self block: block )
