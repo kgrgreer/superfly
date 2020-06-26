@@ -5,7 +5,7 @@ ASTClass = (
   extends: v = ( extends := v )
 
   asString = (
-    ^ 'ASTClass name: ' + name + ' extends: ' + extends
+    ^ 'ASTClass name: \'' + name + '\' extends: ' + extends
   )
 
 ----

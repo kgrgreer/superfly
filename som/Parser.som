@@ -5,7 +5,7 @@ Parser = (
     ^ p
   )
 
-  parseStr: s = ( self parse: (PStream newWithStr: s) )
+  parseStr: s = ( self parse: (Stream newWithStr: s) )
 
   || parser = ( ^ Alt new: self or: parser )
 

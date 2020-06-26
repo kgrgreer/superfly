@@ -7,7 +7,7 @@ StringAction = Parser (
     start := ps pos.
     ps := parser parse: ps.
     ps isNil ifTrue: [ ^ nil ].
-    end := ps pos.
+    end := ps pos - 1.
     ps := ps value: (ps substringFrom: start to: end).
     ^ ps
   )

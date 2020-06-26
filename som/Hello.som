@@ -26,7 +26,7 @@ Hello = (
 
     testParser = (
       | p ps som |
-      ps := PStream newWithStr: 'testing 1 2 3'.
+      ps := Stream newWithStr: 'testing 1 2 3'.
       ps head println.
       (ps tail) head println.
       ((ps tail) tail) head println.
@@ -59,7 +59,7 @@ Hello = (
       ((Range from: 'A' to: 'Z') parse: ps) println.
 
       '============ Testing Repeat =============' println.
-      ps := PStream newWithStr: 'aaaaaabbbb'.
+      ps := Stream newWithStr: 'aaaaaabbbb'.
       p := (Repeat parser: (Literal new: 'a')).
       ps println.
       p println.

@@ -3,8 +3,8 @@ SOMInterpreterTest = (
 
   test: m with: str = ( | res |
     ('TESTING: ' + m + ' with ' + str) println.
-    res := ((interp perform: m) parse: (PStream newWithStr: (str + '  '))).
-    ('result: ' + res + ' ' + (res value class)) println.
+    res := ((interp perform: m) parse: (Stream newWithStr: (str + '  '))).
+    ('result: ' + res + ' value: \'' + (res value class) + '\'') println.
     '' println.
   )
 
@@ -23,11 +23,11 @@ SOMInterpreterTest = (
 
     self test: #AlphaNum with: '9'.
     self test: #AlphaNum with: 'a'.
-
+].
     self test: #Identifier with: 'a'.
     self test: #Identifier with: 'abc'.
     self test: #Identifier with: 'abc123'.
-
+[
     self test: #Number with: '1'.
     self test: #Number with: '123'.
     self test: #Number with: '-123'.

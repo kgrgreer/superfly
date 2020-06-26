@@ -1,4 +1,4 @@
-PStream = (
+Stream = (
   | str pos value |
 
   str:   s = ( str   := s )
@@ -18,7 +18,7 @@ PStream = (
   tail = (
     | newPS |
 "self println."
-    newPS := PStream new.
+    newPS := Stream new.
     newPS str: str.
     newPS pos: (pos + 1).
     newPS value: (newPS head).
@@ -28,7 +28,7 @@ PStream = (
   tail: value = (
     | newPS |
 "self println."
-    newPS := PStream new.
+    newPS := Stream new.
     newPS str: str.
     newPS pos: (pos + 1).
     newPS value: value.
@@ -37,7 +37,7 @@ PStream = (
 
   setValue: value = (
     | newPS |
-    newPS := PStream new.
+    newPS := Stream new.
     newPS str: str.
     newPS pos: pos.
     newPS value: value.
@@ -45,13 +45,13 @@ PStream = (
   )
 
   asString = (
-    ^ 'PStream(' + pos + ',' + str + ',' + (self head) + ',' + (value asString) + ')'
+    ^ 'Stream(' + pos + ',' + str + ',' + (self head) + ', \'' + (value asString) + '\')'
   )
 
   ----
 
    newWithStr: str = ( | newPS |
-     newPS := PStream new.
+     newPS := Stream new.
      newPS str: str.
      newPS pos: 1.
      ^newPS
