@@ -1,0 +1,16 @@
+ASTClass = (
+  | name fields methods |
+
+  name: v = ( name := v )
+
+  asString = (
+    ^ ('ASTClass name:' + name)
+  )
+
+----
+  new: n = ( | c |
+    c := ASTClass new.
+    c name: n.
+    ^c
+  )
+)

@@ -3,7 +3,7 @@ SOMAttributeGrammar = SOMParser (
   print: v = (
     v class = Vector ifTrue: [ v := v asArray ].
     v class = Array ifTrue: [
-      '[' print.
+      ('len: ' + ( v length ) + '[') print.
         v do: [ :i | self print: i. ' ' print ].
       ']' print
     ] ifFalse: [
@@ -15,6 +15,30 @@ SOMAttributeGrammar = SOMParser (
     "TODO: do this more efficiently"
     a class = Vector ifTrue: [ a := a asArray ].
     ^ a inject: '' into: [ :str :elem | str + (elem asString) ]
+  )
+
+
+  " START OF SEMANTIC ACTIONS "
+
+  classdef = (
+    ^ super classdef action: [ :cd |
+      | name |
+      name := cd at: 1.
+      'classdef: ' println.
+      self print: cd.
+
+      ASTClass new: name
+    ]
+  )
+
+  instanceFields = (
+    ^ super instanceFields action: [ :cd |
+      cd isNil ifTrue: [ nil ] ifFalse: [
+        'if' println.
+        self print: cd.
+        cd
+      ]
+    ]
   )
 
   Identifier = (

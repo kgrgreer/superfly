@@ -9,10 +9,10 @@ Repeat = Parser (
     [ true ] whileTrue: [
 "('repeat: ' + ps) println."
       ps2 := (parser parse: ps).
-      (ps2 isNil) ifTrue: [
-        (v size) < min ifTrue: [ ^ nil ].
+      ps2 isNil ifTrue: [
+        v size < min ifTrue: [ ^ nil ].
 
-        ^ ps value: v
+        ^ ps setValue: v
       ].
 
       v , (ps2 value).

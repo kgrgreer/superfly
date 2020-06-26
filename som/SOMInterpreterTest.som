@@ -9,15 +9,12 @@ SOMInterpreterTest = (
   )
 
   run = (
-"    interp := SOMAttributeGrammar  new."
-    interp := SOMParser  new.
-
-
-    Sym grammar: self symbol: #foo.
+    interp := SOMAttributeGrammar  new.
 
 "
     self test: # with: ''.
 "
+[
     self test: #Num with: '9'.
     self test: #Num with: 'a'.
 
@@ -80,7 +77,6 @@ SOMInterpreterTest = (
 
     self test: #classdef with: 'User = ( | firstName lastName | )'.
 
-    [
     self test: #literalSymbol with: '#abc'.
     self test: #literalString with: '\'abc\''.
     self test: #literalNumber with: '123'.
@@ -114,12 +110,16 @@ SOMInterpreterTest = (
     self test: #literalArray with: '#(1.2)'.
     self test: #literal with: '1.2'.
     self test: #literalArray with: '#(1 12 123 1.2 2.3)'.
+].
+self test: #instanceFields with: '|x y z|'.
     self test: #classdef with: 'Math = ()'.
     self test: #classdef with: 'Math = (\"math library\")'.
     self test: #classdef with: 'Trig = Math (\"trig library\")'.
-    self test: #classdef with: 'Trig = Math (\"trig library\" | x y z|)'.
-    self test: #classdef with: 'Math = (\"math library\" pi=(^3))'.
-].
+    self test: #classdef with: 'Trig = Math ( )'.
+    self test: #classdef with: 'Trig = Math (|x y z|)'.
+    self test: #classdef with: 'Trig = (|x y z|)'.
+    self test: #classdef with: 'Math = (pi=(^3))'.
+
     'Done.' println.
   )
 )

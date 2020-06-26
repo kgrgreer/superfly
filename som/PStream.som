@@ -45,7 +45,7 @@ PStream = (
   )
 
   asString = (
-    ^ 'PStream(' + pos + ',' + str + ',' + (self head) + ',' + value + ')'
+    ^ 'PStream(' + pos + ',' + str + ',' + (self head) + ',' + (value asString) + ')'
   )
 
   ----
