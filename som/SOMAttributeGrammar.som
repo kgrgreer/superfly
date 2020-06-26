@@ -3,7 +3,7 @@ SOMAttributeGrammar = SOMParser (
   print: v = (
     v class = Vector ifTrue: [ v := v asArray ].
     v class = Array ifTrue: [
-      ('len: ' + ( v length ) + '[') print.
+      '[' print.
         v do: [ :i | self print: i. ' ' print ].
       ']' print
     ] ifFalse: [
