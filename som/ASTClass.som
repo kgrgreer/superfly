@@ -1,16 +1,18 @@
 ASTClass = (
-  | name fields methods |
+  | name extends fields methods |
 
-  name: v = ( name := v )
+  name:    v = ( name    := v )
+  extends: v = ( extends := v )
 
   asString = (
-    ^ ('ASTClass name:' + name)
+    ^ 'ASTClass name: ' + name + ' extends: ' + extends
   )
 
 ----
   new: n = ( | c |
     c := ASTClass new.
     c name: n.
+    c extends: 'Object'.
     ^c
   )
 )

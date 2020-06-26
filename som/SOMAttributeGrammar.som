@@ -22,12 +22,15 @@ SOMAttributeGrammar = SOMParser (
 
   classdef = (
     ^ super classdef action: [ :cd |
-      | name |
+      | c name |
       name := cd at: 1.
       'classdef: ' println.
       self print: cd.
 
-      ASTClass new: name
+      c := ASTClass new: name.
+      (cd at: 3) notNil ifTrue: [ c extends: (cd at: 3) ].
+
+      c
     ]
   )
 
@@ -36,7 +39,7 @@ SOMAttributeGrammar = SOMParser (
       cd isNil ifTrue: [ nil ] ifFalse: [
         'if' println.
         self print: cd.
-        cd
+        cd at: 2
       ]
     ]
   )
