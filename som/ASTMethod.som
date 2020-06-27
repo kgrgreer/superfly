@@ -11,8 +11,11 @@ ASTMethod = (
   )
 
   toC = ( | s |
-    s := '\nSObject ' + pattern + '(' + (holder name )+ ' *self) {\n'.
+    s := ''.
+    isPrimitive ifTrue: [ s := s + '/* TODO: native\n' ].
+    s := s + '\nSObject ' + pattern + '(' + (holder name )+ ' *self) {\n'.
     s := s + '}\n'.
+    isPrimitive ifTrue: [ s := s + '/*\n' ].
     ^s
   )
 
@@ -20,7 +23,12 @@ ASTMethod = (
   pattern: p block: b = ( | m |
     m := ASTMethod new.
     m pattern: p.
-    (' ----------------------- ' + b) println.
+    b = 'primitive' ifTrue: [
+      m isPrimitive: true.
+    ] ifFalse: [
+      m isPrimitive: false.
+      m block: b.
+    ].
     ^m
   )
 )
