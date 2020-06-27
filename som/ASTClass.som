@@ -16,14 +16,14 @@ ASTClass = (
   )
 
   toC = ( | s |
-    s := 'typedef struct ' + name + '_ {\n'.
+    s := '\ntypedef struct ' + name + '_ {\n'.
     fields do: [ :f |
       s := s + '  SObject ' + f + ';\n'.
     ].
     s := s + '} ' + name + ';\n'.
 
     methods do: [ :m |
-      s := s + (m toC).
+      s := s + m toC.
     ].
 
     ^s

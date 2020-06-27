@@ -29,9 +29,9 @@ SOMAttributeGrammar = SOMParser (
       methods := cd at: 6.
 
       ast := ASTClass new: name.
-      extends notNil ifTrue: [ ast extends: extends ].
-      fields  notNil ifTrue: [ ast fields:  fields ].
-      methods notNil ifTrue: [ ast methods: methods ].
+      extends ifNotNil: [ ast extends: extends ].
+      fields  ifNotNil: [ ast fields:  fields ].
+      methods ifNotNil: [ ast methods: methods ].
 
       ast
     ]
@@ -48,9 +48,6 @@ SOMAttributeGrammar = SOMParser (
       pattern := m at: 1.
       block   := m at: 3.
 
-      'method: ' println.
-      self print: m.
-
       ast := ASTMethod pattern: pattern block: block.
 
       ast
@@ -59,9 +56,7 @@ SOMAttributeGrammar = SOMParser (
 
   instanceFields = (
     ^ super instanceFields action: [ :cd |
-      cd isNil ifTrue: [ nil ] ifFalse: [
-        'if' println.
-        self print: cd.
+      cd ifNil: [ nil ] ifNotNil: [
         cd at: 2
       ]
     ]
@@ -75,7 +70,7 @@ SOMAttributeGrammar = SOMParser (
     ^ super Number action: [ :a | | n |
     self print: a. '' println.
       n := ((self arrayToStr: (a at: 2)) asInteger).
-      (a at: 3) notNil ifTrue: [ | f |
+      (a at: 3) ifNotNil: [ | f |
         f := 0.0 + ((self arrayToStr: ((a at: 3) at: 2)) asInteger).
         ((a at: 3) at: 2) size timesRepeat: [ f := f // 10.0 ].
         n := f + n

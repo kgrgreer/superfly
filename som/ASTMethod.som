@@ -11,7 +11,7 @@ ASTMethod = (
   )
 
   toC = ( | s |
-    s := ''.
+    s := '\n'.
     isPrimitive ifTrue: [ s := s + '/* TODO: native\n' ].
     s := s + '\nSObject ' + pattern + '(' + (holder name )+ ' *self) {\n'.
     s := s + '}\n'.
