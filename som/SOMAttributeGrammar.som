@@ -22,15 +22,38 @@ SOMAttributeGrammar = SOMParser (
 
   classdef = (
     ^ super classdef action: [ :cd |
-      | c name |
-      name := cd at: 1.
-      'classdef: ' println.
-      self print: cd.
+      | ast name extends fields methods |
+      name    := cd at: 1.
+      extends := cd at: 3.
+      fields  := cd at: 5.
+      methods := cd at: 6.
 
-      c := ASTClass new: name.
-      (cd at: 3) notNil ifTrue: [ c extends: (cd at: 3) ].
+      ast := ASTClass new: name.
+      extends notNil ifTrue: [ ast extends: extends ].
+      fields  notNil ifTrue: [ ast fields:  fields ].
+      methods notNil ifTrue: [ ast methods: methods ].
 
-      c
+      ast
+    ]
+  )
+
+"
+  method = ( ^
+    self pattern , self Equal , ( self STPrimitive || self methodBlock )
+  )
+"
+  method = (
+    ^ super method action: [ :m |
+      | ast pattern block |
+      pattern := m at: 1.
+      block   := m at: 3.
+
+      'method: ' println.
+      self print: m.
+
+      ast := ASTMethod pattern: pattern block: block.
+
+      ast
     ]
   )
 

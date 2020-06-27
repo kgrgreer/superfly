@@ -1,0 +1,25 @@
+ASTMethod = (
+  | pattern block isPrimitive |
+
+  pattern:     v = ( pattern     := v )
+  block:       v = ( block       := v )
+  isPrimitive: v = ( isPrimitive := v )
+
+  asString = (
+    ^ self toC
+  )
+
+  toC = ( | s |
+    s := '  SObject ' + pattern + '() {\n'.
+    s := s + '}\n'.
+    ^s
+  )
+
+----
+  pattern: p block: b = ( | m |
+    m := ASTMethod new.
+    m pattern: p.
+    (' ----------------------- ' + b) println.
+    ^m
+  )
+)

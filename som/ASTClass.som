@@ -3,9 +3,26 @@ ASTClass = (
 
   name:    v = ( name    := v )
   extends: v = ( extends := v )
+  fields:  v = ( fields  := v )
+  methods: v = ( methods := v )
 
   asString = (
-    ^ 'ASTClass name: \'' + name + '\' extends: ' + extends
+    ^ self toC
+"    ^ 'ASTClass name: \'' + name + '\' extends: ' + extends"
+  )
+
+  toC = ( | s |
+    s := 'struct ' + name + ' {\n'.
+    fields do: [ :f |
+      s := s + '  SObject ' + f + ';\n'.
+    ].
+    s := s + '}\n'.
+
+    methods do: [ :m |
+      s := s + '  SObject ' + m + '() {\n  }\n'.
+    ].
+
+    ^s
   )
 
 ----
@@ -13,6 +30,8 @@ ASTClass = (
     c := ASTClass new.
     c name: n.
     c extends: 'Object'.
+    c fields: Vector new.
+    c methods: Vector new.
     ^c
   )
 )

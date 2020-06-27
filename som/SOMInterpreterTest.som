@@ -110,8 +110,7 @@ SOMInterpreterTest = (
     self test: #literalArray with: '#(1.2)'.
     self test: #literal with: '1.2'.
     self test: #literalArray with: '#(1 12 123 1.2 2.3)'.
-].
-self test: #instanceFields with: '|x y z|'.
+    self test: #instanceFields with: '|x y z|'.
     self test: #classdef with: 'Math = ()'.
     self test: #classdef with: 'Math = (\"math library\")'.
     self test: #classdef with: 'Trig = Math (\"trig library\")'.
@@ -119,6 +118,10 @@ self test: #instanceFields with: '|x y z|'.
     self test: #classdef with: 'Trig = Math (|x y z|)'.
     self test: #classdef with: 'Trig = (|x y z|)'.
     self test: #classdef with: 'Math = (pi=(^3))'.
+    ].
+
+    self test: #classdef with: 'Person = (|fName lName age| age = (^age))'.
+    self test: #classdef with: 'Person = (|fName lName age| age = (^age) age: v = ( age := v ) name = ( ^ fName + \' \' + lName ))'.
 
     'Done.' println.
   )
