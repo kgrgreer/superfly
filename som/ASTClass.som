@@ -1,10 +1,14 @@
 ASTClass = (
   | name extends fields methods |
 
+  name = ( ^ name )
   name:    v = ( name    := v )
   extends: v = ( extends := v )
   fields:  v = ( fields  := v )
-  methods: v = ( methods := v )
+  methods: v = (
+    methods := v.
+    v do: [ :m | m holder: self ]
+  )
 
   asString = (
     ^ self toC
@@ -12,14 +16,14 @@ ASTClass = (
   )
 
   toC = ( | s |
-    s := 'struct ' + name + ' {\n'.
+    s := 'typedef struct ' + name + '_ {\n'.
     fields do: [ :f |
       s := s + '  SObject ' + f + ';\n'.
     ].
-    s := s + '}\n'.
+    s := s + '} ' + name + ';\n'.
 
     methods do: [ :m |
-      s := s + '  SObject ' + m + '() {\n  }\n'.
+      s := s + (m toC).
     ].
 
     ^s
@@ -30,7 +34,7 @@ ASTClass = (
     c := ASTClass new.
     c name: n.
     c extends: 'Object'.
-    c fields: Vector new.
+    c fields:  Vector new.
     c methods: Vector new.
     ^c
   )
