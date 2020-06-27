@@ -1,8 +1,9 @@
 ASTMethod = (
-  | holder pattern block isPrimitive |
+  | holder pattern localDefs block isPrimitive |
 
   holder:      v = ( holder      := v )
   pattern:     v = ( pattern     := v )
+  localDefs:   v = ( localDefs   := v )
   block:       v = ( block       := v )
   isPrimitive: v = ( isPrimitive := v )
 
@@ -14,7 +15,14 @@ ASTMethod = (
     s := '\n'.
     isPrimitive ifTrue: [ s := s + '/* TODO: native\n' ].
     s := s + '\nSObject ' + pattern + '(' + (holder name )+ ' *self) {\n'.
-    s := s + '}\n'.
+    localDefs ifNotNil: [
+      localDefs do: [ :def |
+        s := s + '  SObject *' + def + ';\n'
+      ].
+      s := s + '\n'
+    ].
+    isPrimitive ifFalse: [ s := s + '  ' + block ].
+    s := s + '\n}\n'.
     isPrimitive ifTrue: [ s := s + '/*\n' ].
     ^s
   )
@@ -27,7 +35,8 @@ ASTMethod = (
       m isPrimitive: true.
     ] ifFalse: [
       m isPrimitive: false.
-      m block: b.
+      m localDefs: (b at: 1).
+      m block: (b at: 2).
     ].
     ^m
   )

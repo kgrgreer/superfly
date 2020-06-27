@@ -47,6 +47,26 @@ SOMAttributeGrammar = SOMParser (
       Array with: localDefs with: (bc at: 2)
     ]
   )
+  "
+  blockBody = ( ^
+    self Exit , self result ||
+    (self expression , ( self Period , ((self sym: #blockBody) optional)) optional)
+  )
+  "
+
+  blockBody = (
+    ^ super blockBody action: [ :bb | |exp|
+      bb ifNil: [ nil ]
+      ifNotNil: [
+        ('^' = (bb at: 1)) ifTrue: [
+          ASTExit expr: (bb at: 2)
+        ] ifFalse: [
+          exp := ASTExpression expr: (bb at: 1).
+          exp
+        ]
+      ]
+    ]
+  )
 
   method = (
     ^ super method action: [ :m |

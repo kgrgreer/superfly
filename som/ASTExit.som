@@ -1,0 +1,20 @@
+ASTExit = (
+  | expr |
+
+  expr: v = ( expr := v )
+
+  asString = (
+    ^ self toC
+  )
+
+  toC = (
+    ^ '\n  return ' + expr + ';'
+  )
+
+----
+  expr: e = ( | m |
+    m := ASTExit new.
+    m expr: e.
+    ^m
+  )
+)

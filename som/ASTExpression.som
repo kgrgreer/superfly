@@ -1,0 +1,23 @@
+ASTExpression = (
+  | expr tail |
+
+  expr: v = ( expr := v )
+  tail: v = ( tail := v )
+
+  asString = (
+    ^ self toC
+  )
+
+  toC = ( | s |
+    s := expr + ';'.
+    "tail ifNotNil: [ s := s + tail ]."
+    ^ s
+  )
+
+----
+  expr: e = ( | m |
+    m := ASTExpression new.
+    m expr: e.
+    ^m
+  )
+)
