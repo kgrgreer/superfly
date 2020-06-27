@@ -58,7 +58,7 @@ SOMAttributeGrammar = SOMParser (
     ^ super blockBody action: [ :bb | |exp|
       bb ifNil: [ nil ]
       ifNotNil: [
-        ('^' = (bb at: 1)) ifTrue: [
+        '^' = (bb at: 1) ifTrue: [
           ASTExit expr: (bb at: 2)
         ] ifFalse: [
           exp := ASTExpression expr: (bb at: 1).
@@ -88,6 +88,10 @@ SOMAttributeGrammar = SOMParser (
         cd at: 2
       ]
     ]
+  )
+
+  result = (
+    ^ super result action: [ :r | r at: 1 ]
   )
 
   Identifier = (
