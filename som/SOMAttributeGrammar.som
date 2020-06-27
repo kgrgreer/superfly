@@ -37,17 +37,25 @@ SOMAttributeGrammar = SOMParser (
     ]
   )
 
-"
-  method = ( ^
-    self pattern , self Equal , ( self STPrimitive || self methodBlock )
+  methodBlock = (
+    ^ super methodBlock action: [ :mb | mb at: 2 ]
   )
-"
+
+  blockContents = (
+    ^ super blockContents action: [ :bc | | localDefs |
+      (bc at: 1) ifNil: [ localDefs := nil ] ifNotNil: [ localDefs := (bc at: 1) at: 2 ].
+      Array with: localDefs with: (bc at: 2)
+    ]
+  )
+
   method = (
     ^ super method action: [ :m |
       | ast pattern block |
       pattern := m at: 1.
       block   := m at: 3.
 
+      ('------- block: ' + block) println.
+      self print: block.
       ast := ASTMethod pattern: pattern block: block.
 
       ast

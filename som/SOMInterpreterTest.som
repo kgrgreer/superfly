@@ -120,7 +120,7 @@ SOMInterpreterTest = (
     self test: #classdef with: 'Math = (pi=(^3))'.
     ].
 
-    self test: #classdef with: 'Person = (|fName lName age| hash = primitive age = (^age))'.
+    self test: #classdef with: 'Person = (|fName lName age| hash = primitive age = (|x y z| ^age))'.
     self test: #classdef with: 'Person = (|fName lName age| hash = primitive age = (^age) age: v = ( age := v ) name = ( ^ fName + \' \' + lName ))'.
 
     'Done.' println.
