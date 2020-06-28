@@ -82,6 +82,47 @@ SOMAttributeGrammar = SOMParser (
     ]
   )
 
+  unaryMessage = (
+    ^ super unaryMessage action: [ :u |
+      ASTMessage selector: u
+    ]
+  )
+
+"messages = ( ^
+  (
+    self unaryMessage plus ,
+    self binaryMessage star ,
+    self keywordMessage optional
+  ) ||
+  (self binaryMessage plus , self keywordMessage optional ) ||
+  self keywordMessage
+)"
+
+  evaluation = (
+    ^ super evaluation action: [ :e | | expr ms |
+      expr := e at: 1.
+      ms   := e at: 2.
+"
+      '----------------------------- evaluation ' println.
+      self print: e.
+"
+      ms ifNotNil: [
+      ms class = Array ifTrue: [
+        ms do: [ :a |
+          a do: [ :m |
+            m obj: expr.
+            expr := m.
+          ]
+        ]
+      ] ifFalse: [
+        ms obj: expr.
+        expr := m
+      ].
+      ].
+      expr
+    ]
+  )
+
   instanceFields = (
     ^ super instanceFields action: [ :cd |
       cd ifNil: [ nil ] ifNotNil: [

@@ -2,7 +2,7 @@ ASTMethod = (
   | holder pattern localDefs block isPrimitive |
 
   holder:      v = ( holder      := v )
-  pattern:     v = ( pattern     := v )
+  pattern:     v = ( pattern     := v. ('---- PATTERN' + v) println.)
   localDefs:   v = ( localDefs   := v )
   block:       v = ( block       := v )
   isPrimitive: v = ( isPrimitive := v )
