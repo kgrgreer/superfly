@@ -90,6 +90,10 @@ SOMAttributeGrammar = SOMParser (
     ]
   )
 
+  literal = (
+    ^ super literal action: [ :l | ASTLiteral new: l ]
+  )
+
   result = (
     ^ super result action: [ :r | r at: 1 ]
   )

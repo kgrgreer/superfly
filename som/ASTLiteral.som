@@ -1,0 +1,20 @@
+ASTLiteral = (
+  | value |
+
+  value: v = ( value := v )
+
+  asString = (
+    ^ self toC
+  )
+
+  toC = (
+    'LITERAL(' + value + ')'
+  )
+
+----
+  new: l = ( | m |
+    m := ASTLiteral new.
+    m value: e.
+    ^m
+  )
+)
