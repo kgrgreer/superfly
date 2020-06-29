@@ -1,9 +1,12 @@
 StringAction = Parser (
   | parser |
 
-  parser: v = ( parser := self prepare: v )
+  parser:  v = ( parser := self prepare: v )
 
   parse: ps = ( | start end |
+    (parser respondsTo: #skip) ifTrue: [
+      ps := parser skip parse: ps
+    ].
     start := ps pos.
     ps := parser parse: ps.
     ps isNil ifTrue: [ ^ nil ].
@@ -13,9 +16,9 @@ StringAction = Parser (
   )
 
   ----
-  parser: parser = ( | r |
+  parser: p = ( | r |
     r := StringAction new.
-    r parser: parser.
+    r parser:  p.
     ^r
   )
 )

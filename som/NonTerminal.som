@@ -2,6 +2,7 @@ NonTerminal = Parser (
   | skip parser |
 
   skip:    v = ( skip   := v )
+  skip       = ( ^skip )
   parser:  v = ( parser := self prepare: v)
 
   parse: ps = ( ^ parser parse: (skip parse: ps) )
