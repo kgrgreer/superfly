@@ -121,7 +121,10 @@ SOMInterpreterTest = (
     ].
 
     self test: #classdef with: 'Person = (|fName lName age| hash = primitive age = (|x y z| ^age))'.
-    self test: #classdef with: 'Person = (|fName lName age| hash = primitive age = (^age) age: v = ( age := v ) name = ( ^ fName + \' \' + lName ))'.
+    self test: #classdef with: 'Person2 = (|fName lName age| hash = primitive age = (|x y z| ^age))'.
+    self test: #classdef with: 'Person3 = (|fName lName age| hash = primitive age = (^age) age: v = ( age := v ) name = ( ^ fName + \' \' + lName ))'.
+
+    CGenerator instance toC println.
 
     'Done.' println.
   )

@@ -21,7 +21,14 @@ Hello = (
       #( 1 2 3 4 5 ) do: [ :i | i println ].
       (Vector new) , 1 , 2 , 3, 4, 5 println.
 
-      self testParser
+
+            CGenerator instance addClass: 'foo'.
+            CGenerator instance addClass: 'bar'.
+            (CGenerator instance classes at: 1) println.
+            (CGenerator instance classes at: 2) println.
+
+
+     " self testParser "
     )
 
     testParser = (

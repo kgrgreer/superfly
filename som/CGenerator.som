@@ -1,0 +1,36 @@
+CGenerator = (
+  | classes literals methods |
+
+  classes = ( ^classes )
+
+  init = (
+    classes  := Vector new.
+    literals := Vector new.
+    methods  := Vector new.
+  )
+
+  addClass: c = (
+    classes append: c
+  )
+
+  toC = ( | s |
+    s := '\n/* CGenerator Output */\n'.
+    classes do: [ :c |
+      s := s + c toC
+    ].
+    ^ s
+  )
+
+
+----
+
+  | instance_ |
+
+  instance = (
+    instance_ ifNil: [
+      instance_ := CGenerator new.
+      instance_ init.
+    ].
+    ^ instance_
+  )
+)
