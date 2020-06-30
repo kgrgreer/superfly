@@ -1,8 +1,11 @@
 ASTMethod = (
-  | holder pattern localDefs block isPrimitive |
+  | holder pattern localDefs block isPrimitive index |
 
   holder:      v = ( holder      := v )
-  pattern:     v = ( pattern     := v. ('---- PATTERN' + v) println.)
+  pattern        = ( ^pattern )
+  index:       v = ( index       := v )
+  index          = ( ^index )
+  pattern:     v = ( pattern     := v )
   localDefs:   v = ( localDefs   := v )
   block:       v = ( block       := v )
   isPrimitive: v = ( isPrimitive := v )
@@ -28,7 +31,14 @@ ASTMethod = (
   )
 
 ----
-  pattern: p block: b = ( | m |
+  | methods__ |
+
+  methods = (
+    methods__ ifNil: [ methods__ := Hashtable new ].
+    ^ methods__
+  )
+
+  pattern: p block: b = ( | m index |
     m := ASTMethod new.
     m pattern: p.
     b = 'primitive' ifTrue: [
@@ -38,6 +48,13 @@ ASTMethod = (
       m localDefs: (b at: 1).
       m block: (b at: 2).
     ].
+    index := self methods get: p.
+    index ifNil: [
+      index := methods__ size + 1.
+      methods__ at: p put: index.
+    ].
+    m index: index.
+    CGenerator instance addMethod: m.
     ^m
   )
 )

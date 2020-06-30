@@ -2,7 +2,7 @@
 
 Hello = (
 
-    test = ( | str parser b |
+    test = ( | str parser b ht |
       str := 'fooba r was here'.
       'Inside test' println.
       'More inside' println.
@@ -27,6 +27,11 @@ Hello = (
             (CGenerator instance classes at: 1) println.
             (CGenerator instance classes at: 2) println.
 
+      ht := Hashtable new.
+      ht at: #kevin put: 1.
+      ht at: #john put: 2.
+      (ht get: #kevin) println.
+      ht values do: [ :value | value println. ].
 
      " self testParser "
     )

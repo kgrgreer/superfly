@@ -9,18 +9,19 @@ CGenerator = (
     methods  := Vector new.
   )
 
-  addClass: c = (
-    classes append: c
-  )
+  addClass: c = ( classes append: c )
+
+  addMethod: m = ( methods append: m )
 
   toC = ( | s |
-    s := '\n/* CGenerator Output */\n'.
-    classes do: [ :c |
-      s := s + c toC
+    s := '\n/* CGenerator Output */\n\n'.
+    (ASTMethod methods keys ) do: [ :m |
+      s := s + '#define METHOD_' + m + ' ' + (ASTMethod methods get: m) + ';\n'
     ].
+    classes do: [ :c | s := s + c toC ].
+    s := s + '\n'.
     ^ s
   )
-
 
 ----
 

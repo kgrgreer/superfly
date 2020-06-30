@@ -12,11 +12,10 @@ ASTClass = (
 
   asString = (
     ^ self toC
-"    ^ 'ASTClass name: \'' + name + '\' extends: ' + extends"
   )
 
   toC = ( | s |
-    s := '\ntypedef struct ' + name + '_ {\n'.
+    s := '\n\ntypedef struct ' + name + '_ {\n'.
     fields do: [ :f |
       s := s + '  SObject ' + f + ';\n'.
     ].
@@ -25,6 +24,12 @@ ASTClass = (
     methods do: [ :m |
       s := s + m toC.
     ].
+
+    s := s + '\nSMethod ' + name + '_lookup(int method) {\n  switch ( method ) {'.
+    methods do: [ :m |
+      s := s + '\n    case METHOD_' + (m pattern) + ': return ;'
+    ].
+    s := s + '\n  }\n}'.
 
     ^s
   )

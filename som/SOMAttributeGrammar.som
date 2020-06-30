@@ -33,6 +33,7 @@ SOMAttributeGrammar = SOMParser (
       fields  ifNotNil: [ ast fields:  fields ].
       methods ifNotNil: [ ast methods: methods ].
 
+      "TODO: add someplace not C specific in future, but ok for now."
       CGenerator instance addClass: ast.
 
       ast
