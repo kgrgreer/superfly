@@ -2,6 +2,8 @@
 TODO:
   - named function parameters
   - classes
+  - add assignment
+  - remove name from function definition and combine with assignment
 */
 var input = `
 "Starting...
@@ -38,16 +40,18 @@ var global = {
     if ( line.startsWith('"') ) {
       var str = line.substring(1);
       return function() { return stack.push(str); };
-    } else if ( line == '' ) {
-    } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || line.charAt(0) == '-' ) {
-      return function() { stack.push(Number.parseInt(line)); }
-    } else {
-      var sym = global[line];
-      if ( sym ) {
-        return function() { sym(); }
-      }
-      console.log('Unknown Symbol:', line);
     }
+    if ( line == '' ) {
+      return;
+    }
+    if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || line.charAt(0) == '-' ) {
+      return function() { stack.push(Number.parseInt(line)); }
+    }
+    var sym = global[line];
+    if ( sym ) {
+      return function() { sym(); }
+    }
+    console.log('Unknown Symbol:', line);
   },
   Int: function(sym) {
     return {
