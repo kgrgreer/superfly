@@ -1,16 +1,25 @@
 console.log('Start');
 
 var input = `
-5
-4
+40
+2
 +
 print
 "sample string
 print
+:
+helloWorld
+"Hello world!
+print
+;
+helloWorld
 `;
 
 var stack = [];
-var globals = {
+var global = {
+  debugger: function() {
+    debugger;
+  },
   read: (function() {
     var lines = input.split('\n');
     var ptr = 0;
@@ -20,17 +29,17 @@ var globals = {
   })(),
   eval: function(line) {
     if ( line.startsWith('"') ) {
-      stack.push(line.substring(1));
+      var str = line.substring(1);
+      return function() { return stack.push(str); };
     } else if ( line == '' ) {
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || line.charAt(0) == '-' ) {
-      stack.push(Number.parseInt(line));
+      return function() { stack.push(Number.parseInt(line)); }
     } else {
-      var sym = globals[line];
+      var sym = global[line];
       if ( sym ) {
-        sym();
-      } else {
-        console.log('Unknown Symbol:', line);
+        return function() { sym(); }
       }
+      console.log('Unknown Symbol:', line);
     }
   },
   Int: function(sym) {
@@ -43,6 +52,18 @@ var globals = {
   print: function() {
     console.log(stack.pop());
   },
+  ':': function() {
+    var name = global.read();
+    var l;
+    var a = [];
+    while ( (  l = global.read() ) != ';' ) {
+      a.push(global.eval(l));
+    }
+    global[name] = function() {
+      for ( var i = 0 ; i < a.length ; i++ ) a[i]();
+    }
+    console.log('defining', name);
+  },
   '+': function() {
     stack.push(stack.pop() + stack.pop());
   }
@@ -53,7 +74,9 @@ var lines = input.split('\n');
 
 var line;
 while ( true ) {
-  line = globals.read();
+  line = global.read();
   if ( line === undefined ) break;
-  globals.eval(line);
+  var fn = global.eval(line);
+  if ( typeof fn === 'function' )
+    fn();
 }
