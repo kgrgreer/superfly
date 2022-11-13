@@ -36,7 +36,7 @@ var globals = {
   Int: function(sym) {
     return {
       '+': function() {
-        stack.push(stack.pop(), stack.pop());
+        stack.push(stack.pop() + stack.pop());
       }
     }[sym];
   },
@@ -44,7 +44,7 @@ var globals = {
     console.log(stack.pop());
   },
   '+': function() {
-    stack.push(stack.pop(), stack.pop());
+    stack.push(stack.pop() + stack.pop());
   }
 };
 
