@@ -1,3 +1,8 @@
+/*
+TODO:
+  - named function parameters
+  - classes
+*/
 var input = `
 "Starting...
 print
@@ -70,9 +75,6 @@ var global = {
     stack.push(stack.pop() + stack.pop());
   }
 };
-
-var lines = input.split('\n');
-
 
 var line;
 while ( true ) {
