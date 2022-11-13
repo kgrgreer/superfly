@@ -1,6 +1,6 @@
-console.log('Start');
-
 var input = `
+"Starting...
+print
 40
 2
 +
@@ -13,6 +13,8 @@ helloWorld
 print
 ;
 helloWorld
+"Done.
+print
 `;
 
 var stack = [];
