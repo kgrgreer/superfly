@@ -1,31 +1,131 @@
 /*
 TODO:
-  - named function parameters
+  - closures
+  - update local variables
   - classes
   - symbols
   - symbol table
   - stack frames
   - function return values
   - local variables (as functions?)
-  - constants
+  - constants?
 
-Ideas:
-  - make each used frame be hidden variable
-
-{ x y | x y + }:add
-4 5 add ()
 */
 
 var input = `
+1
+1
+=
+:true
+
+1
+2
+=
+:false
+
+
 // A comment
 "Starting...
 print
-40
+
+"Arithmetic
+print
+1
 2
 +
 print
+2
+1
+-
+print
+0
+6
+-
+print
+4
+2
+*
+print
+4
+2
+/
+print
+
+"Comparison Operators
+print
+1
+1
+=
+print
+1
+2
+=
+print
+1
+1
+!=
+print
+1
+2
+!=
+print
+1
+2
+<
+print
+2
+1
+<
+print
+2
+2
+<=
+print
+2
+3
+<=
+print
+
+"Boolean Values
+print
+true
+print
+false
+print
+
+"Logical Operators
+print
+true
+not
+print
+
+false
+not
+print
+
+true
+true
+and
+print
+
+true
+false
+and
+print
+
+false
+false
+or
+print
+
+false
+true
+or
+print
+
 "sample string
 print
+
 3
 :PI
 PI
@@ -34,40 +134,110 @@ PI
 2
 *
 print
+
 {
-|
+  |
   "inline function
   print
 }
 ()
+
 {
-|
-"Hello world!"
-print
+  |
+  "Hello world!"
+  print
 }
 :helloWorld
 helloWorld
 ()
-4
+
 {
-a
+  a
 |
   a
   a
   +
 }
+:double
+2
+double
+()
+double
 ()
 print
+
+"Functions as parameters
+print
+{
+  f
+  |
+  f
+  ()
+  f
+  ()
+  f
+  ()
+  f
+  ()
+  f
+  ()
+}
+:callFiveTimes
+helloWorld
+callFiveTimes
+()
+
+"Conditionals
+print
+true
+{
+|
+"true true
+print
+}
+if
+
+false
+{
+|
+"false false
+print
+}
+if
+
+true
+{
+|
+"if true
+print
+}
+{
+|
+"if false
+print
+}
+ifelse
+
+false
+{
+|
+"if true
+print
+}
+{
+|
+"if false
+print
+}
+ifelse
+
 "Done.
 print
 `;
 
-var stack = [];
-var sp;
+var stack = [], sp;
 var global = {
-  debugger: function() {
-    debugger;
-  },
+  debugger: function() { debugger; },
   read: (function() {
     var lines = input.split('\n').map(l => l.replace(/^\s+/, ''));
     var ptr = 0;
@@ -88,7 +258,7 @@ var global = {
       var value = stack.pop();
       return function() { global[sym] = function() { stack.push(value); }; };
     }
-    if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || line.charAt(0) == '-' ) {
+    if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       return function() { stack.push(Number.parseInt(line)); }
     }
     var sym = global[line];
@@ -135,27 +305,32 @@ var global = {
       sp = stack.length-1;
       for ( var i = 0 ; i < code.length ; i++ ) code[i]();
     });
+
     global = oldGlobal;
   },
-  '+': function() {
-    stack.push(stack.pop() + stack.pop());
-  },
-  '*': function() {
-    stack.push(stack.pop() * stack.pop());
-  },
-  '()': function() {
-    (stack.pop())();
-  }
+  'not': function() { stack.push( ! stack.pop()); },
+  'and': function() { stack.push(stack.pop() &&  stack.pop()); },
+  'or':  function() { stack.push(stack.pop() ||  stack.pop()); },
+  '=':   function() { stack.push(stack.pop() === stack.pop()); },
+  '!=':  function() { stack.push(stack.pop() !== stack.pop()); },
+  '<':   function() { stack.push(stack.pop() >=  stack.pop()); },
+  '<=':  function() { stack.push(stack.pop() >   stack.pop()); },
+  '>':   function() { stack.push(stack.pop() <=  stack.pop()); },
+  '>=':  function() { stack.push(stack.pop() <   stack.pop()); },
+  '+':   function() { stack.push(stack.pop() +   stack.pop()); },
+  '*':   function() { stack.push(stack.pop() *   stack.pop()); },
+  '-':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b - a); },
+  '/':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); },
+  'if':  function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); },
+  'ifelse': function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); },
+  '()':  function() { (stack.pop())(); }
 };
 
 var line;
 while ( true ) {
   line = global.read();
-  // console.log('line >>> ', line);
   if ( line === undefined ) break;
   var fn = global.eval(line);
-  // console.log('fn >>> ', fn);
   if ( typeof fn === 'function' )
     fn();
-  // console.log('stack >>> ', stack);
 }
