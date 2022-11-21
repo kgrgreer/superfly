@@ -110,21 +110,30 @@ var global = {
   '{': function() {
     var l;
     var oldGlobal = global;
+    var vars      = []; // function parameter names
+    var code      = []; // function's code
+
     global = Object.create(global);
-    var vars = [];
-    var a = [];
+
+    // read var names
     while ( ( l = global.read() ) != '|' ) {
       vars.push(l);
     }
+
+    // define variable accessors
     for ( var i = 0 ; i < vars.length ; i++ ) {
       global[vars[i]] = function() { stack.push(stack[sp-vars.length+i]); };
     }
-    while ( (  l = global.read() ) != '}' ) {
-      a.push(global.eval(l));
+
+    // read function body and add to code
+    while ( ( l = global.read() ) != '}' ) {
+      code.push(global.eval(l));
     }
+
+    // create the function
     stack.push(function() {
       sp = stack.length-1;
-      for ( var i = 0 ; i < a.length ; i++ ) a[i]();
+      for ( var i = 0 ; i < code.length ; i++ ) code[i]();
     });
     global = oldGlobal;
   },
