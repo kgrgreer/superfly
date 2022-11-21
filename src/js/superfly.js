@@ -35,11 +35,13 @@ PI
 *
 print
 {
+|
   "inline function
   print
 }
 ()
 {
+|
 "Hello world!"
 print
 }
@@ -96,7 +98,11 @@ var global = {
   },
   '{': function() {
     var l;
+    var vars = [];
     var a = [];
+    while ( (  l = global.read() ) != '|' ) {
+      vars.push(l);
+    }
     while ( (  l = global.read() ) != '}' ) {
       a.push(global.eval(l));
     }
