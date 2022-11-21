@@ -48,11 +48,22 @@ print
 :helloWorld
 helloWorld
 ()
+4
+{
+a
+|
+  a
+  a
+  +
+}
+()
+print
 "Done.
 print
 `;
 
 var stack = [];
+var sp;
 var global = {
   debugger: function() {
     debugger;
@@ -98,17 +109,24 @@ var global = {
   },
   '{': function() {
     var l;
+    var oldGlobal = global;
+    global = Object.create(global);
     var vars = [];
     var a = [];
-    while ( (  l = global.read() ) != '|' ) {
+    while ( ( l = global.read() ) != '|' ) {
       vars.push(l);
+    }
+    for ( var i = 0 ; i < vars.length ; i++ ) {
+      global[vars[i]] = function() { stack.push(stack[sp-vars.length+i]); };
     }
     while ( (  l = global.read() ) != '}' ) {
       a.push(global.eval(l));
     }
     stack.push(function() {
+      sp = stack.length-1;
       for ( var i = 0 ; i < a.length ; i++ ) a[i]();
     });
+    global = oldGlobal;
   },
   '+': function() {
     stack.push(stack.pop() + stack.pop());
