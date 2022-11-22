@@ -105,8 +105,8 @@ var scope = {
 
 // Language
 scope.eval(`
-1 1 = :true
-1 2 = :false
+1 1 = :true        // define true
+1 2 = :false       // define false
 { n | 0 n - } :neg // negate
 `);
 
@@ -123,6 +123,7 @@ scope.eval(`
 4 2 / print
 10 3 mod print
 2 8 ^ print
+15 10 10 ^ * print // scientific notation, distance from earth to sun in meters
 5 neg () print // it's inconsistent that some operators require () and others don't
 
 " Comparison Operators" print
@@ -184,6 +185,7 @@ false { | " if true" print } { | " if false" print } ifelse
 
 " Eval" print
 " 1 + 2 print" eval
+
 { script answer |
   " Expect: " script "  -> " answer "  " + + + +
   script eval answer = + print
