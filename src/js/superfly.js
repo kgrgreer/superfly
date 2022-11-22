@@ -1,4 +1,4 @@
-var stack = [], sp /* stack pointer */;
+var stack = [], sp = 0 /* stack pointer */;
 function isSpace(c) { return c === ' ' || c === '\t' || c === '\n' }
 var scope = {
   debugger: function() { debugger; },
@@ -53,7 +53,7 @@ var scope = {
     if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       return function() { stack.push(Number.parseInt(line)); }
     }
-    console.log('Unknown Symbol:', line);
+    console.log('Unknown Symbol:', line, ' at: "', scope.input.substring(scope.ip, scope.ip+40), '"');
   },
   print: function() { console.log(stack.pop()); },
   '{': function() {
@@ -61,25 +61,23 @@ var scope = {
 
     scope = Object.create(scope);
     // read var names
-    while ( ( l = scope.read() ) != '|' ) {
-      vars.push(l);
-    }
+    while ( ( l = scope.read() ) != '|' ) vars.push(l);
 
     // define variable accessors
-    for ( var i = 0 ; i < vars.length ; i++ ) {
-      scope[vars[i]]       = function() { stack.push(stack[sp-vars.length+i]); };
-      scope[':' + vars[i]] = function() { stack[sp-vars.length+i] = stack.pop(); };
+    for ( let i = 0 ; i < vars.length ; i++ ) {
+      scope[vars[i]]       = function() { stack.push(stack[sp-vars.length+i+1]); };
+      scope[':' + vars[i]] = function() { stack[sp-vars.length+i+1] = stack.pop(); };
     }
 
     // read function body and add to code
-    while ( ( l = scope.read() ) != '}' ) {
-      code.push(scope.evalSym(l));
-    }
+    while ( ( l = scope.read() ) != '}' )  code.push(scope.evalSym(l));
 
     // create the function
     stack.push(function() {
+      var oldSp = sp;
       sp = stack.length-1;
       for ( var i = 0 ; i < code.length ; i++ ) code[i]();
+      sp = oldSp;
     });
 
     oldScope.ip = scope.ip;
@@ -94,7 +92,7 @@ var scope = {
   '<=':  function() { stack.push(stack.pop() >   stack.pop()); },
   '>':   function() { stack.push(stack.pop() <=  stack.pop()); },
   '>=':  function() { stack.push(stack.pop() <   stack.pop()); },
-  '+':   function() { stack.push(stack.pop() +   stack.pop()); },
+  '+':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b + a); },
   '*':   function() { stack.push(stack.pop() *   stack.pop()); },
   '-':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b - a); },
   '/':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); },
@@ -184,7 +182,15 @@ false { | " if true" print } { | " if false" print } ifelse
   i 1 + :i i print
 } ()
 
+" Eval" print
 " 1 + 2 print" eval
+{ script answer |
+  " Expect: " script "  -> " answer "  " + + + +
+  script eval answer = + print
+} :expect
+
+" 1 2 +" 3 expect ()
+" 1 2 +" 4 expect ()
 
 /*
  TODO: fix, needs closure support to work
