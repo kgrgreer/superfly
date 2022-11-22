@@ -52,7 +52,7 @@ var scope = {
     if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       return function() { stack.push(Number.parseInt(line)); }
     }
-    console.log('Unknown Symbol:', line, ' at: "', scope.input.substring(scope.ip, scope.ip+40), '"');
+    console.log('Unknown Symbol:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
   },
   '{': function() {
     var l, oldScope = scope, vars = [], code = [];
