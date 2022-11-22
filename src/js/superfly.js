@@ -50,7 +50,7 @@ false false or  print
 false true  or  print
 
 " sample string" print
-3 14 100 / + :PI
+3 14 100 / + :PI // PI = 3.14, need to do this way until doubles are supported
 PI print
 PI 2 * print
 
