@@ -15,6 +15,7 @@ TODO:
 var input = `
 1 1 = :true
 1 2 = :false
+{ n | 0 n - } :neg // negate
 
 // A comment
 " Starting..." print
@@ -26,6 +27,7 @@ var input = `
 4 2 * print
 4 2 / print
 10 3 mod print
+5 neg () print // it's inconsistent that some operators require () and others don't
 
 " Comparison Operators" print
 1 1 =  print
