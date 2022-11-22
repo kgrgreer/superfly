@@ -103,7 +103,7 @@ false { | " if true" print } { | " if false" print } ifelse
 
 var stack = [], sp /* stack pointer */, ip = 0 /* input pointer */;
 function isSpace(c) { return c === ' ' || c === '\t' || c === '\n' }
-var global = {
+var scope = {
   debugger: function() { debugger; },
   readChar: function() { return ip < input.length ? input.charAt(ip++) : undefined; },
   read: function() {
@@ -118,26 +118,26 @@ var global = {
     return sym;
   },
   eval: function(line) {
-    var sym = global[line];
+    var sym = scope[line];
     if ( sym ) return sym;
     if ( line.startsWith(':') ) {
       var sym   = line.substring(1);
       var value = stack.pop();
-      return function() { global[sym] = function() { stack.push(value); }; };
+      return function() { scope[sym] = function() { stack.push(value); }; };
     }
     // TODO: define in language
     if ( line === '//' ) {
-      while ( (c = global.readChar()) != '\n' );
+      while ( (c = scope.readChar()) != '\n' );
       return;
     }
     // TODO: define in language
     if ( line === '/*' ) {
-      while ( (c = global.read()) != '*/' );
+      while ( (c = scope.read()) != '*/' );
       return;
     }
     if ( line === '"' ) {
       var s = '', c;
-      while ( (c = global.readChar()) != '"' ) s += c;
+      while ( (c = scope.readChar()) != '"' ) s += c;
       return function() { stack.push(s); };
     }
     if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
@@ -147,21 +147,21 @@ var global = {
   },
   print: function() { console.log(stack.pop()); },
   '{': function() {
-    var l, oldGlobal = global, vars = [], code = [];
+    var l, oldGlobal = scope, vars = [], code = [];
 
-    global = Object.create(global);
+    scope = Object.create(scope);
 
     // read var names
-    while ( ( l = global.read() ) != '|' ) vars.push(l);
+    while ( ( l = scope.read() ) != '|' ) vars.push(l);
 
     // define variable accessors
     for ( var i = 0 ; i < vars.length ; i++ ) {
-      global[vars[i]]       = function() { stack.push(stack[sp-vars.length+i]); };
-      global[':' + vars[i]] = function() { stack[sp-vars.length+i] = stack.pop(); };
+      scope[vars[i]]       = function() { stack.push(stack[sp-vars.length+i]); };
+      scope[':' + vars[i]] = function() { stack[sp-vars.length+i] = stack.pop(); };
     }
 
     // read function body and add to code
-    while ( ( l = global.read() ) != '}' ) code.push(global.eval(l));
+    while ( ( l = scope.read() ) != '}' ) code.push(scope.eval(l));
 
     // create the function
     stack.push(function() {
@@ -169,7 +169,7 @@ var global = {
       for ( var i = 0 ; i < code.length ; i++ ) code[i]();
     });
 
-    global = oldGlobal;
+    scope = oldGlobal;
   },
   'not': function() { stack.push( ! stack.pop()); },
   'and': function() { stack.push(stack.pop() &&  stack.pop()); },
@@ -190,10 +190,10 @@ var global = {
   '()':  function() { var fn = stack.pop(); fn(); }
 };
 
-// TODO: move this to a global function which takes value to parse from stack
+// TODO: move this to a scope function which takes value to parse from stack
 var sym;
-while ( sym = global.read() ) {
-  console.log('---> ', sym);
-  var fn = global.eval(sym);
+while ( sym = scope.read() ) {
+//  console.log('---> ', sym);
+  var fn = scope.eval(sym);
   fn && fn();
 }
