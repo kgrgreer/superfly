@@ -109,10 +109,12 @@ var global = {
       var value = stack.pop();
       return function() { global[sym] = function() { stack.push(value); }; };
     }
+    // TODO: define in language
     if ( line === '//' ) {
       while ( (c = global.readChar()) != '\n' );
       return;
     }
+    // TODO: define in language
     if ( line === '/*' ) {
       while ( (c = global.read()) != '*/' );
       return;
@@ -174,6 +176,7 @@ var global = {
   '()':  function() { (stack.pop())(); }
 };
 
+// TODO: move this to a global function which takes value to parse from stack
 var sym;
 while ( sym = global.read() ) {
   var fn = global.eval(sym);
