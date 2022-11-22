@@ -1,8 +1,7 @@
 /*
 TODO:
   - closures
-  - update local variables
-  - classes
+  - classes (as closures?)
   - symbols
   - symbol table
   - stack frames
@@ -10,6 +9,7 @@ TODO:
   - local variables (as functions?)
   - constants?
   - have eval take args from stack and be callable from scripts
+  - read() and readChar() should be callable from scripts
 */
 
 var input = `
@@ -73,7 +73,19 @@ false { | " is false" print } if
 true  { | " if true" print } { | " if false" print } ifelse
 false { | " if true" print } { | " if false" print } ifelse
 
+1 { i |
+  i print
+  i 1 + :i i print
+  i 1 + :i i print
+  i 1 + :i i print
+  i 1 + :i i print
+  i 1 + :i i print
+  i 1 + :i i print
+  i 1 + :i i print
+} ()
+
 /*
+ TODO: fix, needs closure support to work
 { start end block |
   start end < { |
     start block ()
@@ -104,6 +116,8 @@ var global = {
     return sym;
   },
   eval: function(line) {
+    var sym = global[line];
+    if ( sym ) return sym;
     if ( line.startsWith(':') ) {
       var sym   = line.substring(1);
       var value = stack.pop();
@@ -127,8 +141,6 @@ var global = {
     if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       return function() { stack.push(Number.parseInt(line)); }
     }
-    var sym = global[line];
-    if ( sym ) return sym;
     console.log('Unknown Symbol:', line);
   },
   print: function() { console.log(stack.pop()); },
@@ -173,12 +185,13 @@ var global = {
   'mod': function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); },
   'if':  function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); },
   'ifelse': function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); },
-  '()':  function() { (stack.pop())(); }
+  '()':  function() { var fn = stack.pop(); fn(); }
 };
 
 // TODO: move this to a global function which takes value to parse from stack
 var sym;
 while ( sym = global.read() ) {
+  console.log('---> ', sym);
   var fn = global.eval(sym);
   fn && fn();
 }
