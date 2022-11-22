@@ -20,7 +20,6 @@ var scope = {
     scope.ip    = 0;
     var sym;
     while ( sym = scope.read() ) {
-    //  console.log('---> ', sym);
       var fn = scope.evalSym(sym);
       fn && fn();
     }
@@ -55,7 +54,6 @@ var scope = {
     }
     console.log('Unknown Symbol:', line, ' at: "', scope.input.substring(scope.ip, scope.ip+40), '"');
   },
-  print: function() { console.log(stack.pop()); },
   '{': function() {
     var l, oldScope = scope, vars = [], code = [];
 
@@ -83,6 +81,7 @@ var scope = {
     oldScope.ip = scope.ip;
     scope = oldScope;
   },
+  print: function() { console.log(stack.pop()); },
   'not': function() { stack.push( ! stack.pop()); },
   'and': function() { stack.push(stack.pop() &&  stack.pop()); },
   'or':  function() { stack.push(stack.pop() ||  stack.pop()); },
@@ -99,6 +98,7 @@ var scope = {
   '^':   function() { var a = stack.pop(), b = stack.pop(); stack.push(Math.pow(b,a)); },
   'mod': function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); },
   'if':  function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); },
+  // TODO: should act like ? and return value?
   'ifelse': function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); },
   '()':  function() { var fn = stack.pop(); fn(); }
 };
