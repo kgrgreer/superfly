@@ -73,6 +73,17 @@ false { | " is false" print } if
 true  { | " if true" print } { | " if false" print } ifelse
 false { | " if true" print } { | " if false" print } ifelse
 
+/*
+{ start end block |
+  start end < { |
+    start block ()
+    start 1 + end block for ()
+  } if
+} :for
+
+1 10 { i | i print } for ()
+*/
+
 " Done." print
 `;
 
@@ -102,6 +113,10 @@ var global = {
       while ( (c = global.readChar()) != '\n' );
       return;
     }
+    if ( line === '/*' ) {
+      while ( (c = global.read()) != '*/' );
+      return;
+    }
     if ( line === '"' ) {
       var s = '', c;
       while ( (c = global.readChar()) != '"' ) s += c;
@@ -124,8 +139,10 @@ var global = {
     while ( ( l = global.read() ) != '|' ) vars.push(l);
 
     // define variable accessors
-    for ( var i = 0 ; i < vars.length ; i++ )
-      global[vars[i]] = function() { stack.push(stack[sp-vars.length+i]); };
+    for ( var i = 0 ; i < vars.length ; i++ ) {
+      global[vars[i]]       = function() { stack.push(stack[sp-vars.length+i]); };
+      global[':' + vars[i]] = function() { stack[sp-vars.length+i] = stack.pop(); };
+    }
 
     // read function body and add to code
     while ( ( l = global.read() ) != '}' ) code.push(global.eval(l));
