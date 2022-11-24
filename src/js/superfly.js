@@ -68,7 +68,8 @@ var scope = {
     }
 
     // read function body and add to code
-    while ( ( l = scope.read() ) != '}' )  code.push(scope.evalSym(l));
+    // TODO: fix
+    while ( ( l = scope.read() ) != '}' ) code.push(scope.evalSym(l));
 
     // create the function
     stack.push(function() {
@@ -97,6 +98,7 @@ var scope = {
   '/':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); },
   '^':   function() { var a = stack.pop(), b = stack.pop(); stack.push(Math.pow(b,a)); },
   'mod': function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); },
+  '%': function() { stack.push(stack.pop() / 100); },
   'if':  function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); },
   // TODO: should act like ? and return value?
   'ifelse': function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); },
@@ -123,6 +125,7 @@ scope.eval(`
 4 2 / print
 10 3 mod print
 2 8 ^ print
+15 % print
 15 10 10 ^ * print // scientific notation, distance from earth to sun in meters
 5 neg () print // it's inconsistent that some operators require () and others don't
 
@@ -209,7 +212,15 @@ false { | " if true" print } { | " if false" print } ifelse
 " Done." print
 `);
 
-
+scope.eval(`
+" Own Variables" print
+{ count |
+{ | count 1 + :count count }
+} 1 () :counter
+counter () print
+counter () print
+counter () print
+`);
 
 /*
 TODO:
