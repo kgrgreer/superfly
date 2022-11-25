@@ -66,16 +66,17 @@ var scope = {
   mod:    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
   if:     fn(function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
   ifelse: fn(function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
+  while : fn(function() { var block = stack.pop(), cond = stack.pop(); while ( true ) { cond(); if ( ! stack.pop() ) break; block(); } }),
   'i[':   function(code) { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
   '"':    function(code) { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
   '//':   function() { while ( (c = scope.readChar()) != '\n' ); },
   '/*':   function() { while ( (c = scope.readSym()) != '*/' ); },
   '=':    fn(function() { stack.push(stack.pop() === stack.pop()); }),
   '!=':   fn(function() { stack.push(stack.pop() !== stack.pop()); }),
-  '<':    fn(function() { stack.push(stack.pop() >=  stack.pop()); }),
-  '<=':   fn(function() { stack.push(stack.pop() >   stack.pop()); }),
-  '>':    fn(function() { stack.push(stack.pop() <=  stack.pop()); }),
-  '>=':   fn(function() { stack.push(stack.pop() <   stack.pop()); }),
+  '<':    fn(function() { stack.push(stack.pop() >   stack.pop()); }),
+  '<=':   fn(function() { stack.push(stack.pop() >=  stack.pop()); }),
+  '>':    fn(function() { stack.push(stack.pop() <   stack.pop()); }),
+  '>=':   fn(function() { stack.push(stack.pop() <=  stack.pop()); }),
   '+':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b + a); }),
   '*':    fn(function() { stack.push(stack.pop() *   stack.pop()); }),
   '-':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b - a); }),
@@ -154,7 +155,7 @@ helloWorld ()
 2 double () double () print
 
 " Functions as parameters" print
-{ f | " start" print f f f f f i[ " compile callFiveTimes" print debug ] () f () f () f () f () } :callFiveTimes
+{ f | " start" print f f f f f i[ " compile callFiveTimes" print ] () f () f () f () f () } :callFiveTimes
 helloWorld print
 helloWorld callFiveTimes ()
 
@@ -186,6 +187,10 @@ false { | " if true" print } { | " if false" print } ifelse
 
 " 1 2 +" 3 expect ()
 " 1 2 +" 4 expect ()
+
+1 { i |
+  { | i 10 <= } { | " loop: " i + print i 1 + :i } while
+} ()
 
 /*
  TODO: fix, needs closure support to work
