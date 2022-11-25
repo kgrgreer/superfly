@@ -6,9 +6,7 @@ var scope = {
   read: function() {
     var sym = '', c;
     while ( c = this.readChar() ) {
-      if ( isSpace(c) ) {
-        if ( sym ) break; else continue;
-      }
+      if ( isSpace(c) ) { if ( sym ) break; else continue; }
       sym += c;
     }
     return sym;
@@ -34,11 +32,6 @@ var scope = {
       console.log('Unknown Symbol:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
     }
   },
-  '"':    function(code) {
-    var s = '', c;
-    while ( (c = scope.readChar()) != '"' ) s += c;
-    code.push(function() { stack.push(s); });
-  },
   '{':    function(code) {
     var l, oldScope = scope, vars = [], fncode = [];
     scope = Object.create(scope);
@@ -48,8 +41,7 @@ var scope = {
 
     // define variable accessors
     for ( let i = 0 ; i < vars.length ; i++ ) {
-      let index = vars.length-i;
-      let ds = scope;
+      let index = vars.length-i, ds = scope;
       // TODO: should be immediate to figure out the depth
       scope[vars[i]]       = function(code) { var d = 0, s = scope; while ( ds !== s ) { s = s.__proto__; d++ } /*console.log('***', i, vars[i], d); */ code.push(d ? function() { stack.push(heap[heap[hp]+index]); } : function() { stack.push(heap[hp+index]); }); };
       scope[':' + vars[i]] = fn(function() { heap[hp+index] = stack.pop(); });
@@ -72,8 +64,6 @@ var scope = {
       });
     });
   },
-  '//':   function() { while ( (c = scope.readChar()) != '\n' ); },
-  '/*':   function() { while ( (c = scope.read()) != '*/' ); },
   debugImmediate: function() { debugger; }, // breaks into debugger during compilation
   debug:  fn(function() { debugger; }), // breaks into debugger during runtime
   print:  fn(function() { console.log(stack.pop()); }),
@@ -83,17 +73,24 @@ var scope = {
   mod:    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
   if:     fn(function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
   ifelse: fn(function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
+  '"':    function(code) {
+    var s = '', c;
+    while ( (c = scope.readChar()) != '"' ) s += c;
+    code.push(function() { stack.push(s); });
+  },
+  '//':   function() { while ( (c = scope.readChar()) != '\n' ); },
+  '/*':   function() { while ( (c = scope.read()) != '*/' ); },
   '=':    fn(function() { stack.push(stack.pop() === stack.pop()); }),
   '!=':   fn(function() { stack.push(stack.pop() !== stack.pop()); }),
   '<':    fn(function() { stack.push(stack.pop() >=  stack.pop()); }),
   '<=':   fn(function() { stack.push(stack.pop() >   stack.pop()); }),
   '>':    fn(function() { stack.push(stack.pop() <=  stack.pop()); }),
   '>=':   fn(function() { stack.push(stack.pop() <   stack.pop()); }),
-  '+':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b + a); }),
+  '+':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b + a); }),
   '*':    fn(function() { stack.push(stack.pop() *   stack.pop()); }),
-  '-':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b - a); }),
-  '/':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); }),
-  '^':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(Math.pow(b,a)); }),
+  '-':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b - a); }),
+  '/':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b / a); }),
+  '^':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(Math.pow(b,a)); }),
   '%':    fn(function() { stack.push(stack.pop() / 100); }),
   '()':   fn(function() { var f = stack.pop(); f(); })
 };
@@ -101,6 +98,8 @@ var scope = {
 scope.eval(`
 " Lexical Scoping" print
 1 { a | { | a print } () } ()
+" hello world"  5 { a | { | a print } } () :sayhello
+sayhello () sayhello ()
 `);
 
 // Language
