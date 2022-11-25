@@ -1,12 +1,11 @@
 var stack = [], heap = [], hp;
-function isSpace(c) { return c === ' ' || c === '\t' || c === '\n' }
-function fn(f) { return function(code) { code.push(f); } }
+function fn(f) { return code => code.push(f); }
 var scope = {
   readChar: function() { return this.ip < this.input.length ? this.input.charAt(this.ip++) : undefined; },
-  read: function() {
+  readSym: function() {
     var sym = '', c;
     while ( c = this.readChar() ) {
-      if ( isSpace(c) ) { if ( sym ) break; else continue; }
+      if ( /\s/.test(c) ) { if ( sym ) break; else continue; }
       sym += c;
     }
     return sym;
@@ -15,8 +14,8 @@ var scope = {
     var oldInput = scope.input, oldIp = scope.ip;
     scope.input = src;
     scope.ip    = 0;
-    for ( var sym ; sym = scope.read() ; )
-      scope.evalSym(sym, { push: function(fn) { fn(); } });
+    for ( var sym ; sym = scope.readSym() ; )
+      scope.evalSym(sym, { push: f => f() });
     scope.input = oldInput;
     scope.ip    = oldIp
   },
@@ -29,36 +28,30 @@ var scope = {
       code.push(function() { scope[sym] = function() { stack.push(value); }; });
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseInt(line)); });
-    } else {
+    } else
       console.log('Unknown Symbol:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
-    }
   },
   '{':    function(code) {
     var l, oldScope = scope, vars = [], fncode = [];
-    scope = Object.create(scope);
-
-    while ( ( l = scope.read() ) != '|' ) vars.push(l); // read var names
-
-    // define variable accessors
+    var curScope = scope = Object.create(scope);
+    while ( ( l = scope.readSym() ) != '|' ) vars.push(l); // read var names
+    function countDepth() { var d = 0, s = scope; while ( s !== curScope ) { s = s.__proto__; d++; } return d; }
+    function moveUp(d) { var p = hp; for ( var i = 0 ; i < d ; i++ ) p = heap[p]; return p; }
     for ( let i = 0 ; i < vars.length ; i++ ) {
-      let index = vars.length-i, ds = scope;
-      // TODO: should be immediate to figure out the depth
-      scope[vars[i]]       = function(code) { var d = 0, s = scope; while ( ds !== s ) { s = s.__proto__; d++ } /*console.log('***', i, vars[i], d); */ code.push(d ? function() { stack.push(heap[heap[hp]+index]); } : function() { stack.push(heap[hp+index]); }); };
-      scope[':' + vars[i]] = fn(function() { heap[hp+index] = stack.pop(); });
+      let index = vars.length-i;
+      scope[vars[i]]       = function(code) { var d = countDepth(); code.push(function() { var p = moveUp(d); stack.push(heap[p+index]); }); };
+      scope[':' + vars[i]] = function(code) { var d = countDepth(); code.push(function() { var p = moveUp(d); heap[p+index] = stack.pop(); }); };
     }
-
-    while ( ( l = scope.read() ) != '}' ) scope.evalSym(l, fncode);
-
+    while ( ( l = scope.readSym() ) != '}' ) scope.evalSym(l, fncode);
     oldScope.ip = scope.ip;
     scope = oldScope;
-
-    // create the function
     code.push(function() {
-      // TODO: needs to be a closure
-      stack.push((function() { return function() {
+      stack.push((function() {
+        var p = hp;
+        return function() {
         var old = hp;
         hp = heap.length;
-        heap.push(old);
+        heap.push(p);
         for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
         for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
         hp = old;
@@ -76,7 +69,7 @@ var scope = {
   'i[':   function(code) { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
   '"':    function(code) { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
   '//':   function() { while ( (c = scope.readChar()) != '\n' ); },
-  '/*':   function() { while ( (c = scope.read()) != '*/' ); },
+  '/*':   function() { while ( (c = scope.readSym()) != '*/' ); },
   '=':    fn(function() { stack.push(stack.pop() === stack.pop()); }),
   '!=':   fn(function() { stack.push(stack.pop() !== stack.pop()); }),
   '<':    fn(function() { stack.push(stack.pop() >=  stack.pop()); }),
@@ -92,11 +85,13 @@ var scope = {
   '()':   fn(function() { var f = stack.pop(); f(); })
 };
 
+// Experiments
 scope.eval$(`
 " Lexical Scoping" print
 1 { a | { | a print } () } ()
-" hello world"  5 { a | { | a print } } () :sayhello
+" hello world"  { a | { | a print } } () :sayhello
 sayhello () sayhello ()
+" 3 deep"  { a | { | { | a print } } } () () ()
 `);
 
 // Language
@@ -219,16 +214,11 @@ counter () print
 
 /*
 TODO:
-  - keep track of function depth and follow back heap pointers
-  - closures
   - classes (as closures?)
   - symbols
-  - symbol table
-  - stack frames
   - function return values
   - local variables (as functions?)
   - constants?
-  - have eval take args from stack and be callable from scripts
-  - read() and readChar() should be callable from scripts
-  - distinguish between immediate and non-immediate words?
+  - readSym() and readChar() should be callable from scripts
+  - make eval() be the real method and eval$ call it
 */
