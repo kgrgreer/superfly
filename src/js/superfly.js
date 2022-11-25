@@ -11,15 +11,16 @@ var scope = {
     }
     return sym;
   },
-  eval: function(code) {
+  eval$: function(src) {
     var oldInput = scope.input, oldIp = scope.ip;
-    scope.input = code || stack.pop();
+    scope.input = src;
     scope.ip    = 0;
     for ( var sym ; sym = scope.read() ; )
       scope.evalSym(sym, { push: function(fn) { fn(); } });
     scope.input = oldInput;
     scope.ip    = oldIp
   },
+  eval: function(code) { code.push(function() { scope.eval$(stack.pop()); }); },
   evalSym: function(line, code) {
     var sym = scope[line];
     if ( sym ) { sym(code); }
@@ -36,8 +37,7 @@ var scope = {
     var l, oldScope = scope, vars = [], fncode = [];
     scope = Object.create(scope);
 
-    // read var names
-    while ( ( l = scope.read() ) != '|' ) vars.push(l);
+    while ( ( l = scope.read() ) != '|' ) vars.push(l); // read var names
 
     // define variable accessors
     for ( let i = 0 ; i < vars.length ; i++ ) {
@@ -54,14 +54,15 @@ var scope = {
 
     // create the function
     code.push(function() {
-      stack.push(function() {
+      // TODO: needs to be a closure
+      stack.push((function() { return function() {
         var old = hp;
         hp = heap.length;
         heap.push(old);
         for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
         for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
         hp = old;
-      });
+      }})());
     });
   },
   debugImmediate: function() { debugger; }, // breaks into debugger during compilation
@@ -73,11 +74,8 @@ var scope = {
   mod:    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
   if:     fn(function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
   ifelse: fn(function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
-  '"':    function(code) {
-    var s = '', c;
-    while ( (c = scope.readChar()) != '"' ) s += c;
-    code.push(function() { stack.push(s); });
-  },
+  '[':    function(code) { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
+  '"':    function(code) { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
   '//':   function() { while ( (c = scope.readChar()) != '\n' ); },
   '/*':   function() { while ( (c = scope.read()) != '*/' ); },
   '=':    fn(function() { stack.push(stack.pop() === stack.pop()); }),
@@ -95,7 +93,7 @@ var scope = {
   '()':   fn(function() { var f = stack.pop(); f(); })
 };
 
-scope.eval(`
+scope.eval$(`
 " Lexical Scoping" print
 1 { a | { | a print } () } ()
 " hello world"  5 { a | { | a print } } () :sayhello
@@ -103,14 +101,14 @@ sayhello () sayhello ()
 `);
 
 // Language
-scope.eval(`
+scope.eval$(`
 1 1 = :true        // define true
 1 2 = :false       // define false
 { n | 0 n - } :neg // negate
 `);
 
 // Tests
-scope.eval(`
+scope.eval$(`
 // A comment
 " Starting..." print
 
@@ -162,7 +160,7 @@ helloWorld ()
 2 double () double () print
 
 " Functions as parameters" print
-{ f | " start" print f f f f f debug () f () f () f () f () } :callFiveTimes
+{ f | " start" print f f f f f [ " compile callFiveTimes" print debug ] () f () f () f () f () } :callFiveTimes
 helloWorld print
 helloWorld callFiveTimes ()
 
@@ -210,7 +208,7 @@ false { | " if true" print } { | " if false" print } ifelse
 " Done." print
 `);
 
-scope.eval(`
+scope.eval$(`
 " Own Variables" print
 1 { count |
 { | count 1 + :count count }
