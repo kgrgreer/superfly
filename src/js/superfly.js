@@ -192,17 +192,14 @@ false { | " if true" print } { | " if false" print } ifelse
   { | i 10 <= } { | " loop: " i + print i 1 + :i } while
 } ()
 
-/*
- TODO: fix, needs closure support to work
 { start end block |
-  start end < { |
+  start end <= { |
     start block ()
-    start 1 + end block for ()
+    start 1 + end block " for" eval ()
   } if
 } :for
 
-1 10 { i | i print } for ()
-*/
+1 10 { i | " for: " i + print } for ()
 
 " Done." print
 `);
