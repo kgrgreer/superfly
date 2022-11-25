@@ -65,7 +65,6 @@ var scope = {
       }})());
     });
   },
-  debugImmediate: function() { debugger; }, // breaks into debugger during compilation
   debug:  fn(function() { debugger; }), // breaks into debugger during runtime
   print:  fn(function() { console.log(stack.pop()); }),
   not:    fn(function() { stack.push( ! stack.pop()); }),
