@@ -1,7 +1,7 @@
 var stack = [], heap = [], hp;
 function isSpace(c) { return c === ' ' || c === '\t' || c === '\n' }
+function fn(f) { return function(code) { code.push(f); } }
 var scope = {
-  debugger: function() { debugger; },
   readChar: function() { return this.ip < this.input.length ? this.input.charAt(this.ip++) : undefined; },
   read: function() {
     var sym = '', c;
@@ -23,75 +23,77 @@ var scope = {
     scope.ip    = oldIp
   },
   evalSym: function(line, code) {
-    if ( line === 'debugger-IMMEDIATE' ) { debugger; return; }
     var sym = scope[line];
-    if ( sym ) { code.push(sym); }
+    if ( sym ) { sym(code); }
     else if ( line.startsWith(':') ) {
       var sym   = line.substring(1), value = stack.pop();
       code.push(function() { scope[sym] = function() { stack.push(value); }; });
-    } else if ( line === '//' ) {
-      while ( (c = scope.readChar()) != '\n' );
-    } else if ( line === '/*' ) {
-      while ( (c = scope.read()) != '*/' );
-    } else if ( line === '"' ) {
-      var s = '', c;
-      while ( (c = scope.readChar()) != '"' ) s += c;
-      code.push(function() { stack.push(s); });
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseInt(line)); });
-    } else if ( line === '{' ) {
-      var l, oldScope = scope, vars = [], fncode = [];
-      scope = Object.create(scope);
-
-      // read var names
-      while ( ( l = scope.read() ) != '|' ) vars.push(l);
-
-      // define variable accessors
-      for ( let i = 0 ; i < vars.length ; i++ ) {
-        let index = vars.length-i-1;
-        scope[vars[i]]       = function() { stack.push(heap[hp+index]); };
-        scope[':' + vars[i]] = function() { heap[hp+index] = stack.pop(); };
-      }
-
-      while ( ( l = scope.read() ) != '}' ) scope.evalSym(l, fncode);
-
-      oldScope.ip = scope.ip;
-      scope = oldScope;
-
-      // create the function
-      code.push(function() {
-        stack.push(function() {
-          var old = hp;
-          hp = heap.length;
-          for ( var i = 0 ; i < vars.length ; i++ ) heap.push(stack.pop());
-          for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
-          hp = old;
-        })
-      });
     } else {
       console.log('Unknown Symbol:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
     }
   },
-  print:  function() { console.log(stack.pop()); },
-  not:    function() { stack.push( ! stack.pop()); },
-  and:    function() { stack.push(stack.pop() &&  stack.pop()); },
-  or:     function() { stack.push(stack.pop() ||  stack.pop()); },
-  mod:    function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); },
-  if:     function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); },
-  ifelse: function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); },
-  '=':    function() { stack.push(stack.pop() === stack.pop()); },
-  '!=':   function() { stack.push(stack.pop() !== stack.pop()); },
-  '<':    function() { stack.push(stack.pop() >=  stack.pop()); },
-  '<=':   function() { stack.push(stack.pop() >   stack.pop()); },
-  '>':    function() { stack.push(stack.pop() <=  stack.pop()); },
-  '>=':   function() { stack.push(stack.pop() <   stack.pop()); },
-  '+':    function() { var a = stack.pop(), b = stack.pop(); stack.push(b + a); },
-  '*':    function() { stack.push(stack.pop() *   stack.pop()); },
-  '-':    function() { var a = stack.pop(), b = stack.pop(); stack.push(b - a); },
-  '/':    function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); },
-  '^':    function() { var a = stack.pop(), b = stack.pop(); stack.push(Math.pow(b,a)); },
-  '%':    function() { stack.push(stack.pop() / 100); },
-  '()':   function() { var fn = stack.pop(); fn(); }
+  '"':    function(code) {
+    var s = '', c;
+    while ( (c = scope.readChar()) != '"' ) s += c;
+    code.push(function() { stack.push(s); });
+  },
+  '{':    function(code) {
+    var l, oldScope = scope, vars = [], fncode = [];
+    scope = Object.create(scope);
+
+    // read var names
+    while ( ( l = scope.read() ) != '|' ) vars.push(l);
+
+    // define variable accessors
+    for ( let i = 0 ; i < vars.length ; i++ ) {
+      let index = vars.length-i-1;
+      // TODO: should be immediate to figure out the depth
+      scope[vars[i]]       = fn(function() { stack.push(heap[hp+index]); });
+      scope[':' + vars[i]] = fn(function() { heap[hp+index] = stack.pop(); });
+    }
+
+    while ( ( l = scope.read() ) != '}' ) scope.evalSym(l, fncode);
+
+    oldScope.ip = scope.ip;
+    scope = oldScope;
+
+    // create the function
+    code.push(function() {
+      stack.push(function() {
+        var old = hp;
+        hp = heap.length;
+        for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
+        for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
+        hp = old;
+      });
+    });
+  },
+  '//':   function() { while ( (c = scope.readChar()) != '\n' ); },
+  '/*':   function() { while ( (c = scope.read()) != '*/' ); },
+  debugImmediate: function() { debugger; }, // breaks into debugger during compilation
+  debug:  fn(function() { debugger; }), // breaks into debugger during runtime
+  print:  fn(function() { console.log(stack.pop()); }),
+  not:    fn(function() { stack.push( ! stack.pop()); }),
+  and:    fn(function() { stack.push(stack.pop() &&  stack.pop()); }),
+  or:     fn(function() { stack.push(stack.pop() ||  stack.pop()); }),
+  mod:    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
+  if:     fn(function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
+  ifelse: fn(function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
+  '=':    fn(function() { stack.push(stack.pop() === stack.pop()); }),
+  '!=':   fn(function() { stack.push(stack.pop() !== stack.pop()); }),
+  '<':    fn(function() { stack.push(stack.pop() >=  stack.pop()); }),
+  '<=':   fn(function() { stack.push(stack.pop() >   stack.pop()); }),
+  '>':    fn(function() { stack.push(stack.pop() <=  stack.pop()); }),
+  '>=':   fn(function() { stack.push(stack.pop() <   stack.pop()); }),
+  '+':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b + a); }),
+  '*':    fn(function() { stack.push(stack.pop() *   stack.pop()); }),
+  '-':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b - a); }),
+  '/':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); }),
+  '^':    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(Math.pow(b,a)); }),
+  '%':    fn(function() { stack.push(stack.pop() / 100); }),
+  '()':   fn(function() { var f = stack.pop(); f(); })
 };
 
 scope.eval(`
@@ -160,7 +162,8 @@ helloWorld ()
 2 double () double () print
 
 " Functions as parameters" print
-{ f | f () f () f () f () f () } :callFiveTimes
+{ f | " start" print f f f f f debug () f () f () f () f () } :callFiveTimes
+helloWorld print
 helloWorld callFiveTimes ()
 
 " Conditionals" print
