@@ -1,14 +1,13 @@
-var stack = [], sp = 0 /* stack pointer */;
+var stack = [], heap = [], hp;
 function isSpace(c) { return c === ' ' || c === '\t' || c === '\n' }
 var scope = {
   debugger: function() { debugger; },
-  readChar: function() { return scope.ip < scope.input.length ? scope.input.charAt(scope.ip++) : undefined; },
+  readChar: function() { return this.ip < this.input.length ? this.input.charAt(this.ip++) : undefined; },
   read: function() {
     var sym = '', c;
     while ( c = this.readChar() ) {
       if ( isSpace(c) ) {
-        if ( sym ) break;
-        continue;
+        if ( sym ) break; else continue;
       }
       sym += c;
     }
@@ -18,92 +17,88 @@ var scope = {
     var oldInput = scope.input, oldIp = scope.ip;
     scope.input = code || stack.pop();
     scope.ip    = 0;
-    var sym;
-    while ( sym = scope.read() ) {
-      var fn = scope.evalSym(sym);
-      fn && fn();
-    }
+    for ( var sym ; sym = scope.read() ; )
+      scope.evalSym(sym, { push: function(fn) { fn(); } });
     scope.input = oldInput;
     scope.ip    = oldIp
   },
-  evalSym: function(line) {
+  evalSym: function(line, code) {
+    if ( line === 'debugger-IMMEDIATE' ) { debugger; return; }
     var sym = scope[line];
-    if ( sym ) return sym;
-    if ( line.startsWith(':') ) {
-      var sym   = line.substring(1);
-      var value = stack.pop();
-      return function() { scope[sym] = function() { stack.push(value); }; };
-    }
-    // TODO: define in language
-    if ( line === '//' ) {
+    if ( sym ) { code.push(sym); }
+    else if ( line.startsWith(':') ) {
+      var sym   = line.substring(1), value = stack.pop();
+      code.push(function() { scope[sym] = function() { stack.push(value); }; });
+    } else if ( line === '//' ) {
       while ( (c = scope.readChar()) != '\n' );
-      return;
-    }
-    // TODO: define in language
-    if ( line === '/*' ) {
+    } else if ( line === '/*' ) {
       while ( (c = scope.read()) != '*/' );
-      return;
-    }
-    if ( line === '"' ) {
+    } else if ( line === '"' ) {
       var s = '', c;
       while ( (c = scope.readChar()) != '"' ) s += c;
-      return function() { stack.push(s); };
+      code.push(function() { stack.push(s); });
+    } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
+      code.push(function() { stack.push(Number.parseInt(line)); });
+    } else if ( line === '{' ) {
+      var l, oldScope = scope, vars = [], fncode = [];
+      scope = Object.create(scope);
+
+      // read var names
+      while ( ( l = scope.read() ) != '|' ) vars.push(l);
+
+      // define variable accessors
+      for ( let i = 0 ; i < vars.length ; i++ ) {
+        let index = vars.length-i-1;
+        scope[vars[i]]       = function() { stack.push(heap[hp+index]); };
+        scope[':' + vars[i]] = function() { heap[hp+index] = stack.pop(); };
+      }
+
+      while ( ( l = scope.read() ) != '}' ) scope.evalSym(l, fncode);
+
+      oldScope.ip = scope.ip;
+      scope = oldScope;
+
+      // create the function
+      code.push(function() {
+        stack.push(function() {
+          var old = hp;
+          hp = heap.length;
+          for ( var i = 0 ; i < vars.length ; i++ ) heap.push(stack.pop());
+          for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
+          hp = old;
+        })
+      });
+    } else {
+      console.log('Unknown Symbol:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
     }
-    if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
-      return function() { stack.push(Number.parseInt(line)); }
-    }
-    console.log('Unknown Symbol:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
   },
-  '{': function() {
-    var l, oldScope = scope, vars = [], code = [];
-
-    scope = Object.create(scope);
-    // read var names
-    while ( ( l = scope.read() ) != '|' ) vars.push(l);
-
-    // define variable accessors
-    for ( let i = 0 ; i < vars.length ; i++ ) {
-      scope[vars[i]]       = function() { stack.push(stack[sp-vars.length+i+1]); };
-      scope[':' + vars[i]] = function() { stack[sp-vars.length+i+1] = stack.pop(); };
-    }
-
-    // read function body and add to code
-    // TODO: fix
-    while ( ( l = scope.read() ) != '}' ) code.push(scope.evalSym(l));
-
-    // create the function
-    stack.push(function() {
-      var oldSp = sp;
-      sp = stack.length-1;
-      for ( var i = 0 ; i < code.length ; i++ ) code[i]();
-      sp = oldSp;
-    });
-
-    oldScope.ip = scope.ip;
-    scope = oldScope;
-  },
-  print: function() { console.log(stack.pop()); },
-  'not': function() { stack.push( ! stack.pop()); },
-  'and': function() { stack.push(stack.pop() &&  stack.pop()); },
-  'or':  function() { stack.push(stack.pop() ||  stack.pop()); },
-  '=':   function() { stack.push(stack.pop() === stack.pop()); },
-  '!=':  function() { stack.push(stack.pop() !== stack.pop()); },
-  '<':   function() { stack.push(stack.pop() >=  stack.pop()); },
-  '<=':  function() { stack.push(stack.pop() >   stack.pop()); },
-  '>':   function() { stack.push(stack.pop() <=  stack.pop()); },
-  '>=':  function() { stack.push(stack.pop() <   stack.pop()); },
-  '+':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b + a); },
-  '*':   function() { stack.push(stack.pop() *   stack.pop()); },
-  '-':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b - a); },
-  '/':   function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); },
-  '^':   function() { var a = stack.pop(), b = stack.pop(); stack.push(Math.pow(b,a)); },
-  'mod': function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); },
-  '%': function() { stack.push(stack.pop() / 100); },
-  'if':  function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); },
-  // TODO: should act like ? and return value?
-  'ifelse': function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); },
-  '()':  function() { var fn = stack.pop(); fn(); }
+  print:  function() { console.log(stack.pop()); },
+  not:    function() { stack.push( ! stack.pop()); },
+  and:    function() { stack.push(stack.pop() &&  stack.pop()); },
+  or:     function() { stack.push(stack.pop() ||  stack.pop()); },
+  mod:    function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); },
+  if:     function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); },
+  ifelse: function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); },
+  '=':    function() { stack.push(stack.pop() === stack.pop()); },
+  '!=':   function() { stack.push(stack.pop() !== stack.pop()); },
+  '<':    function() { stack.push(stack.pop() >=  stack.pop()); },
+  '<=':   function() { stack.push(stack.pop() >   stack.pop()); },
+  '>':    function() { stack.push(stack.pop() <=  stack.pop()); },
+  '>=':   function() { stack.push(stack.pop() <   stack.pop()); },
+  '+':    function() { var a = stack.pop(), b = stack.pop(); stack.push(b + a); },
+  '*':    function() { stack.push(stack.pop() *   stack.pop()); },
+  '-':    function() { var a = stack.pop(), b = stack.pop(); stack.push(b - a); },
+  '/':    function() { var a = stack.pop(), b = stack.pop(); stack.push(b / a); },
+  '^':    function() { var a = stack.pop(), b = stack.pop(); stack.push(Math.pow(b,a)); },
+  '%':    function() { stack.push(stack.pop() / 100); },
+  '()':   function() { var fn = stack.pop(); fn(); }
 };
+
+scope.eval(`
+" start" print
+1 { a | { | a print } () } ()
+" end" print
+`);
 
 // Language
 scope.eval(`
@@ -214,9 +209,9 @@ false { | " if true" print } { | " if false" print } ifelse
 
 scope.eval(`
 " Own Variables" print
-{ count |
+1 { count |
 { | count 1 + :count count }
-} 1 () :counter
+} () :counter
 counter () print
 counter () print
 counter () print
@@ -224,6 +219,7 @@ counter () print
 
 /*
 TODO:
+  - keep track of function depth and follow back heap pointers
   - closures
   - classes (as closures?)
   - symbols
@@ -234,4 +230,5 @@ TODO:
   - constants?
   - have eval take args from stack and be callable from scripts
   - read() and readChar() should be callable from scripts
+  - distinguish between immediate and non-immediate words?
 */
