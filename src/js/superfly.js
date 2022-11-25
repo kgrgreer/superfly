@@ -48,9 +48,10 @@ var scope = {
 
     // define variable accessors
     for ( let i = 0 ; i < vars.length ; i++ ) {
-      let index = vars.length-i-1;
+      let index = vars.length-i;
+      let ds = scope;
       // TODO: should be immediate to figure out the depth
-      scope[vars[i]]       = fn(function() { stack.push(heap[hp+index]); });
+      scope[vars[i]]       = function(code) { var d = 0, s = scope; while ( ds !== s ) { s = s.__proto__; d++ } /*console.log('***', i, vars[i], d); */ code.push(d ? function() { stack.push(heap[heap[hp]+index]); } : function() { stack.push(heap[hp+index]); }); };
       scope[':' + vars[i]] = fn(function() { heap[hp+index] = stack.pop(); });
     }
 
@@ -64,6 +65,7 @@ var scope = {
       stack.push(function() {
         var old = hp;
         hp = heap.length;
+        heap.push(old);
         for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
         for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
         hp = old;
@@ -97,9 +99,8 @@ var scope = {
 };
 
 scope.eval(`
-" start" print
+" Lexical Scoping" print
 1 { a | { | a print } () } ()
-" end" print
 `);
 
 // Language
