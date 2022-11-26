@@ -219,6 +219,10 @@ false { | " if true" print } { | " if false" print } ifelse
 " head" c () print
 " tail" c () print
 
+{ | } :nil // define 'nil', like doing nil = new Object() in Java/JS
+nil nil = print
+nil 5 = print
+
 " Done." print
 `);
 
