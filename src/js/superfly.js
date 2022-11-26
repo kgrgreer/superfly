@@ -28,8 +28,10 @@ var scope = {
       code.push(function() { scope[sym] = function() { stack.push(value); }; });
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseInt(line)); });
-    } else
-      console.log('Unknown Symbol:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
+    } else {
+      console.log('Unknown Symbol or Forward Reference:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
+      code.push(function() { scope[line]({ push: function(f) { f(); }})});
+    }
   },
   '{':    function(code) {
     var l, oldScope = scope, vars = [], fncode = [];
@@ -88,7 +90,7 @@ var scope = {
 
 // Experiments
 scope.eval$(`
-{ n | n 1 <= { | 1 } { | n n 1 - " fact" eval () * } ifelse } :fact
+{ n | n 1 <= { | 1 } { | n n 1 - fact () * } ifelse } :fact
 " 20 factorial: " 20 fact () + print
 
 " Lexical Scoping" print
@@ -198,7 +200,7 @@ false { | " if true" print } { | " if false" print } ifelse
 { start end block |
   start end <= { |
     start block ()
-    start 1 + end block " for" eval ()
+    start 1 + end block for ()
   } if
 } :for
 
