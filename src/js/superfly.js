@@ -221,7 +221,7 @@ counter () print
 
 /*
 TODO:
-  - add 'recurse' keyword
+  - return statement
   - classes (as closures?)
   - symbols
   - function return values
