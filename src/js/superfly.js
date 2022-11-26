@@ -206,6 +206,19 @@ false { | " if true" print } { | " if false" print } ifelse
 
 1 10 { i | " for: " i + print } for ()
 
+" OO" print
+// Create a Lisp-like CONS operator, but use head/tail instead of car/cdr
+// Is a simple class.
+{ h t |
+  { m |
+    m " head" = { | h } { | t } ifelse
+  }
+} :cons
+
+" car" " cdr" cons () :c
+" head" c () print
+" tail" c () print
+
 " Done." print
 `);
 
