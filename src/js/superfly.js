@@ -49,12 +49,12 @@ var scope = {
       stack.push((function() {
         var p = hp;
         return function() {
-        var old = hp;
-        hp = heap.length;
-        heap.push(p);
-        for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
-        for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
-        hp = old;
+          var old = hp;
+          hp = heap.length;
+          heap.push(p);
+          for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
+          for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
+          hp = old;
       }})());
     });
   },
@@ -88,6 +88,9 @@ var scope = {
 
 // Experiments
 scope.eval$(`
+{ n | n 1 <= { | 1 } { | n n 1 - " fact" eval () * } ifelse } :fact
+" 20 factorial: " 20 fact () + print
+
 " Lexical Scoping" print
 1 { a | { | a print } () } ()
 " hello world"  { a | { | a print } } () :sayhello
@@ -216,6 +219,7 @@ counter () print
 
 /*
 TODO:
+  - add 'recurse' keyword
   - classes (as closures?)
   - symbols
   - function return values
