@@ -229,4 +229,6 @@ TODO:
   - constants?
   - readSym() and readChar() should be callable from scripts
   - make eval() be the real method and eval$ call it
+
+  { x: a b c | 234 x:ret }
 */
