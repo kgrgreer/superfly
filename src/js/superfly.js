@@ -28,6 +28,9 @@ var scope = {
       code.push(function() { scope[sym] = function() { stack.push(value); }; });
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseInt(line)); });
+    } else if ( line.startsWith("'") ) {
+      var s = line.substring(1);
+      code.push(function() { stack.push(s); });
     } else {
       console.log('Unknown Symbol or Forward Reference:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
       code.push(function() { scope[line]({ push: function(f) { f(); }})});
@@ -230,22 +233,22 @@ false { | " if true" print } { | " if false" print } ifelse
 { h t |
   { m |
     m switch
-      " head" { | h }
-      " tail" { | t }
-      " :head" { v | v :h }
-      " :tail" { v | v :t }
+      'head { | h }
+      'tail { | t }
+      ':head { v | v :h }
+      ':tail { v | v :t }
       { | }
     end ()
   }
 } :cons
 
-" car" " cdr" cons () :c
-" head" c () print
-" tail" c () print
-1 " :head" c ()
-2 " :tail" c ()
-" head" c () print
-" tail" c () print
+" car" " cdr" cons () :c // construct a cons
+'head c () print
+'tail c () print
+1 ':head c ()
+2 ':tail c ()
+'head c () print
+'tail c () print
 
 
 { | } :nil // define 'nil', like doing nil = new Object() in Java/JS
