@@ -251,6 +251,41 @@ false { | " if true" print } { | " if false" print } ifelse
 'tail c () print
 
 
+{ x_ y_ r_ |
+  { m |
+    m switch
+      'x { | x_ } ':x { v | v :x_ }
+      'y { | y_ } ':y { v | v :y_ }
+      'r { | r_ } ':r { v | v :r_ }
+      'toString { | x_ " ," y_ " ," r_ + + + + }
+      { | " unknown method" print }
+    end ()
+  }
+} :Ball
+
+5 4 3 Ball () :b1
+'x b1 () print
+'toString b1 () print
+
+10 19 5 Ball () :b2
+'toString b2 () print
+
+{ x y r c_ |
+  x y r Ball () /* TODO: something is wrong, there isn't a Ball at this point
+  { super |
+    { m |
+      m switch
+        'c { | c_ } ':c { v | v :c_ }
+        { | m super () }
+      end ()
+    }
+  } () */
+} :ColourBall
+
+6 5 2 'red ColourBall () :b2
+// 'c b2 () print
+'toString b2 () print
+
 { | } :nil // define 'nil', like doing nil = new Object() in Java/JS
 nil nil = print
 nil 5 = print
