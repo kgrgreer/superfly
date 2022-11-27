@@ -60,6 +60,24 @@ var scope = {
       }})());
     });
   },
+  switch: function(code) {
+    var options = [], l, def, options = [];
+    while ( ( l = scope.readSym() ) != 'end' ) {
+      scope.evalSym(l, options);
+    }
+
+    code.push(function() {
+      var value = stack.pop();
+      for ( var i = 0 ; i < options.length ; i += 2 ) {
+        options[i]();
+        if ( value === stack.pop() ) {
+          options[i+1]();
+          return;
+        }
+      }
+      return options[options.length-1]();
+    });
+  },
   debug:  fn(function() { debugger; }), // breaks into debugger during runtime
   print:  fn(function() { console.log(stack.pop()); }),
   not:    fn(function() { stack.push( ! stack.pop()); }),
@@ -211,17 +229,47 @@ false { | " if true" print } { | " if false" print } ifelse
 // Is a simple class.
 { h t |
   { m |
-    m " head" = { | h } { | t } ifelse
+    m switch
+      " head" { | h }
+      " tail" { | t }
+      " :head" { v | v :h }
+      " :tail" { v | v :t }
+      { | }
+    end ()
   }
 } :cons
 
 " car" " cdr" cons () :c
 " head" c () print
 " tail" c () print
+1 " :head" c ()
+2 " :tail" c ()
+" head" c () print
+" tail" c () print
+
 
 { | } :nil // define 'nil', like doing nil = new Object() in Java/JS
 nil nil = print
 nil 5 = print
+
+" Switch" print
+3 switch
+  1 { | " one"   }
+  2 { | " two"   }
+  3 { | " three" }
+  { | " unknown" }
+end () print
+
+{ n | n
+  switch
+    1 " one"
+    2 " two"
+    3 " three"
+    " unknown"
+  end
+} :lookupNumber
+2 lookupNumber () print
+7 lookupNumber () print
 
 " Done." print
 `);
