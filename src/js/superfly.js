@@ -123,7 +123,7 @@ scope.eval$(`
         'x { | x_ } ':x { v | v :x_ }
         'y { | y_ } ':y { v | v :y_ }
         'r { | r_ } ':r { v | v :r_ }
-        'toString { | x_ " ," y_ " ," r_ + + + + }
+        'toString { | x_ ', y_ ', r_ + + + + }
         { | " unknown method" print }
       end ()
     }
@@ -136,18 +136,27 @@ scope.eval$(`
   10 19 5 Ball () :b2
   'toString b2 () print
 
-  { c_ |
-    Ball ()
-    { super |
-      { m |
-        m switch
-          'c { | c_ } ':c { v | v :c_ }
-          'toString { | 'toString super () ', ' + c_ + + }
-          { | m super () }
-        end ()
-      }
-    } ()
-  } :ColourBall
+  { c_ | Ball () { super |
+    { m | m switch
+      'c { | c_ }
+      ':c { v | v :c_ }
+      'toString { | 'toString super () ', c_ + + }
+      { | m super () }
+    end () }
+  } () } :ColourBall
+
+/*
+class Colour Ball extends Ball {
+  var c_;
+  ColourBall(..., c) {
+    super(...);
+    c_ = c;
+  }
+  getC() { return c_; }
+  setC(v) { c_ = v; }
+  toString() { return super.toString() + ", " + c_; }
+}
+*/
 
   6 5 2 'red ColourBall () :b3
   'c b3 () print
