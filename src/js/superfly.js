@@ -136,8 +136,8 @@ scope.eval$(`
   10 19 5 Ball () :b2
   'toString b2 () print
 
-  { x y r c_ |
-    x y r Ball ()
+  { c_ |
+    Ball ()
     { super |
       { m |
         m switch
