@@ -146,7 +146,7 @@ scope.eval$(`
   } () } :ColourBall
 
 /*
-class Colour Ball extends Ball {
+class ColourBall extends Ball {
   var c_;
   ColourBall(..., c) {
     super(...);
@@ -288,10 +288,8 @@ false { | " if true" print } { | " if false" print } ifelse
 { h t |
   { m |
     m switch
-      'head { | h }
-      'tail { | t }
-      ':head { v | v :h }
-      ':tail { v | v :t }
+      'head { | h } ':head { v | v :h }
+      'tail { | t } ':tail { v | v :t }
       { | }
     end ()
   }
@@ -345,7 +343,6 @@ counter () print
 /*
 TODO:
   - return statement
-  - classes (as closures?)
   - symbols
   - function return values
   - local variables (as functions?)
