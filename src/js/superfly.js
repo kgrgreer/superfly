@@ -19,7 +19,7 @@ var scope = {
     scope.input = oldInput;
     scope.ip    = oldIp
   },
-  eval: function(code) { code.push(function() { scope.eval$(stack.pop()); }); },
+  eval: code => { code.push(function() { scope.eval$(stack.pop()); }); },
   evalSym: function(line, code) {
     var sym = scope[line];
     if ( sym ) { sym(code); }
@@ -27,8 +27,8 @@ var scope = {
       var sym = line.substring(1);
       code.push(function() { var value = stack.pop(); scope[sym] = function(code) { code.push(function() { stack.push(value); }); } });
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
-      code.push(function() { stack.push(Number.parseInt(line)); });
-    } else if ( line.indexOf('.') != -1 ) {
+      code.push(function() { stack.push(Number.parseFloat(line)); });
+    } else if ( line.indexOf('.') != -1 ) { // Macro for OO calling convention
       var a = line.split('.');
       code.push(function() { stack.push(a[1]); });
       this.evalSym(a[0], code);
@@ -86,32 +86,54 @@ var scope = {
       return options[options.length-1]();
     });
   },
-  debug:  fn(function() { debugger; }), // breaks into debugger during runtime
-  print:  fn(function() { console.log(stack.pop()); }),
-  not:    fn(function() { stack.push( ! stack.pop()); }),
-  and:    fn(function() { stack.push(stack.pop() &&  stack.pop()); }),
-  or:     fn(function() { stack.push(stack.pop() ||  stack.pop()); }),
-  mod:    fn(function() { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
-  if:     fn(function() { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
-  ifelse: fn(function() { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
-  while : fn(function() { var block = stack.pop(), cond = stack.pop(); while ( true ) { cond(); if ( ! stack.pop() ) break; block(); } }),
-  'i[':   function(code) { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
-  '"':    function(code) { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
-  '//':   function() { while ( (c = scope.readChar()) != '\n' ); },
-  '/*':   function() { while ( (c = scope.readSym()) != '*/' ); },
-  '=':    fn(function() { stack.push(stack.pop() === stack.pop()); }),
-  '!=':   fn(function() { stack.push(stack.pop() !== stack.pop()); }),
-  '<':    fn(function() { stack.push(stack.pop() >   stack.pop()); }),
-  '<=':   fn(function() { stack.push(stack.pop() >=  stack.pop()); }),
-  '>':    fn(function() { stack.push(stack.pop() <   stack.pop()); }),
-  '>=':   fn(function() { stack.push(stack.pop() <=  stack.pop()); }),
-  '+':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b + a); }),
-  '*':    fn(function() { stack.push(stack.pop() *   stack.pop()); }),
-  '-':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b - a); }),
-  '/':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(b / a); }),
-  '^':    fn(function() { var a = stack.pop(), b =   stack.pop(); stack.push(Math.pow(b,a)); }),
-  '%':    fn(function() { stack.push(stack.pop() / 100); }),
-  '()':   fn(function() { var f = stack.pop(); f(); })
+  debug:  fn(() => { debugger; }), // breaks into debugger during runtime
+  print:  fn(() => { console.log(stack.pop()); }),
+  not:    fn(() => { stack.push( ! stack.pop()); }),
+  and:    fn(() => { stack.push(stack.pop() &&  stack.pop()); }),
+  or:     fn(() => { stack.push(stack.pop() ||  stack.pop()); }),
+  mod:    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
+  if:     fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
+  ifelse: fn(() => { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
+  while:  fn(() => { var block = stack.pop(), cond = stack.pop(); while ( true ) { cond(); if ( ! stack.pop() ) break; block(); } }),
+  const:  function(code) { code.push(function() {
+    var sym = stack.pop(), value = stack.pop();
+    scope[sym] = fn(() => { stack.push(value); });
+  });},
+  '[]WithValue': fn(() => {
+    var value = stack.pop(), length = stack.pop(), a = [];
+    for ( var i = 0 ; i < length ; i++ ) a[i] = value;
+    stack.push(a);
+  }),
+  '[]WithFn': fn(() => {
+    var fn = stack.pop(), length = stack.pop(), a = [];
+    for ( var i = 0 ; i < length ; i++ ) { stack.push(i); fn(); a[i] = stack.pop(); }
+    stack.push(a);
+  }),
+  '@': fn(() => {
+    var i = stack.pop(), a = stack.pop();
+    stack.push(a[i]);
+  }),
+  ':@': fn(() => {
+    var i = stack.pop(), a = stack.pop(), v = stack.pop();
+    a[i] = v;
+  }),
+  'i[':   code => { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
+  '"':    code => { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
+  '//':   () => { while ( (c = scope.readChar()) != '\n' ); },
+  '/*':   () => { while ( (c = scope.readSym()) != '*/' ); },
+  '=':    fn(() => { stack.push(stack.pop() === stack.pop()); }),
+  '!=':   fn(() => { stack.push(stack.pop() !== stack.pop()); }),
+  '<':    fn(() => { stack.push(stack.pop() >   stack.pop()); }),
+  '<=':   fn(() => { stack.push(stack.pop() >=  stack.pop()); }),
+  '>':    fn(() => { stack.push(stack.pop() <   stack.pop()); }),
+  '>=':   fn(() => { stack.push(stack.pop() <=  stack.pop()); }),
+  '+':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(b + a); }),
+  '*':    fn(() => { stack.push(stack.pop() *   stack.pop()); }),
+  '-':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(b - a); }),
+  '/':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(b / a); }),
+  '^':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(Math.pow(b,a)); }),
+  '%':    fn(() => { stack.push(stack.pop() / 100); }),
+  '()':   fn(() => { var f = stack.pop(); f(); })
 };
 
 // Experiments
@@ -122,13 +144,13 @@ scope.eval$(`
   { b | b A () } :B
   5 B ()
 
-  { x_ y_ r_ |
+  { x y r |
     { m |
       m switch
-        'x { | x_ } ':x { v | v :x_ }
-        'y { | y_ } ':y { v | v :y_ }
-        'r { | r_ } ':r { v | v :r_ }
-        'toString { | x_ ', y_ ', r_ + + + + }
+        'x { | x } ':x { v | v :x }
+        'y { | y } ':y { v | v :y }
+        'r { | r } ':r { v | v :r }
+        'toString { | x ', y ', r + + + + }
         { | " unknown method" print }
       end ()
     }
@@ -141,24 +163,24 @@ scope.eval$(`
   10 19 5 Ball () :b2
   b2.toString print
 
-  { c_ | Ball () { super |
+  { c | Ball () { super |
     { m | m switch
-      'c { | c_ }
-      ':c { v | v :c_ }
-      'toString { | super.toString ', c_ + + }
-      { | m super () }
+      'c { | c } ':c { v | v :c }
+      'toString { | super.toString ', c + + }
+      { | m.super }
     end () }
-  } () } :ColourBall
+  } () } :ColourBall // This would also work and be faster:   } () } 'ColourBall const
+
 
 /*
 class ColourBall extends Ball {
-  var c_;
+  var c;
   ColourBall(..., c) {
     super(...);
-    c_ = c;
+    this.c = c;
   }
-  getC() { return c_; }
-  setC(v) { c_ = v; }
+  getC() { return c; }
+  setC(v) { c = v; }
   toString() { return super.toString() + ", " + c_; }
 }
 */
@@ -332,13 +354,28 @@ end () print
 2 lookupNumber () print
 7 lookupNumber () print
 
+3.1415926 print
+3.1415926 'PI const
+
+PI print
+
+" Arrays" print
+10 'hello []WithValue :hellos
+hellos print
+" good bye" hellos 5 :@
+hellos print
+16 { i | 2 i ^ } []WithFn :binaryNums
+binaryNums print
+binaryNums 4 @ print
+
+
 " Done." print
 `);
 
 scope.eval$(`
 " Own Variables" print
 1 { count |
-{ | count 1 + :count count }
+  { | count 1 + :count count }
 } () :counter
 counter () print
 counter () print
@@ -347,13 +384,20 @@ counter () print
 
 /*
 TODO:
-  - return statement
+  - have functions auto-call and use quoting to reference without calling?
+  - return statement & recursive calls
+  - optimize forward references
   - symbols
   - function return values
-  - local variables (as functions?)
-  - constants?
+  - local variables? or just use { }?
   - readSym() and readChar() should be callable from scripts
   - make eval() be the real method and eval$ call it
+  - arrays?
+  - alloc?
+  - don't put heap in an array to allow for JS GC?
 
   { x: a b c | 234 x:ret }
+
+  []WithValue
+  []WithFn
 */
