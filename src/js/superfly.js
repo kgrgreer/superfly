@@ -28,6 +28,11 @@ var scope = {
       code.push(function() { var value = stack.pop(); scope[sym] = function(code) { code.push(function() { stack.push(value); }); } });
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseInt(line)); });
+    } else if ( line.indexOf('.') != -1 ) {
+      var a = line.split('.');
+      code.push(function() { stack.push(a[1]); });
+      this.evalSym(a[0], code);
+      this.evalSym('()', code);
     } else if ( line.startsWith("'") ) {
       var s = line.substring(1);
       code.push(function() { stack.push(s); });
@@ -130,17 +135,17 @@ scope.eval$(`
   } :Ball
 
   5 4 3 Ball () :b1
-  'x b1 () print
-  'toString b1 () print
+  b1.x print
+  b1.toString print
 
   10 19 5 Ball () :b2
-  'toString b2 () print
+  b2.toString print
 
   { c_ | Ball () { super |
     { m | m switch
       'c { | c_ }
       ':c { v | v :c_ }
-      'toString { | 'toString super () ', c_ + + }
+      'toString { | super.toString ', c_ + + }
       { | m super () }
     end () }
   } () } :ColourBall
@@ -159,8 +164,8 @@ class ColourBall extends Ball {
 */
 
   6 5 2 'red ColourBall () :b3
-  'c b3 () print
-  'toString b3 () print
+  b3.c print
+  b3.toString print
 
   'end print
   `);
