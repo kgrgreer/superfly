@@ -147,6 +147,10 @@ var scope = {
   '()':   fn(() => { var f = stack.pop(); f(); })
 };
 
+// Parser Support
+scope.charAt = fn(() => { var i = stack.pop(), s = stack.pop(); stack.push(s.charAt(i)); });
+scope.input_ = fn(() => { stack.push(scope.input); });
+scope.ip_    = fn(() => { stack.push(scope.ip); });
 
 // Language
 scope.eval$(`
@@ -154,6 +158,12 @@ scope.eval$(`
 1 2 = :false       // define false
 { | } :nil         // define 'nil', like doing nil = new Object() in Java/JS
 { n | 0 n - } :neg // negate
+{ start end block |
+  start end <= { |
+    start block ()
+    start 1 + end block for ()
+  } if
+} :for
 `);
 
 
@@ -395,13 +405,6 @@ false { | " if true" print } { | " if false" print } ifelse
   { | i 10 <= } { | " loop: " i + print i 1 + :i } while
 } ()
 
-{ start end block |
-  start end <= { |
-    start block ()
-    start 1 + end block for ()
-  } if
-} :for
-
 1 10 { i | " for: " i + print } for ()
 
 
@@ -448,6 +451,53 @@ powersOf2 4 @ print
 
 t.report
 `);
+
+
+scope.eval$(`
+'Parsers section ()
+
+{ str pos value |
+  { m this |
+    m switch
+      'head { | str pos charAt }
+      'tail { | str pos 1 + this.head PStream () }
+      { | " unknown method " m + print }
+    end ()
+  }
+} :PStream
+
+" 01234" 3 charAt print
+
+ip_ print
+// input_ print
+
+" this
+is a test
+is a test
+is a test
+is a test
+of an input text" 0 nil PStream () :ps
+ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+ps.tail :ps ps.head print
+`);
+
 
 /*
 TODO:
