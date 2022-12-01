@@ -1,4 +1,4 @@
-var stack = [], heap = [], hp;
+var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__';
 function fn(f) { return code => code.push(f); }
 var scope = {
   readChar: function() { return this.ip < this.input.length ? this.input.charAt(this.ip++) : undefined; },
@@ -118,6 +118,15 @@ var scope = {
   ':@': fn(() => {
     var i = stack.pop(), a = stack.pop(), v = stack.pop();
     a[i] = v;
+  }),
+  '[': fn(() => { stack.push(__arrayStart__); }),
+  ']': fn(() => {
+    var start = stack.length-1;
+    for ( ; start && stack[start] !== __arrayStart__ ; start-- );
+    var a = new Array(stack.length-start-1);
+    for ( var i = a.length-1 ; i >= 0 ; i-- ) a[i] = stack.pop();
+    stack.pop();
+    stack.push(a);
   }),
   'i[':   code => { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
   '"':    code => { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
@@ -432,9 +441,10 @@ PI print
 hellos print
 " good bye" hellos 5 :@
 hellos print
-16 { i | 2 i ^ } []WithFn :binaryNums
-binaryNums print
-binaryNums 4 @ print
+16 { i | 2 i ^ } []WithFn :powersOf2
+powersOf2 print
+powersOf2 4 @ print
+[ 1 2 3 'abc " def" true false ] print
 
 t.report
 `);
@@ -445,7 +455,7 @@ TODO:
   - return statement & recursive calls
   - optimize forward references
   - symbols
-  - function return values
+  - function return values?
   - readSym() and readChar() should be callable from scripts
   - make eval() be the real method and eval$ call it
   - alloc?
