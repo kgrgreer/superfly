@@ -337,8 +337,10 @@ class ColourBall extends Ball {
 
 " Lexical Scoping" section ()
 1 { a | { | a print } () } ()
+
 " hello world"  { a | { | a print } } () :sayhello
 sayhello () sayhello ()
+
 " 3 deep"  { a | { | { | a print } } } () () ()
 
 
@@ -419,13 +421,13 @@ end () print
 7 lookupNumber () print
 
 
-" Const" section ()
+'Const section ()
 3.1415926 'PI const
 " PI" 3.1415926 t.test
 PI print
 
 
-" Arrays" section ()
+'Arrays section ()
 10 'hello []WithValue :hellos
 hellos print
 " good bye" hellos 5 :@
