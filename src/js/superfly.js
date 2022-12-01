@@ -149,6 +149,7 @@ var scope = {
 
 // Parser Support
 scope.charAt = fn(() => { var i = stack.pop(), s = stack.pop(); stack.push(s.charAt(i)); });
+scope.len    = fn(() => { stack.push(stack.pop().length); });
 scope.input_ = fn(() => { stack.push(scope.input); });
 scope.ip_    = fn(() => { stack.push(scope.ip); });
 
@@ -471,6 +472,22 @@ scope.eval$(`
 ip_ print
 // input_ print
 
+{ str | { ps |
+  0 { i |
+    { | ps.head str i charAt = } { | ps.tail :ps  i 1 + :i } while
+    str len i =
+  } ()
+} } :literal
+
+" this " 0 nil PStream () :ps
+
+'a print
+'this print
+ps " this" literal () () print
+'that print
+ps " that" literal () () print
+
+/*
 " this
 is a test
 is a test
@@ -496,6 +513,7 @@ ps.tail :ps ps.head print
 ps.tail :ps ps.head print
 ps.tail :ps ps.head print
 ps.tail :ps ps.head print
+*/
 `);
 
 
