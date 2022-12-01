@@ -29,15 +29,17 @@ var scope = {
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseFloat(line)); });
     } else if ( line.indexOf('.') != -1 ) { // Macro for OO calling convention
+      // TODO: add an in-ilne cache here
       var a = line.split('.');
       code.push(function() { stack.push(a[1]); });
       this.evalSym(a[0], code);
+      code.push(function() { stack.push(stack[stack.length-1]); });
       this.evalSym('()', code);
     } else if ( line.startsWith("'") ) {
       var s = line.substring(1);
       code.push(function() { stack.push(s); });
     } else {
-      console.log('Unknown Symbol or Forward Reference:', line, ' at: ', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', ''), ' ...');
+      console.log('Unknown Symbol or Forward Reference: "' + line + '" at:', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', '\\n'), ' ...');
       code.push(function() { scope[line]({ push: function(f) { f(); }})});
     }
   },
@@ -89,8 +91,8 @@ var scope = {
   debug:  fn(() => { debugger; }), // breaks into debugger during runtime
   print:  fn(() => { console.log(stack.pop()); }),
   not:    fn(() => { stack.push( ! stack.pop()); }),
-  and:    fn(() => { stack.push(stack.pop() &&  stack.pop()); }),
-  or:     fn(() => { stack.push(stack.pop() ||  stack.pop()); }),
+  and:    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a && b); }),
+  or:     fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a || b); }),
   mod:    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
   if:     fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
   ifelse: fn(() => { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
@@ -136,43 +138,185 @@ var scope = {
   '()':   fn(() => { var f = stack.pop(); f(); })
 };
 
-// Experiments
-scope.eval$(`
-  'starting print
-  { a | a print } :A
-  4 A ()
-  { b | b A () } :B
-  5 B ()
 
-  { x y r |
-    { m |
+// Language
+scope.eval$(`
+1 1 = :true        // define true
+1 2 = :false       // define false
+{ | } :nil         // define 'nil', like doing nil = new Object() in Java/JS
+{ n | 0 n - } :neg // negate
+`);
+
+
+// Tests
+scope.eval$(`
+// Build a Tester class to perform tests and record statistics
+{ |
+  0 0 { passed failed |
+    { m this |
       m switch
-        'x { | x } ':x { v | v :x }
-        'y { | y } ':y { v | v :y }
-        'r { | r } ':r { v | v :r }
-        'toString { | x ', y ', r + + + + }
-        { | " unknown method" print }
+        'score { f |
+          f { | passed 1 + :passed " PASSED" } { | failed 1 + :failed " FAILED" } ifelse
+        }
+        'test { script answer |
+          " Expect: " script "  -> " answer "  " + + + +
+          script eval answer = this.score + print
+        }
+        'report { |
+          " " print
+          " Tests Run: " passed failed + + print
+          "    PASSED: " passed + print
+          "    FAILED: " failed + print
+          " " print
+        }
+        { | " unknown method: " m + print }
       end ()
     }
-  } :Ball
+  } ()
+} :Tester
 
-  5 4 3 Ball () :b1
-  b1.x print
-  b1.toString print
+// Create an instance of Tester
+Tester () :t
 
-  10 19 5 Ball () :b2
-  b2.toString print
 
-  { c | Ball () { super |
-    { m | m switch
-      'c { | c } ':c { v | v :c }
-      'toString { | super.toString ', c + + }
-      { | m.super }
-    end () }
-  } () } :ColourBall // This would also work and be faster:   } () } 'ColourBall const
+// A helper function for displaying section titles
+{ t | " " print t print } :section
 
+
+'Arithmetic section ()
+" 1 1 +" 2 t.test
+" 0 1 +" 1 t.test
+" 2 1 -" 1 t.test
+" 0 6 -" -6 t.test
+" 4 2 *" 8 t.test
+" 4 2 /" 2 t.test
+" 10 3 mod" 1 t.test
+" 2 8 ^" 256 t.test
+" 15 %" 0.15 t.test
+" 15 10 10 ^ *" 150000000000 t.test // scientific notation, distance from earth to sun in meters
+" 5 neg ()" -5 t.test // it's inconsistent that some operators require () and others don't
+
+
+'Comparators section ()
+" 1 1 ="  true  t.test
+" 1 2 ="  false t.test
+" 1 1 !=" false t.test
+" 1 2 !=" true  t.test
+" 1 2 < " true  t.test
+" 2 1 < " false t.test
+" 2 2 <=" true  t.test
+" 2 3 <=" true  t.test
+
+
+'Logic section ()
+" false not" true  t.test
+" true not"  false t.test
+
+" false false or"  false t.test
+" false true  or"  true  t.test
+" true  false or"  true  t.test
+" true  true  or"  true  t.test
+
+" false false and"  false t.test
+" false true  and"  false t.test
+" true  false and"  false t.test
+" true  true  and"  true  t.test
+
+" true false or true false and or" true t.test
+
+
+'Functions section ()
+{ a | a print } :A
+4 A ()
+{ b | b A () } :B
+5 B ()
+
+{ | " inline function" print } ()
+
+{ | " Hello world!" print } :helloWorld
+helloWorld ()
+
+{ a | a a + } :double
+2 double () double () print
+
+
+" Functions as Parameters" section ()
+{ f | " running callFiveTimes" print f f f f f i[ " compiling callFiveTimes" print ] () f () f () f () f () } :callFiveTimes
+helloWorld callFiveTimes ()
+
+
+" Own Variables" section ()
+// a precursor to OO
+1 { count |
+  { | count 1 + :count count }
+} () :counter
+
+counter () print
+counter () print
+counter () print
+
+
+'OO section ()
+// Create a Lisp-like CONS operator, but use head/tail instead of car/cdr
+// Is a simple class.
+{ h t |
+  { m |
+    m switch
+      'head { | h } ':head { v | v :h }
+      'tail { | t } ':tail { v | v :t }
+      { | }
+    end ()
+  }
+} :cons
+
+'car 'cdr cons () :c // construct a cons
+'head c () print
+'tail c () print
+1 ':head c ()
+2 ':tail c ()
+'head c () print
+'tail c () print
+
+// Now a more featured OO system with 'this' 'super' and inheritance
+{ x y r |
+  { m this |
+    m switch
+      'class { | Ball }
+      'x { | x } ':x { v | v :x }
+      'y { | y } ':y { v | v :y }
+      'r { | r } ':r { v | v :r }
+      'toString { | x ', y ', r + + + + }
+      { | " unknown method" print }
+    end ()
+  }
+} :Ball
+
+5 4 3 Ball () :b1
+b1.x print
+b1.toString print
+
+10 19 5 Ball () :b2
+b2.toString print
+
+{ c | Ball () { super |
+  { m this | m switch
+    'class { | ColourBall }
+    'c { | c } ':c { v | v :c }
+    'toString { | super.toString ', c + + }
+    { | m this super () }
+  end () }
+} () } :ColourBall // This would also work and be faster:   } () } 'ColourBall const
+
+6 5 2 'red ColourBall () :b3
+b3.c print
+b3.toString print
+
+7 7 1 'green b3.class () :b4
+b4.toString print
 
 /*
+// The above code is the equivalent to this in a more regular syntax:
+
 class ColourBall extends Ball {
   var c;
   ColourBall(..., c) {
@@ -185,94 +329,23 @@ class ColourBall extends Ball {
 }
 */
 
-  6 5 2 'red ColourBall () :b3
-  b3.c print
-  b3.toString print
 
-  'end print
-  `);
-
-  scope.eval$(`
+'Recursion section ()
 { n | n 1 <= { | 1 } { | n n 1 - fact () * } ifelse } :fact
-" 20 factorial: " 20 fact () + print
+" 20 fact ()" 2432902008176640000 t.test
 
-" Lexical Scoping" print
+
+" Lexical Scoping" section ()
 1 { a | { | a print } () } ()
 " hello world"  { a | { | a print } } () :sayhello
 sayhello () sayhello ()
 " 3 deep"  { a | { | { | a print } } } () () ()
-`);
 
-// Language
-scope.eval$(`
-1 1 = :true        // define true
-1 2 = :false       // define false
-{ n | 0 n - } :neg // negate
-`);
 
-// Tests
-scope.eval$(`
-// A comment
-" Starting..." print
-
-" Arithmetic" print
-1 2 + print
-2 1 - print
-0 6 - print
-4 2 * print
-4 2 / print
-10 3 mod print
-2 8 ^ print
-15 % print
-15 10 10 ^ * print // scientific notation, distance from earth to sun in meters
-5 neg () print // it's inconsistent that some operators require () and others don't
-
-" Comparison Operators" print
-1 1 =  print
-1 2 =  print
-1 1 != print
-1 2 != print
-1 2 <  print
-2 1 <  print
-2 2 <= print
-2 3 <= print
-
-" Boolean Values" print
-true  print
-false print
-
-" Logical Operators" print
-true  not print
-false not print
-true  true  and print
-true  false and print
-false false or  print
-false true  or  print
-
-" sample string" print
+'Variables section ()
 3 14 100 / + :PI // PI = 3.14, need to do this way until doubles are supported
 PI print
 PI 2 * print
-
-{ | " inline function" print } ()
-
-{ | " Hello world!" print } :helloWorld
-helloWorld ()
-
-{ a | a a + } :double
-2 double () double () print
-
-" Functions as parameters" print
-{ f | " start" print f f f f f i[ " compile callFiveTimes" print ] () f () f () f () f () } :callFiveTimes
-helloWorld print
-helloWorld callFiveTimes ()
-
-" Conditionals" print
-true  { | " is true"  print } if
-false { | " is false" print } if
-
-true  { | " if true" print } { | " if false" print } ifelse
-false { | " if true" print } { | " if false" print } ifelse
 
 1 { i |
   i print
@@ -285,7 +358,16 @@ false { | " if true" print } { | " if false" print } ifelse
   i 1 + :i i print
 } ()
 
-" Eval" print
+
+'Conditionals section ()
+true  { | " is true"  print } if
+false { | " is false" print } if
+
+true  { | " if true" print } { | " if false" print } ifelse
+false { | " if true" print } { | " if false" print } ifelse
+
+
+'Eval section ()
 " 1 + 2 print" eval
 
 { script answer |
@@ -296,6 +378,8 @@ false { | " if true" print } { | " if false" print } ifelse
 " 1 2 +" 3 expect ()
 " 1 2 +" 4 expect ()
 
+
+'Looping section ()
 1 { i |
   { | i 10 <= } { | " loop: " i + print i 1 + :i } while
 } ()
@@ -309,33 +393,13 @@ false { | " if true" print } { | " if false" print } ifelse
 
 1 10 { i | " for: " i + print } for ()
 
-" OO" print
-// Create a Lisp-like CONS operator, but use head/tail instead of car/cdr
-// Is a simple class.
-{ h t |
-  { m |
-    m switch
-      'head { | h } ':head { v | v :h }
-      'tail { | t } ':tail { v | v :t }
-      { | }
-    end ()
-  }
-} :cons
 
-" car" " cdr" cons () :c // construct a cons
-'head c () print
-'tail c () print
-1 ':head c ()
-2 ':tail c ()
-'head c () print
-'tail c () print
+'Nil section ()
+" nil nil =" true  t.test
+" nil 5   =" false t.test
 
 
-{ | } :nil // define 'nil', like doing nil = new Object() in Java/JS
-nil nil = print
-nil 5 = print
-
-" Switch" print
+'Switch section ()
 3 switch
   1 { | " one"   }
   2 { | " two"   }
@@ -354,12 +418,14 @@ end () print
 2 lookupNumber () print
 7 lookupNumber () print
 
-3.1415926 print
-3.1415926 'PI const
 
+" Const" section ()
+3.1415926 'PI const
+" PI" 3.1415926 t.test
 PI print
 
-" Arrays" print
+
+" Arrays" section ()
 10 'hello []WithValue :hellos
 hellos print
 " good bye" hellos 5 :@
@@ -368,18 +434,7 @@ hellos print
 binaryNums print
 binaryNums 4 @ print
 
-
-" Done." print
-`);
-
-scope.eval$(`
-" Own Variables" print
-1 { count |
-  { | count 1 + :count count }
-} () :counter
-counter () print
-counter () print
-counter () print
+t.report
 `);
 
 /*
@@ -389,15 +444,19 @@ TODO:
   - optimize forward references
   - symbols
   - function return values
-  - local variables? or just use { }?
   - readSym() and readChar() should be callable from scripts
   - make eval() be the real method and eval$ call it
-  - arrays?
   - alloc?
   - don't put heap in an array to allow for JS GC?
+  - Add in-line cache for method lookups
 
-  { x: a b c | 234 x:ret }
+a = { x: a b c | 234 x:ret }
 
-  []WithValue
-  []WithFn
+  {
+     expr if: {
+       a map { }
+     } else: {  }
+     map { }
+
+  }
 */
