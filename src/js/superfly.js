@@ -486,6 +486,8 @@ scope.eval$(`
 ip_ print
 // input_ print
 
+// Parse Combinators
+
 { start end c | c start >=  c end <= & } :inRange
 { start end | { ps |
   start end ps.head inRange () { | ps.tail } { | false } ifelse
@@ -564,18 +566,18 @@ ps " 0123456789" notChars () 0 repeat () () print
 
 
 'Grammar section ()
-{ parser | } :sym
+{ parser | { this | parser } } :;
+{ name | { this | name this this () } } :sym
+
 { |
   { m this |
-    { s | s this this } { sym |
-      m switch
-        'parse  'start sym
-        'start  'number sym
-        'number 'digit sym () 1 repeat ()
-        'digit  0 9 range ()
-        { | " unknown method" print }
-      end
-    } ()
+    m switch
+//      'parse  { | this.start }
+//      'start  { | this.number }
+//      'number { | digit } ; 1 repeat () ;
+      'digit  '0 '9 range () debug ;
+      { | " unknown method " m + print }
+    end ()
   }
 } :FormulaParser
 
@@ -584,36 +586,9 @@ ps " 0123456789" notChars () 0 repeat () () print
 'b print
 FormulaParser () :formulaparser
 'c print
-ps formulaparser.digit ()
+ps formulaparser.digit () print
 'd print
 
-/*
-" this
-is a test
-is a test
-is a test
-is a test
-of an input text" 0 nil PStream () :ps
-ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-ps.tail :ps ps.head print
-*/
 `);
 
 
