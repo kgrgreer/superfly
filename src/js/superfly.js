@@ -2,7 +2,7 @@ var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__';
 function fn(f) { return code => code.push(f); }
 var scope = {
   readChar: function() { return this.ip < this.input.length ? this.input.charAt(this.ip++) : undefined; },
-  readSym: function() {
+  readSym:  function() {
     var sym = '', c;
     while ( c = this.readChar() ) {
       if ( /\s/.test(c) ) { if ( sym ) break; else continue; }
@@ -39,7 +39,7 @@ var scope = {
       var s = line.substring(1);
       code.push(function() { stack.push(s); });
     } else {
-      console.log('Unknown Symbol or Forward Reference: "' + line + '" at:', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', '\\n'), ' ...');
+      console.log('Warning: Unknown Symbol or Forward Reference "' + line + '" at:', scope.input.substring(scope.ip, scope.ip+40).replaceAll('\n', '\\n'), ' ...');
       code.push(function() { scope[line]({ push: function(f) { f(); }})});
     }
   },
@@ -91,8 +91,10 @@ var scope = {
   debug:  fn(() => { debugger; }), // breaks into debugger during runtime
   print:  fn(() => { console.log(stack.pop()); }),
   not:    fn(() => { stack.push( ! stack.pop()); }),
-  and:    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a && b); }),
-  or:     fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a || b); }),
+  '&':    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a && b); }),
+  '|':    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a || b); }),
+  '&&':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if ( ! b ) stack.push(false); else aFn(); }),
+  '||':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if (   b ) stack.push(true);  else aFn(); }),
   mod:    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
   if:     fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
   ifelse: fn(() => { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
@@ -148,10 +150,11 @@ var scope = {
 };
 
 // Parser Support
-scope.charAt = fn(() => { var i = stack.pop(), s = stack.pop(); stack.push(s.charAt(i)); });
-scope.len    = fn(() => { stack.push(stack.pop().length); });
-scope.input_ = fn(() => { stack.push(scope.input); });
-scope.ip_    = fn(() => { stack.push(scope.ip); });
+scope.charAt  = fn(() => { var i = stack.pop(), s = stack.pop(); stack.push(s.charAt(i)); });
+scope.indexOf = fn(() => { var substring = stack.pop(), s = stack.pop(); stack.push(s.indexOf(substring)); });
+scope.len     = fn(() => { stack.push(stack.pop().length); });
+scope.input_  = fn(() => { stack.push(scope.input); });
+scope.ip_     = fn(() => { stack.push(scope.ip); });
 
 // Language
 scope.eval$(`
@@ -232,17 +235,27 @@ Tester () :t
 " false not" true  t.test
 " true not"  false t.test
 
-" false false or"  false t.test
-" false true  or"  true  t.test
-" true  false or"  true  t.test
-" true  true  or"  true  t.test
+" false false |"  false t.test
+" false true  |"  true  t.test
+" true  false |"  true  t.test
+" true  true  |"  true  t.test
 
-" false false and"  false t.test
-" false true  and"  false t.test
-" true  false and"  false t.test
-" true  true  and"  true  t.test
+" false false &"  false t.test
+" false true  &"  false t.test
+" true  false &"  false t.test
+" true  true  &"  true  t.test
 
-" true false or true false and or" true t.test
+" false { | false } &&"  false t.test
+" false { | true }  &&"  false t.test
+" true  { | false } &&"  false t.test
+" true  { | true }  &&"  true  t.test
+
+" false { | false } ||"  false t.test
+" false { | true }  ||"  true  t.test
+" true  { | false } ||"  true  t.test
+" true  { | true }  ||"  true  t.test
+
+" true false | true false & |" true t.test
 
 
 'Functions section ()
@@ -460,7 +473,7 @@ scope.eval$(`
 { str pos value |
   { m this |
     m switch
-      'head { | str pos charAt }
+      'head { | '* str pos charAt + print str pos charAt }
       'tail { | str pos 1 + this.head PStream () }
       { | " unknown method " m + print }
     end ()
@@ -469,23 +482,110 @@ scope.eval$(`
 
 " 01234" 3 charAt print
 
+// Access to current input:
 ip_ print
 // input_ print
 
-{ str | { ps |
-  0 { i |
-    { | ps.head str i charAt = } { | ps.tail :ps  i 1 + :i } while
-    str len i =
-  } ()
-} } :literal
+{ start end c | c start >=  c end <= & } :inRange
+{ start end | { ps |
+  start end ps.head inRange () { | ps.tail } { | false } ifelse
+} } :range
 
-" this " 0 nil PStream () :ps
+{ str | { ps | 0 { i |
+  { | ps.head str i charAt = } { | ps.tail :ps  i 1 + :i } while
+  str len i = { | ps } { | false } ifelse
+} () } } :literal
+
+{ parsers | { ps | 0 { i |
+  { | i parsers len < { | ps parsers i @ () :ps ps } && } { | i 1 + :i } while
+  parsers len i = { | ps } { | false } ifelse
+} () } } :seq
+
+{ parsers | { ps | 0 false { i ret |
+  { | i parsers len < { | ps parsers i @ () :ret ret not } && } { | i 1 + :i } while
+  ret
+} () } } :alt
+
+{ parser min | { ps | 0 false { i ret |
+  { | ps :ret  ps parser () :ps ps } { | i 1 + :i } while
+  i min >=  { | ret } { | false } ifelse
+} () } } :repeat
+
+{ parser | { ps | ps { ret |
+  ps parser () :ret
+  ret { | ret } { | ps } ifelse
+} () } } :optional
+
+{ str | { ps |
+  str ps.head indexOf -1 = { | ps.tail } { | false } ifelse
+} } :notChars
+
+
+" thisthenthat0123 " 0 nil PStream () :ps
 
 'a print
 'this print
-ps " this" literal () () print
+ps 'this literal () () print
 'that print
-ps " that" literal () () print
+ps 'that literal () () print
+
+
+" Seq Parser" section ()
+[ 'this literal () 'then literal () 'that literal () ] seq () :seqparser
+ps seqparser () print
+
+
+" Alt Parser" section ()
+[ 'something literal () 'this literal () ] alt () :altparser
+ps altparser () print
+
+
+" Range Parser" section ()
+'0 '9 range  () :rangeparser
+ps rangeparser () print
+'a 'z range  () :rangeparser
+ps rangeparser () print
+
+
+" Repeat Parser" section ()
+'a 'z range () 1 repeat () :repeatparser
+ps repeatparser () print
+
+
+" Optional Parser" section ()
+'this print
+ps 'this literal () optional () () print
+'that print
+ps 'that literal () optional () () print
+
+
+" NotChars Parser" section ()
+ps " 0123456789" notChars () 0 repeat () () print
+
+
+'Grammar section ()
+{ parser | } :sym
+{ |
+  { m this |
+    { s | s this this } { sym |
+      m switch
+        'parse  'start sym
+        'start  'number sym
+        'number 'digit sym () 1 repeat ()
+        'digit  0 9 range ()
+        { | " unknown method" print }
+      end
+    } ()
+  }
+} :FormulaParser
+
+'a print
+" 1+2*3 " 0 nil PStream () :ps
+'b print
+FormulaParser () :formulaparser
+'c print
+ps formulaparser.digit ()
+'d print
 
 /*
 " this
@@ -519,6 +619,8 @@ ps.tail :ps ps.head print
 
 /*
 TODO:
+  - make string function naming more consistent
+  - add OO 'call' function
   - have functions auto-call and use quoting to reference without calling?
   - return statement & recursive calls
   - optimize forward references
