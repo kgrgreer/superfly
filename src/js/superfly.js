@@ -73,10 +73,7 @@ var scope = {
   },
   switch: function(code) {
     var options = [], l, def, options = [];
-    while ( ( l = scope.readSym() ) != 'end' ) {
-      scope.evalSym(l, options);
-    }
-
+    while ( ( l = scope.readSym() ) != 'end' ) scope.evalSym(l, options);
     code.push(function() {
       var value = stack.pop();
       for ( var i = 0 ; i < options.length ; i += 2 ) {
@@ -91,19 +88,10 @@ var scope = {
   },
   debug:  fn(() => { debugger; }), // breaks into debugger during runtime
   print:  fn(() => { console.log(stack.pop()); }),
-  not:    fn(() => { stack.push( ! stack.pop()); }),
-  '&':    bfn((a,b) => a && b),
-  '|':    bfn((a,b) => a || b),
-  '&&':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if ( ! b ) stack.push(false); else aFn(); }),
-  '||':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if (   b ) stack.push(true);  else aFn(); }),
-  mod:    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
   if:     fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
   ifelse: fn(() => { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
   while:  fn(() => { var block = stack.pop(), cond = stack.pop(); while ( true ) { cond(); if ( ! stack.pop() ) break; block(); } }),
-  const:  function(code) { code.push(function() {
-    var sym = stack.pop(), value = stack.pop();
-    scope[sym] = fn(() => { stack.push(value); });
-  });},
+  const:  fn(() => { var sym = stack.pop(), value = stack.pop(); scope[sym] = fn(() => { stack.push(value); }); }),
   '[]WithValue': fn(() => {
     var value = stack.pop(), length = stack.pop(), a = [];
     for ( var i = 0 ; i < length ; i++ ) a[i] = value;
@@ -114,14 +102,8 @@ var scope = {
     for ( var i = 0 ; i < length ; i++ ) { stack.push(i); fn(); a[i] = stack.pop(); }
     stack.push(a);
   }),
-  '@': fn(() => {
-    var i = stack.pop(), a = stack.pop();
-    stack.push(a[i]);
-  }),
-  ':@': fn(() => {
-    var i = stack.pop(), a = stack.pop(), v = stack.pop();
-    a[i] = v;
-  }),
+  '@': bfn((a, i) => a[i]),
+  ':@': fn(() => { var i = stack.pop(), a = stack.pop(), v = stack.pop(); a[i] = v; }),
   '[': fn(() => { stack.push(__arrayStart__); }),
   ']': fn(() => {
     var start = stack.length-1;
@@ -135,6 +117,12 @@ var scope = {
   '"':    code => { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
   '//':   () => { while ( (c = scope.readChar()) != '\n' ); },
   '/*':   () => { while ( (c = scope.readSym()) != '*/' ); },
+  not:    fn(() => { stack.push( ! stack.pop()); }),
+  '&':    bfn((a,b) => a && b),
+  '|':    bfn((a,b) => a || b),
+  '&&':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if ( ! b ) stack.push(false); else aFn(); }),
+  '||':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if (   b ) stack.push(true);  else aFn(); }),
+  mod:    bfn((a,b) => a % b),
   '=':    bfn((a,b) => a === b),
   '!=':   bfn((a,b) => a !== b),
   '<':    bfn((a,b) => a < b),
