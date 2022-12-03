@@ -1,6 +1,6 @@
 var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__';
-function fn(f)  { return code => code.push(f); }
-function bfn(f) { return code => code.push(function() { var b = stack.pop(), a = stack.pop(); stack.push(f(a, b)); }) };
+function fn(f) { return code => code.push(f); }
+function bfn(f) { return fn(() => { var b = stack.pop(), a = stack.pop(); stack.push(f(a, b)); }); }
 var scope = {
   readChar: function() { return this.ip < this.input.length ? this.input.charAt(this.ip++) : undefined; },
   readSym:  function() {
@@ -11,7 +11,7 @@ var scope = {
     }
     return sym;
   },
-  eval$: function(src) {
+  eval$: src => {
     var oldInput = scope.input, oldIp = scope.ip;
     scope.input = src;
     scope.ip    = 0;
@@ -44,7 +44,7 @@ var scope = {
       code.push(function() { scope[line]({ push: function(f) { f(); }})});
     }
   },
-  '{':    function(code) {
+  '{': function(code) {
     var l, oldScope = scope, vars = [], fncode = [];
     var curScope = scope = Object.create(scope);
     while ( ( l = scope.readSym() ) != '|' ) vars.push(l); // read var names
