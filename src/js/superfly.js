@@ -1,5 +1,6 @@
 var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__';
-function fn(f) { return code => code.push(f); }
+function fn(f)  { return code => code.push(f); }
+function bfn(f) { return code => code.push(function() { var b = stack.pop(), a = stack.pop(); stack.push(f(a, b)); }) };
 var scope = {
   readChar: function() { return this.ip < this.input.length ? this.input.charAt(this.ip++) : undefined; },
   readSym:  function() {
@@ -91,8 +92,8 @@ var scope = {
   debug:  fn(() => { debugger; }), // breaks into debugger during runtime
   print:  fn(() => { console.log(stack.pop()); }),
   not:    fn(() => { stack.push( ! stack.pop()); }),
-  '&':    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a && b); }),
-  '|':    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(a || b); }),
+  '&':    bfn((a,b) => a && b),
+  '|':    bfn((a,b) => a || b),
   '&&':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if ( ! b ) stack.push(false); else aFn(); }),
   '||':   fn(() => { var aFn = stack.pop(), b = stack.pop(); if (   b ) stack.push(true);  else aFn(); }),
   mod:    fn(() => { var a = stack.pop(), b = stack.pop(); stack.push(b % a); }),
@@ -134,17 +135,17 @@ var scope = {
   '"':    code => { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
   '//':   () => { while ( (c = scope.readChar()) != '\n' ); },
   '/*':   () => { while ( (c = scope.readSym()) != '*/' ); },
-  '=':    fn(() => { stack.push(stack.pop() === stack.pop()); }),
-  '!=':   fn(() => { stack.push(stack.pop() !== stack.pop()); }),
-  '<':    fn(() => { stack.push(stack.pop() >   stack.pop()); }),
-  '<=':   fn(() => { stack.push(stack.pop() >=  stack.pop()); }),
-  '>':    fn(() => { stack.push(stack.pop() <   stack.pop()); }),
-  '>=':   fn(() => { stack.push(stack.pop() <=  stack.pop()); }),
-  '+':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(b + a); }),
-  '*':    fn(() => { stack.push(stack.pop() *   stack.pop()); }),
-  '-':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(b - a); }),
-  '/':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(b / a); }),
-  '^':    fn(() => { var a = stack.pop(), b =   stack.pop(); stack.push(Math.pow(b,a)); }),
+  '=':    bfn((a,b) => a === b),
+  '!=':   bfn((a,b) => a !== b),
+  '<':    bfn((a,b) => a < b),
+  '<=':   bfn((a,b) => a <= b),
+  '>':    bfn((a,b) => a > b),
+  '>=':   bfn((a,b) => a >= b),
+  '+':    bfn((a,b) => a + b),
+  '*':    bfn((a,b) => a * b),
+  '-':    bfn((a,b) => a - b),
+  '/':    bfn((a,b) => a / b),
+  '^':    bfn((a,b) => Math.pow(a,b)),
   '%':    fn(() => { stack.push(stack.pop() / 100); }),
   '()':   fn(() => { var f = stack.pop(); f(); })
 };
