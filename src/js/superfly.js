@@ -20,7 +20,7 @@ var scope = {
     scope.input = oldInput;
     scope.ip    = oldIp
   },
-  eval: code => { code.push(function() { scope.eval$(stack.pop()); }); },
+  eval: code => { code.push(() => scope.eval$(stack.pop())); },
   evalSym: function(line, code) {
     var sym = scope[line];
     if ( sym ) { sym(code); }
@@ -52,8 +52,8 @@ var scope = {
     function moveUp(d) { var p = hp; for ( var i = 0 ; i < d ; i++ ) p = heap[p]; return p; }
     for ( let i = 0 ; i < vars.length ; i++ ) {
       let index = vars.length-i;
-      scope[vars[i]]       = function(code) { var d = countDepth(); code.push(function() { var p = moveUp(d); stack.push(heap[p+index]); }); };
-      scope[':' + vars[i]] = function(code) { var d = countDepth(); code.push(function() { var p = moveUp(d); heap[p+index] = stack.pop(); }); };
+      scope[vars[i]]       = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); stack.push(heap[p+index]); }); };
+      scope[':' + vars[i]] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index] = stack.pop(); }); };
     }
     while ( ( l = scope.readSym() ) != '}' ) scope.evalSym(l, fncode);
     oldScope.ip = scope.ip;
@@ -114,7 +114,7 @@ var scope = {
     stack.push(a);
   }),
   'i[':   code => { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
-  '"':    code => { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(function() { stack.push(s); }); },
+  '"':    code => { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(() => stack.push(s)); },
   '//':   () => { while ( (c = scope.readChar()) != '\n' ); },
   '/*':   () => { while ( (c = scope.readSym()) != '*/' ); },
   not:    fn(() => { stack.push( ! stack.pop()); }),
