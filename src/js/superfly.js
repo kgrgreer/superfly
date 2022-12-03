@@ -139,8 +139,8 @@ var scope = {
 };
 
 // Parser Support
-scope.charAt  = fn(() => { var i = stack.pop(), s = stack.pop(); stack.push(s.charAt(i)); });
-scope.indexOf = fn(() => { var substring = stack.pop(), s = stack.pop(); stack.push(s.indexOf(substring)); });
+scope.charAt  = bfn((s, i) => s.charAt(i));
+scope.indexOf = bfn((s, p) => s.indexOf(p));
 scope.len     = fn(() => { stack.push(stack.pop().length); });
 scope.input_  = fn(() => { stack.push(scope.input); });
 scope.ip_     = fn(() => { stack.push(scope.ip); });
