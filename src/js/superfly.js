@@ -72,13 +72,13 @@ var scope = {
     });
   },
   switch: function(code) {
-    var options = [], l, def, options = [];
+    var options = [], l;
     while ( ( l = scope.readSym() ) != 'end' ) scope.evalSym(l, options);
+    for ( var i = 0 ; i < options.length-1 ; i += 2 ) { options[i](); options[i] = stack.pop(); }
     code.push(function() {
       var value = stack.pop();
       for ( var i = 0 ; i < options.length ; i += 2 ) {
-        options[i]();
-        if ( value === stack.pop() ) {
+        if ( value === options[i] ) {
           options[i+1]();
           return;
         }
@@ -86,6 +86,25 @@ var scope = {
       return options[options.length-1]();
     });
   },
+  // version allows execution within definition for better meta-programming
+  /*
+  switch2: function(code) {
+    var sp = stack.length, l;
+    while ( ( l = scope.readSym() ) != 'end' ) scope.evalSym(l, { push: f => f() });
+    var options = stack.slice(sp, stack.length);
+    stack.length = sp;
+    code.push(() => {
+      var value = stack.pop();
+      debugger;
+      for ( var i = 0 ; i < options.length ; i += 2 ) {
+        if ( value === options[i] ) {
+          stack.push(options[i+1]);
+          return;
+        }
+      }
+      stack.push(options[options.length-1]);
+    });
+  },*/
   debug:  fn(() => { debugger; }), // breaks into debugger during runtime
   print:  fn(() => { console.log(stack.pop()); }),
   if:     fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
@@ -426,9 +445,9 @@ end () print
 
 { n | n
   switch
-    1 " one"
-    2 " two"
-    3 " three"
+    1 " un"
+    2 " deus"
+    3 " trois "
     " unknown"
   end
 } :lookupNumber
@@ -514,8 +533,6 @@ ip_ print
 
 " thisthenthat0123 " 0 nil PStream () :ps
 
-'a print
-'this print
 ps 'this literal () () print
 'that print
 ps 'that literal () () print
