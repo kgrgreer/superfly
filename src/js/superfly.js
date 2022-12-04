@@ -1,4 +1,4 @@
-var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__';
+var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__', outerCode;
 function fn(f) { return code => code.push(f); }
 function bfn(f) { return fn(() => { var b = stack.pop(), a = stack.pop(); stack.push(f(a, b)); }); }
 var scope = {
@@ -45,7 +45,7 @@ var scope = {
     }
   },
   '{': function(code) {
-    var l, oldScope = scope, vars = [], fncode = [];
+    var start = scope.ip, oldScope = scope, vars = [], fncode = [];
     var curScope = scope = Object.create(scope);
     while ( ( l = scope.readSym() ) != '|' ) vars.push(l); // read var names
     function countDepth() { var d = 0, s = scope; while ( s !== curScope ) { s = s.__proto__; d++; } return d; }
@@ -58,17 +58,21 @@ var scope = {
     while ( ( l = scope.readSym() ) != '}' ) scope.evalSym(l, fncode);
     oldScope.ip = scope.ip;
     scope = oldScope;
+    var src = scope.input.substring(start-2, scope.ip-1);
     code.push(function() {
       stack.push((function() {
         var p = hp;
-        return function() {
+        var f = function() {
           var old = hp;
           hp = heap.length;
           heap.push(p);
           for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
           for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
           hp = old;
-      }})());
+        };
+        f.toString = function() { return src; }
+        return f;
+      })());
     });
   },
   switch: function(code) {
@@ -132,7 +136,7 @@ var scope = {
     stack.pop();
     stack.push(a);
   }),
-  'i[':   code => { var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
+  'i[':   code => { outerCode = code; var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
   '"':    code => { var s = '', c; while ( (c = scope.readChar()) != '"' ) s += c; code.push(() => stack.push(s)); },
   '//':   () => { while ( (c = scope.readChar()) != '\n' ); },
   '/*':   () => { while ( (c = scope.readSym()) != '*/' ); },
@@ -163,6 +167,10 @@ scope.indexOf = bfn((s, p) => s.indexOf(p));
 scope.len     = fn(() => { stack.push(stack.pop().length); });
 scope.input_  = fn(() => { stack.push(scope.input); });
 scope.ip_     = fn(() => { stack.push(scope.ip); });
+
+// Doesn't work because it doesn't have access to the previous 'code'
+scope.emit = function() { var v = stack.pop(); outerCode.push(() => stack.push(v)); };
+
 
 // Language
 scope.eval$(`
@@ -484,7 +492,7 @@ scope.eval$(`
     m switch
       'head { | '* str pos charAt + print str pos charAt }
       'tail { | str pos 1 + this.head PStream () }
-      { | " unknown method " m + print }
+      { | " PStream Unknown Method '" m + '' + print }
     end ()
   }
 } :PStream
@@ -573,34 +581,17 @@ ps " 0123456789" notChars () 0 repeat () () print
 
 
 'Grammar section ()
-{ parser | { this | parser } } :;
-{ name | { this | name this this () } } :sym
-
-/*
-{ |
-  { m this |
-    m switch
-//      'parse  { | this.start }
-//      'start  { | this.number }
-//      'number { | digit } ; 1 repeat () ;
-      'digit  '0 '9 range () ;
-      { | " unknown method " m + print }
-    end ()
-  }
-} :FormulaParser
-*/
-
-// Y-Combinator
-// { f | 'aaa print { x | 'bbb print x x () f () } { x | 'ccc print x x () f () } () } :Y
 
 { |
-  '0 '9 range ()          // digit
-  { self | digit } 1 repeat () // number
+   // number
   { digit number |
     { m this |
       m switch
         'parse  { | this.start }
-        'start  { | number }
+        'start  { | this.number }
+        'digit  { | i[ '0 '9 range () emit ]  }
+        'digit2  { | '0 '9 range () }
+        'number { | this.digit 1 repeat () }
         { | " Formula Parser Unknown Method " m + print }
       end ()
     }
@@ -611,9 +602,25 @@ ps " 0123456789" notChars () 0 repeat () () print
 " 1+2*3 " 0 nil PStream () :ps
 'b print
 FormulaParser () :formulaparser
-'c print
-ps formulaparser.start () print
+//  ps 'digit2 formulaparser formulaparser ()  () print
+// ps formulaparser 'digit formulaparser ()  () print
+// ps formulaparser.digit2 () print
+ps formulaparser.digit () print
+ps formulaparser.digit2 () print
 'd print
+
+// Code evaulation at compile-time:
+{ | i[ 'fooing print 1 2 + emit ] } :foo
+
+foo () print
+foo () print
+foo () print
+
+{ | i[ 'baring print { x | x 2 * } emit ] } :bar
+
+1 bar () () print
+2 bar () () print
+3 bar () () print
 
 `);
 
@@ -643,4 +650,9 @@ a = { x: a b c | 234 x:ret }
      map { }
 
   }
+
+  // Y-Combinator
+  // { f | 'aaa print { x | 'bbb print x x () f () } { x | 'ccc print x x () f () } () } :Y
+
+
 */
