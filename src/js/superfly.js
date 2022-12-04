@@ -581,8 +581,16 @@ ps " 0123456789" notChars () 0 repeat () () print
 
 'Grammar section ()
 
-// TODO: make lazy
-{ f | f () { v | { | v } } () } :memoize
+{ f |
+  0 false { v fired |
+    { |
+      fired not { | true :fired  f () :v } if
+      v
+    }
+  } ()
+} :memoize
+
+// { f | f () { v | { | v } } () } :memoize
 
 { | 'thinking print 42 } memoize () :meaning
 meaning () print
@@ -596,7 +604,7 @@ meaning () print
         'parse  { this | this.start }
         'start  { this | this.number }
         'digit  { this | '0 '9 range () } memoize ()
-        'number { this | this.digit 1 repeat () }
+        'number { this | this.digit 1 repeat () } memoize ()
         { this | " Formula Parser Unknown Method " m + print }
       end ()
     }
