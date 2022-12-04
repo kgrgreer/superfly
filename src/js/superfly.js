@@ -105,12 +105,12 @@ var scope = {
       stack.push(options[options.length-1]);
     });
   },*/
-  debug:  fn(() => { debugger; }), // breaks into debugger during runtime
-  print:  fn(() => { console.log(stack.pop()); }),
-  if:     fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
-  ifelse: fn(() => { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
-  while:  fn(() => { var block = stack.pop(), cond = stack.pop(); while ( true ) { cond(); if ( ! stack.pop() ) break; block(); } }),
-  const:  fn(() => { var sym = stack.pop(), value = stack.pop(); scope[sym] = fn(() => { stack.push(value); }); }),
+  debugger:fn(() => { debugger; }),
+  print:   fn(() => { console.log(stack.pop()); }),
+  if:      fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
+  ifelse:  fn(() => { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
+  while:   fn(() => { var block = stack.pop(), cond = stack.pop(); while ( true ) { cond(); if ( ! stack.pop() ) break; block(); } }),
+  const:   fn(() => { var sym = stack.pop(), value = stack.pop(); scope[sym] = fn(() => { stack.push(value); }); }),
   '[]WithValue': fn(() => {
     var value = stack.pop(), length = stack.pop(), a = [];
     for ( var i = 0 ; i < length ; i++ ) a[i] = value;
@@ -335,6 +335,7 @@ counter () print
 5 4 3 Ball () :b1
 b1.x print
 b1.toString print
+
 
 10 19 5 Ball () :b2
 b2.toString print
@@ -575,16 +576,35 @@ ps " 0123456789" notChars () 0 repeat () () print
 { parser | { this | parser } } :;
 { name | { this | name this this () } } :sym
 
+/*
 { |
   { m this |
     m switch
 //      'parse  { | this.start }
 //      'start  { | this.number }
 //      'number { | digit } ; 1 repeat () ;
-      'digit  '0 '9 range () debug ;
+      'digit  '0 '9 range () ;
       { | " unknown method " m + print }
     end ()
   }
+} :FormulaParser
+*/
+
+// Y-Combinator
+// { f | 'aaa print { x | 'bbb print x x () f () } { x | 'ccc print x x () f () } () } :Y
+
+{ |
+  '0 '9 range ()          // digit
+  { self | digit } 1 repeat () // number
+  { digit number |
+    { m this |
+      m switch
+        'parse  { | this.start }
+        'start  { | number }
+        { | " Formula Parser Unknown Method " m + print }
+      end ()
+    }
+  } ()
 } :FormulaParser
 
 'a print
@@ -592,7 +612,7 @@ ps " 0123456789" notChars () 0 repeat () () print
 'b print
 FormulaParser () :formulaparser
 'c print
-ps formulaparser.digit () print
+ps formulaparser.start () print
 'd print
 
 `);
