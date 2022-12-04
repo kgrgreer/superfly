@@ -91,7 +91,6 @@ var scope = {
     });
   },
   // version allows execution within definition for better meta-programming
-  /*
   switch2: function(code) {
     var sp = stack.length, l;
     while ( ( l = scope.readSym() ) != 'end' ) scope.evalSym(l, { push: f => f() });
@@ -108,7 +107,7 @@ var scope = {
       }
       stack.push(options[options.length-1]);
     });
-  },*/
+  },
   debugger:fn(() => { debugger; }),
   print:   fn(() => { console.log(stack.pop()); }),
   if:      fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
@@ -582,31 +581,35 @@ ps " 0123456789" notChars () 0 repeat () () print
 
 'Grammar section ()
 
+// TODO: make lazy
+{ f | f () { v | { | v } } () } :memoize
+
+{ | 'thinking print 42 } memoize () :meaning
+meaning () print
+meaning () print
+
 { |
    // number
   { digit number |
     { m this |
-      m switch
-        'parse  { | this.start }
-        'start  { | this.number }
-        'digit  { | i[ '0 '9 range () emit ]  }
-        'digit2  { | '0 '9 range () }
-        'number { | this.digit 1 repeat () }
-        { | " Formula Parser Unknown Method " m + print }
+      this m switch2
+        'parse  { this | this.start }
+        'start  { this | this.number }
+        'digit  { this | '0 '9 range () } memoize ()
+        'number { this | this.digit 1 repeat () }
+        { this | " Formula Parser Unknown Method " m + print }
       end ()
     }
   } ()
 } :FormulaParser
 
 'a print
-" 1+2*3 " 0 nil PStream () :ps
+" 123+2*3 " 0 nil PStream () :ps
 'b print
 FormulaParser () :formulaparser
-//  ps 'digit2 formulaparser formulaparser ()  () print
 // ps formulaparser 'digit formulaparser ()  () print
-// ps formulaparser.digit2 () print
 ps formulaparser.digit () print
-ps formulaparser.digit2 () print
+ps formulaparser.number () print
 'd print
 
 // Code evaulation at compile-time:
