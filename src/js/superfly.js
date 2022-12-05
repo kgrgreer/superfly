@@ -98,7 +98,6 @@ var scope = {
     stack.length = sp;
     code.push(() => {
       var value = stack.pop();
-      debugger;
       for ( var i = 0 ; i < options.length ; i += 2 ) {
         if ( value === options[i] ) {
           stack.push(options[i+1]);
@@ -489,7 +488,7 @@ scope.eval$(`
 { str pos value |
   { m this |
     m switch
-      'head { | '* str pos charAt + print str pos charAt }
+      'head { | " head-> " str pos charAt + print str pos charAt }
       'tail { | str pos 1 + this.head PStream () }
       { | " PStream Unknown Method '" m + '' + print }
     end ()
@@ -531,7 +530,7 @@ ip_ print
 
 { parser | { ps | ps { ret |
   ps parser () :ret
-  ret { | ret } { | ps } ifelse
+  ret { | 'optyes print ret } { | 'optno print ps } ifelse
 } () } } :optional
 
 { str | { ps |
@@ -583,8 +582,8 @@ ps " 0123456789" notChars () 0 repeat () () print
 
 { f |
   0 false { v fired |
-    { |
-      fired not { | true :fired  f () :v } if
+    { this |
+      fired not { | true :fired  this f () :v } if
       v
     }
   } ()
@@ -595,30 +594,6 @@ ps " 0123456789" notChars () 0 repeat () () print
 { | 'thinking print 42 } memoize () :meaning
 meaning () print
 meaning () print
-
-{ |
-   // number
-  { digit number |
-    { m this |
-      this m switch2
-        'parse  { this | this.start }
-        'start  { this | this.number }
-        'digit  { this | '0 '9 range () } memoize ()
-        'number { this | this.digit 1 repeat () } memoize ()
-        { this | " Formula Parser Unknown Method " m + print }
-      end ()
-    }
-  } ()
-} :FormulaParser
-
-'a print
-" 123+2*3 " 0 nil PStream () :ps
-'b print
-FormulaParser () :formulaparser
-// ps formulaparser 'digit formulaparser ()  () print
-ps formulaparser.digit () print
-ps formulaparser.number () print
-'d print
 
 // Code evaulation at compile-time:
 { | i[ 'fooing print 1 2 + emit ] } :foo
@@ -633,6 +608,62 @@ foo () print
 2 bar () () print
 3 bar () () print
 
+
+{ v | { | v } } :;
+
+/*
+
+expr: seq(sym('expr1'), optional(seq(alt('+', '-'), sym('expr')))),
+
+ expr1: seq(sym('expr2'), optional(seq(alt('*', '/'), sym('expr1')))),
+
+ expr2: seq(sym('expr3'), optional(seq('^', sym('expr2')))),
+
+ expr3: alt(
+   sym('fun'),
+   sym('variable'),
+   sym('number'),
+   sym('group')),
+
+
+*/
+
+
+{ |
+   // number
+  { digit number |
+    { m this |
+      " Calling: " m + print
+      this m switch2
+        'parse   { this | this.start }
+        'start   { this | this.expr }
+        'expr    { this | [ this.expr1 [ this.exprOp this.expr ] seq () optional () ] seq ()  } memoize ()
+        'exprOp  { this | [ '+ literal () '- literal () ] alt () } memoize ()
+        'expr1   { this | [ this.expr2 [ this.expr1Op this.expr1 ] seq () optional () ] seq ()  } memoize ()
+        'expr1Op { this | [ '* literal () '/ literal () ] alt () } memoize ()
+        'expr2   { this | [ this.expr3 [ this.expr2Op this.expr2 ] seq () optional () ] seq ()  } memoize ()
+        'expr2Op { this | '^ literal () } memoize ()
+        'expr3   { this | [ this.number this.group ] alt () } memoize ()
+        'group   { this | [ '( literal () this.expr ') literal () ] seq () } memoize ()
+        'number  { this | this.digit 1 repeat () } memoize ()
+        'digit   { this | '0 '9 range () } memoize ()
+        { this | " Formula Parser Unknown Method " m + print }
+      end ()
+    }
+  } ()
+} :FormulaParser
+
+'a print
+" 1+2+3 " 0 nil PStream () :ps
+'b print
+FormulaParser () :formulaparser
+// ps formulaparser 'digit formulaparser ()  () print
+'c print
+ps formulaparser.digit () print
+'d print
+ps formulaparser.number () print
+'e print
+ps formulaparser.parse () print
 `);
 
 
