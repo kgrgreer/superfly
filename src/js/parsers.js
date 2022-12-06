@@ -53,6 +53,9 @@ ip_ print
   str ps.head indexOf -1 = { | ps.tail } { | false } ifelse
 } } :notChars
 
+{ str | { ps |
+  str ps.head indexOf -1 > { | ps.tail } { | false } ifelse
+} } :anyChar
 
 " thisthenthat0123 " 0 nil PStream () :ps
 
@@ -104,12 +107,9 @@ ps " 0123456789" notChars () 0 repeat () () print
   { m | m switch2
     'parse   { this | this.start } factory ()
     'start   { this | this.expr } factory ()
-    'expr    { this | [ this.expr1 [ this.op { | this.expr () } ] seq () optional () ] seq ()  } factory ()
-    'op      { this | [ '+ literal () '- literal () ] alt () } factory ()
-    'expr1   { this | [ this.expr2 [ this.op1 { | this.expr1 () } ] seq () optional () ] seq ()  } factory ()
-    'op1     { this | [ '* literal () '/ literal () ] alt () } factory ()
-    'expr2   { this | [ this.expr3 [ this.op2 { | this.expr2 () } ] seq () optional () ] seq ()  } factory ()
-    'op2     { this | '^ literal () } factory ()
+    'expr    { this | [ this.expr1 [ " +-" anyChar () { | this.expr () } ] seq () optional () ] seq ()  } factory ()
+    'expr1   { this | [ this.expr2 [ " /*" anyChar ()  { | this.expr1 () } ] seq () optional () ] seq ()  } factory ()
+    'expr2   { this | [ this.expr3 [ '^ literal () { | this.expr2 () } ] seq () optional () ] seq ()  } factory ()
     'expr3   { this | [ this.number this.group ] alt () } factory ()
     'group   { this | [ '( literal () { | this.expr () } ') literal () ] seq () } factory ()
     'number  { this | '0 '9 range () 1 repeat () } factory ()
