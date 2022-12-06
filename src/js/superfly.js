@@ -156,7 +156,7 @@ var scope = {
   '/':    bfn((a,b) => a / b),
   '^':    bfn((a,b) => Math.pow(a,b)),
   '%':    fn(() => { stack.push(stack.pop() / 100); }),
-  '()':   fn(() => { var f = stack.pop(); f(); })
+  '()':   fn(() => { var f = stack.pop(); /*console.log('running: ', f.toString()); */ f(); })
 };
 
 // Parser Support
@@ -259,7 +259,7 @@ ps seqparser () print
 
 
 " Alt Parser" section ()
-[ 'something literal () 'this literal () ] alt () :altparser
+[ 'think literal () 'this literal () ] alt () :altparser
 ps altparser () print
 
 
@@ -279,8 +279,9 @@ ps repeatparser () print
 'this print
 ps 'this literal () optional () () print
 'that print
-ps 'that literal () optional () () print
-
+ps [ 'that literal () optional () 'this literal () ] seq () () print
+'thisandthat print
+ps [ 'this literal () optional () 'then literal () ] seq () () print
 
 " NotChars Parser" section ()
 ps " 0123456789" notChars () 0 repeat () () print
@@ -305,17 +306,17 @@ ps " 0123456789" notChars () 0 repeat () () print
     { m this |
       " Calling: " m + print
       this m switch2
-        'sym     { s this | " symbol: " s + print { | s this this () } }
-        'parse   { this | this.start }
-        'start   { this | 'expr this.sym () }
-        'expr    { this | [ 'expr1 this.sym [ this.exprOp 'expr this.sym ] seq () optional () ] seq ()  } memoize ()
+        'sym     { s this | " symbol: " s + print { | s this this () { ans | " sym: " s "  " ans + + + print ans } () } }
+        'parse   { this | 'start this.sym } memoize ()
+        'start   { this | 'expr this.sym } memoize ()
+        'expr    { this | [ 'expr1 this.sym [ 'exprOp this.sym 'expr this.sym ] seq () optional () ] seq ()  } memoize ()
         'exprOp  { this | [ '+ literal () '- literal () ] alt () } memoize ()
-        'expr1   { this | [ 'expr2 this.sym [ this.expr1Op 'expr1 this.sym ] seq () optional () ] seq ()  } memoize ()
+        'expr1   { this | [ 'expr2 this.sym [ 'expr1Op this.sym  'expr1 this.sym ] seq () optional () ] seq ()  } memoize ()
         'expr1Op { this | [ '* literal () '/ literal () ] alt () } memoize ()
-        'expr2   { this | [ 'expr3 this.sym [ this.expr2Op 'expr2 this.sym ] seq () optional () ] seq ()  } memoize ()
+        'expr2   { this | [ 'number this.sym [ 'expr2Op this.sym  'expr2 this.sym ] seq () optional () ] seq ()  } memoize ()
         'expr2Op { this | '^ literal () } memoize ()
-        'expr3   { this | [ this.number 'group this.sym ] alt () } memoize ()
-        'group   { this | [ '( literal () 'expr this.sym () ') literal () ] seq () } memoize ()
+        'expr3   { this | [ 'number this.sym 'group this.sym ] alt () } memoize ()
+        'group   { this | [ '( literal () 'expr this.sym ') literal () ] seq () } memoize ()
         'number  { this | this.digit 1 repeat () } memoize ()
         'digit   { this | '0 '9 range () } memoize ()
         { this | " Formula Parser Unknown Method " m + print }
@@ -325,7 +326,7 @@ ps " 0123456789" notChars () 0 repeat () () print
 } :FormulaParser
 
 'a print
-" (1+2) " 0 nil PStream () :ps
+" 123+456" 0 nil PStream () :ps
 'b print
 FormulaParser () :formulaparser
 // ps formulaparser 'digit formulaparser ()  () print
@@ -334,7 +335,7 @@ ps formulaparser.digit () print
 'd print
 ps formulaparser.number () print
 'e print
-ps formulaparser.start () print
+ps formulaparser.expr () print
 `);
 
 
@@ -354,6 +355,7 @@ TODO:
   - don't put heap in an array to allow for JS GC?
   - Add in-line cache for method lookups
 
+ifelse is the same as ? ()
 a = { x: a b c | 234 x:ret }
 
   {
@@ -363,9 +365,5 @@ a = { x: a b c | 234 x:ret }
      map { }
 
   }
-
-  // Y-Combinator
-  // { f | 'aaa print { x | 'bbb print x x () f () } { x | 'ccc print x x () f () } () } :Y
-
 
 */
