@@ -30,11 +30,13 @@ var scope = {
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseFloat(line)); });
     } else if ( line.indexOf('.') != -1 ) { // Macro for OO calling convention
-      // TODO: add an in-ilne cache here
-      var a = line.split('.');
-      code.push(function() { stack.push(a[1]); });
-      this.evalSym(a[0], code);
-      code.push(function() { stack.push(stack[stack.length-1]); });
+      // TODO: add an in-ilne cache here when class can be determined cheaply
+      var [obj, meth] = line.split('.');
+      // TODO: The next five lines could be combined into one function
+      this.evalSym(obj, code);
+      code.push(function() { stack.push(meth); });
+      this.evalSym(obj, code);
+      this.evalSym('()', code);
       this.evalSym('()', code);
     } else if ( line.startsWith("'") ) {
       var s = line.substring(1);
@@ -156,7 +158,7 @@ var scope = {
   '/':    bfn((a,b) => a / b),
   '^':    bfn((a,b) => Math.pow(a,b)),
   '%':    fn(() => { stack.push(stack.pop() / 100); }),
-  '()':   fn(() => { var f = stack.pop(); /*console.log('running: ', f.toString()); */ f(); })
+  '()':   fn(() => { var f = stack.pop(); /*console.log('running: ', f.toString());*/ f(); })
 };
 
 // Parser Support
@@ -176,12 +178,19 @@ scope.eval$(`
 1 2 = :false       // define false
 { | } :nil         // define 'nil', like doing nil = new Object() in Java/JS
 { n | 0 n - } :neg // negate
+
 { start end block |
-  start end <= { |
-    start block ()
-    start 1 + end block for ()
-  } if
+  { | start end <= } { | start block () start 1 + :start } while
 } :for
+
+{ f |
+  0 false { v fired |
+    { this |
+      fired not { | " firing: " f + print true :fired  this f () :v } if
+      v
+    }
+  } ()
+} :factory
 
 // A helper function for displaying section titles
 { t | " " print t print } :section
@@ -189,158 +198,9 @@ scope.eval$(`
 `);
 
 
-
-scope.eval$(`
-'Parsers section ()
-
-{ str pos value |
-  { m this |
-    m switch
-      'head { | " head-> " str pos charAt + print str pos charAt }
-      'tail { | str pos 1 + this.head PStream () }
-      { | " PStream Unknown Method '" m + '' + print }
-    end ()
-  }
-} :PStream
-
-" 01234" 3 charAt print
-
-// Access to current input:
-ip_ print
-// input_ print
-
-// Parse Combinators
-
-{ start end c | c start >=  c end <= & } :inRange
-{ start end | { ps |
-  start end ps.head inRange () { | ps.tail } { | false } ifelse
-} } :range
-
-{ str | { ps | 0 { i |
-  { | ps.head str i charAt = } { | ps.tail :ps  i 1 + :i } while
-  str len i = { | ps } { | false } ifelse
-} () } } :literal
-
-{ parsers | { ps | 0 { i |
-  { | i parsers len < { | ps parsers i @ () :ps ps } && } { | i 1 + :i } while
-  parsers len i = { | ps } { | false } ifelse
-} () } } :seq
-
-{ parsers | { ps | 0 false { i ret |
-  { | i parsers len < { | ps parsers i @ () :ret ret not } && } { | i 1 + :i } while
-  ret
-} () } } :alt
-
-{ parser min | { ps | 0 false { i ret |
-  { | ps :ret  ps parser () :ps ps } { | i 1 + :i } while
-  i min >=  { | ret } { | false } ifelse
-} () } } :repeat
-
-{ parser | { ps | ps { ret |
-  ps parser () :ret
-  ret { | 'optyes print ret } { | 'optno print ps } ifelse
-} () } } :optional
-
-{ str | { ps |
-  str ps.head indexOf -1 = { | ps.tail } { | false } ifelse
-} } :notChars
-
-
-" thisthenthat0123 " 0 nil PStream () :ps
-
-ps 'this literal () () print
-'that print
-ps 'that literal () () print
-
-
-" Seq Parser" section ()
-[ 'this literal () 'then literal () 'that literal () ] seq () :seqparser
-ps seqparser () print
-
-
-" Alt Parser" section ()
-[ 'think literal () 'this literal () ] alt () :altparser
-ps altparser () print
-
-
-" Range Parser" section ()
-'0 '9 range  () :rangeparser
-ps rangeparser () print
-'a 'z range  () :rangeparser
-ps rangeparser () print
-
-
-" Repeat Parser" section ()
-'a 'z range () 1 repeat () :repeatparser
-ps repeatparser () print
-
-
-" Optional Parser" section ()
-'this print
-ps 'this literal () optional () () print
-'that print
-ps [ 'that literal () optional () 'this literal () ] seq () () print
-'thisandthat print
-ps [ 'this literal () optional () 'then literal () ] seq () () print
-
-" NotChars Parser" section ()
-ps " 0123456789" notChars () 0 repeat () () print
-
-
-'Grammar section ()
-
-{ f |
-  0 false { v fired |
-    { this |
-      fired not { | true :fired  this f () :v } if
-      v
-    }
-  } ()
-} :memoize
-
-{ v | { | v } } :;
-
-{ |
-   // number
-  { digit number |
-    { m this |
-      " Calling: " m + print
-      this m switch2
-        'sym     { s this | " symbol: " s + print { | s this this () { ans | " sym: " s "  " ans + + + print ans } () } }
-        'parse   { this | 'start this.sym } memoize ()
-        'start   { this | 'expr this.sym } memoize ()
-        'expr    { this | [ 'expr1 this.sym [ 'exprOp this.sym 'expr this.sym ] seq () optional () ] seq ()  } memoize ()
-        'exprOp  { this | [ '+ literal () '- literal () ] alt () } memoize ()
-        'expr1   { this | [ 'expr2 this.sym [ 'expr1Op this.sym  'expr1 this.sym ] seq () optional () ] seq ()  } memoize ()
-        'expr1Op { this | [ '* literal () '/ literal () ] alt () } memoize ()
-        'expr2   { this | [ 'number this.sym [ 'expr2Op this.sym  'expr2 this.sym ] seq () optional () ] seq ()  } memoize ()
-        'expr2Op { this | '^ literal () } memoize ()
-        'expr3   { this | [ 'number this.sym 'group this.sym ] alt () } memoize ()
-        'group   { this | [ '( literal () 'expr this.sym ') literal () ] seq () } memoize ()
-        'number  { this | this.digit 1 repeat () } memoize ()
-        'digit   { this | '0 '9 range () } memoize ()
-        { this | " Formula Parser Unknown Method " m + print }
-      end ()
-    }
-  } ()
-} :FormulaParser
-
-'a print
-" 123+456" 0 nil PStream () :ps
-'b print
-FormulaParser () :formulaparser
-// ps formulaparser 'digit formulaparser ()  () print
-'c print
-ps formulaparser.digit () print
-'d print
-ps formulaparser.number () print
-'e print
-ps formulaparser.expr () print
-`);
-
-
 /*
 TODO:
+  - fix 'nil to be falsey
   - maybe switch | symbol to / since it's faster to type and looks more like lambda?
   - make string function naming more consistent
   - add OO 'call' function

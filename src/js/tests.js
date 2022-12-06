@@ -3,31 +3,30 @@ scope.eval$(`
 // Build a Tester class to perform tests and record statistics
 { |
   0 0 { passed failed |
-    { m this |
+    { m |
       m switch
-        'score { f |
+        'score { f this |
           f { | passed 1 + :passed " PASSED" } { | failed 1 + :failed " FAILED" } ifelse
         }
-        'test { script answer |
+        'test { script answer this |
           " Expect: " script "  -> " answer "  " + + + +
           script eval answer = this.score + print
         }
-        'report { |
+        'report { this |
           " " print
           " Tests Run: " passed failed + + print
           "    PASSED: " passed + print
           "    FAILED: " failed + print
           " " print
         }
-        { | " unknown method: " m + print }
-      end ()
+        { this | " unknown method: " m + print }
+      end
     }
   } ()
 } :Tester
 
 // Create an instance of Tester
 Tester () :t
-
 
 
 'Arithmetic section ()
@@ -136,15 +135,15 @@ counter () print
 
 // Now a more featured OO system with 'this' 'super' and inheritance
 { x y r |
-  { m this |
+  { m |
     m switch
-      'class { | Ball }
-      'x { | x } ':x { v | v :x }
-      'y { | y } ':y { v | v :y }
-      'r { | r } ':r { v | v :r }
-      'toString { | x ', y ', r + + + + }
-      { | " unknown method" print }
-    end ()
+      'class { t | Ball }
+      'x { t | x } ':x { v | v :x }
+      'y { t | y } ':y { v | v :y }
+      'r { t | r } ':r { v | v :r }
+      'toString { t | x ', y ', r + + + + }
+      { t | " unknown method" print }
+    end
   }
 } :Ball
 
@@ -157,12 +156,12 @@ b1.toString print
 b2.toString print
 
 { c | Ball () { super |
-  { m this | m switch
-    'class { | ColourBall }
-    'c { | c } ':c { v | v :c }
-    'toString { | super.toString ', c + + }
-    { | m this super () }
-  end () }
+  { m | m switch
+    'class { this | ColourBall }
+    'c { this | c } ':c { v | v :c }
+    'toString { this | super.toString ', c + + }
+    { this | m this super () }
+  end }
 } () } :ColourBall // This would also work and be faster:   } () } 'ColourBall const
 
 6 5 2 'red ColourBall () :b3
@@ -248,7 +247,7 @@ false { | " if true" print } { | " if false" print } ifelse
   { | i 10 <= } { | " loop: " i + print i 1 + :i } while
 } ()
 
-1 10 { i | " for: " i + print } for ()
+5 15 { i | " for: " i + print } for ()
 
 
 'Nil section ()
@@ -292,7 +291,7 @@ powersOf2 print
 powersOf2 4 @ print
 [ 1 2 3 'abc " def" true false ] print
 
-{ | 'thinking print 42 } memoize () :meaning
+{ | 'thinking print 42 } factory () :meaning
 meaning () print
 meaning () print
 
