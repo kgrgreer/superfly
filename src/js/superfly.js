@@ -382,6 +382,10 @@ class ColourBall extends Ball {
 { n | n 1 <= { | 1 } { | n n 1 - fact () * } ifelse } :fact
 " 20 fact ()" 2432902008176640000 t.test
 
+{ f | { x | { y | y x x () () } f () } { x | x x () } () } :Y // y-combinator
+{ f | { n | n 1 <= { | 1 } { | n n 1 - f () * } ifelse } } Y () :fact2
+
+" 10 fact2 ()" 3628800 t.test
 
 " Lexical Scoping" section ()
 1 { a | { | a print } () } ()
@@ -635,16 +639,17 @@ expr: seq(sym('expr1'), optional(seq(alt('+', '-'), sym('expr')))),
     { m this |
       " Calling: " m + print
       this m switch2
+        'sym     { s this | " symbol: " s + print { | s this this () } }
         'parse   { this | this.start }
-        'start   { this | this.expr }
-        'expr    { this | [ this.expr1 [ this.exprOp this.expr ] seq () optional () ] seq ()  } memoize ()
+        'start   { this | 'expr this.sym () }
+        'expr    { this | [ 'expr1 this.sym [ this.exprOp 'expr this.sym ] seq () optional () ] seq ()  } memoize ()
         'exprOp  { this | [ '+ literal () '- literal () ] alt () } memoize ()
-        'expr1   { this | [ this.expr2 [ this.expr1Op this.expr1 ] seq () optional () ] seq ()  } memoize ()
+        'expr1   { this | [ 'expr2 this.sym [ this.expr1Op 'expr1 this.sym ] seq () optional () ] seq ()  } memoize ()
         'expr1Op { this | [ '* literal () '/ literal () ] alt () } memoize ()
-        'expr2   { this | [ this.expr3 [ this.expr2Op this.expr2 ] seq () optional () ] seq ()  } memoize ()
+        'expr2   { this | [ 'expr3 this.sym [ this.expr2Op 'expr2 this.sym ] seq () optional () ] seq ()  } memoize ()
         'expr2Op { this | '^ literal () } memoize ()
-        'expr3   { this | [ this.number this.group ] alt () } memoize ()
-        'group   { this | [ '( literal () this.expr ') literal () ] seq () } memoize ()
+        'expr3   { this | [ this.number 'group this.sym ] alt () } memoize ()
+        'group   { this | [ '( literal () 'expr this.sym () ') literal () ] seq () } memoize ()
         'number  { this | this.digit 1 repeat () } memoize ()
         'digit   { this | '0 '9 range () } memoize ()
         { this | " Formula Parser Unknown Method " m + print }
@@ -654,7 +659,7 @@ expr: seq(sym('expr1'), optional(seq(alt('+', '-'), sym('expr')))),
 } :FormulaParser
 
 'a print
-" 1+2+3 " 0 nil PStream () :ps
+" (1+2) " 0 nil PStream () :ps
 'b print
 FormulaParser () :formulaparser
 // ps formulaparser 'digit formulaparser ()  () print
@@ -663,7 +668,7 @@ ps formulaparser.digit () print
 'd print
 ps formulaparser.number () print
 'e print
-ps formulaparser.parse () print
+ps formulaparser.start () print
 `);
 
 
