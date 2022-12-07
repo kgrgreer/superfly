@@ -312,5 +312,9 @@ foo () print
 3 bar () () print
 
 
+'Map section ()
+[ 1 2 3 ] { v | v v * } map () print
+
+
 t.report
 `);

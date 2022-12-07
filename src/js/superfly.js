@@ -162,11 +162,12 @@ var scope = {
 };
 
 // Parser Support
-scope.charAt  = bfn((s, i) => s.charAt(i));
-scope.indexOf = bfn((s, p) => s.indexOf(p));
-scope.len     = fn(() => { stack.push(stack.pop().length); });
-scope.input_  = fn(() => { stack.push(scope.input); });
-scope.ip_     = fn(() => { stack.push(scope.ip); });
+scope['string?'] = fn(() => { stack.push(typeof stack.pop() === 'string'); });
+scope.charAt     = bfn((s, i) => s.charAt(i));
+scope.indexOf    = bfn((s, p) => s.indexOf(p));
+scope.len        = fn(() => { stack.push(stack.pop().length); });
+scope.input_     = fn(() => { stack.push(scope.input); });
+scope.ip_        = fn(() => { stack.push(scope.ip); });
 
 // Doesn't work because it doesn't have access to the previous 'code'
 scope.emit = function() { var v = stack.pop(); outerCode.push(() => stack.push(v)); };
@@ -191,6 +192,8 @@ scope.eval$(`
     }
   } ()
 } :factory
+
+{ a f | [ 0 a len 1 - { i | a i @ f () } for () ] } :map
 
 // A helper function for displaying section titles
 { t | " " print t print } :section

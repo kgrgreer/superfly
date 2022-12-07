@@ -29,7 +29,11 @@ ip_ print
   str len i = { | ps } { | false } ifelse
 } () } } :literal
 
-{ parsers | { ps | 0 { i |
+{ parsers |
+  parsers { p | p string? { | p literal () } { | p } ifelse } map ()
+} :prepare
+
+{ parsers | parsers prepare () :parsers { ps | 0 { i |
   { | i parsers len < { | ps parsers i @ () :ps ps } && } { | i 1 + :i } while
   parsers len i = { | ps } { | false } ifelse
 } () } } :seq
@@ -100,7 +104,6 @@ ps " 0123456789" notChars () 0 repeat () () print
 
 'Grammar section ()
 
-// 'call    { s this | this s this () () }
 { l op r |
   { this |
     [ { | l this.call } () [ op anyChar () { | r this.call () } ] seq () optional () ] seq ()
@@ -112,11 +115,11 @@ ps " 0123456789" notChars () 0 repeat () () print
     'call    { s this | this s this () () }
     'parse   { this | this.start }
     'start   { this | this.expr }
-    'expr    'expr1 " +-" 'expr  bin ()
-    'expr1   'expr2 " */" 'expr1 bin ()
-    'expr2   'expr3 '^    'expr2 bin ()
+    'expr    'expr1 " +-"  'expr  bin ()
+    'expr1   'expr2 " */%" 'expr1 bin ()
+    'expr2   'expr3 '^     'expr2 bin ()
     'expr3   { this | [ this.number this.group ] alt () } factory ()
-    'group   { this | [ '( literal () { | this.expr () } ') literal () ] seq () } factory ()
+    'group   { this | [ '( { | this.expr () } ') ] seq () } factory ()
     'number  { this | this.digit 1 repeat () } factory ()
     'digit   { this | '0 '9 range () } factory ()
     { this | " Formula Parser Unknown Method " m + print }
