@@ -100,19 +100,24 @@ ps " 0123456789" notChars () 0 repeat () () print
 
 'Grammar section ()
 
-
 // 'call    { s this | this s this () () }
+{ l op r |
+  { this |
+    [ { | l this.call } () [ op anyChar () { | r this.call () } ] seq () optional () ] seq ()
+  }
+} :bin
 
 { |
   { m | m switch2
-    'parse   { this | this.start } factory ()
-    'start   { this | this.expr } factory ()
-    'expr    { this | [ this.expr1 [ " +-" anyChar () { | this.expr () } ] seq () optional () ] seq ()  } factory ()
-    'expr1   { this | [ this.expr2 [ " /*" anyChar ()  { | this.expr1 () } ] seq () optional () ] seq ()  } factory ()
-    'expr2   { this | [ this.expr3 [ '^ literal () { | this.expr2 () } ] seq () optional () ] seq ()  } factory ()
+    'call    { s this | this s this () () }
+    'parse   { this | this.start }
+    'start   { this | this.expr }
+    'expr    'expr1 " +-" 'expr  bin ()
+    'expr1   'expr2 " */" 'expr1 bin ()
+    'expr2   'expr3 '^    'expr2 bin ()
     'expr3   { this | [ this.number this.group ] alt () } factory ()
     'group   { this | [ '( literal () { | this.expr () } ') literal () ] seq () } factory ()
-    'number  { this | '0 '9 range () 1 repeat () } factory ()
+    'number  { this | this.digit 1 repeat () } factory ()
     'digit   { this | '0 '9 range () } factory ()
     { this | " Formula Parser Unknown Method " m + print }
   end }

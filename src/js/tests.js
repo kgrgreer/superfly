@@ -137,6 +137,7 @@ counter () print
 { x y r |
   { m |
     m switch
+      'call  { s this | this s this () () }
       'class { t | Ball }
       'x { t | x } ':x { v | v :x }
       'y { t | y } ':y { v | v :y }
@@ -149,8 +150,10 @@ counter () print
 
 5 4 3 Ball () :b1
 b1.x print
+'x b1.call print
 b1.toString print
 
+'toString b1.call print
 
 10 19 5 Ball () :b2
 b2.toString print
