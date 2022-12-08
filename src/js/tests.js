@@ -163,7 +163,7 @@ b2.toString print
     'class { this | ColourBall }
     'c { this | c } ':c { v | v :c }
     'toString { this | super.toString ', c + + }
-    { this | m this super () }
+    { | m super () () }
   end }
 } () } :ColourBall // This would also work and be faster:   } () } 'ColourBall const
 

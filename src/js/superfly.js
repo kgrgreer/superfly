@@ -32,7 +32,7 @@ var scope = {
     } else if ( line.indexOf('.') != -1 ) { // Macro for OO calling convention
       // TODO: add an in-ilne cache here when class can be determined cheaply
       var [obj, meth] = line.split('.');
-      // TODO: The next five lines could be combined into one function
+      // TODO: The next five lines could be combined into one function: o m o () ()
       this.evalSym(obj, code);
       code.push(function() { stack.push(meth); });
       this.evalSym(obj, code);
@@ -110,7 +110,7 @@ var scope = {
     });
   },
   debugger:fn(() => { debugger; }),
-  print:   fn(() => { console.log(stack.pop()); }),
+  print:   fn(() => { console.log('' + stack.pop()); }),
   if:      fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
   ifelse:  fn(() => { var fBlock = stack.pop(), tBlock = stack.pop(), cond = stack.pop(); (cond ? tBlock : fBlock)(); }),
   while:   fn(() => { var block = stack.pop(), cond = stack.pop(); while ( true ) { cond(); if ( ! stack.pop() ) break; block(); } }),
@@ -152,7 +152,7 @@ var scope = {
   '<=':   bfn((a,b) => a <= b),
   '>':    bfn((a,b) => a > b),
   '>=':   bfn((a,b) => a >= b),
-  '+':    bfn((a,b) => a + b),
+  '+':    bfn((a,b) => { return a + b }), // Should be a different concat for strings
   '*':    bfn((a,b) => a * b),
   '-':    bfn((a,b) => a - b),
   '/':    bfn((a,b) => a / b),
@@ -185,18 +185,24 @@ scope.eval$(`
 } :for
 
 { f |
-  0 false { v fired |
+  0 false { v created |
     { this |
-      fired not { | " firing: " f + print true :fired  this f () :v } if
+      created not { | true :created  this f () :v } if
       v
     }
   } ()
 } :factory
 
-{ a f | [ 0 a len 1 - { i | a i @ f () } for () ] } :map
+{ a f | 0 a len 1 - { i | a i @ f () } for () } :forEach
+
+{ a f | [ a f forEach () ] } :map
 
 // A helper function for displaying section titles
 { t | " " print t print } :section
+
+{ v | v v } :dup
+{ _ | } :drop
+{ a b | b a } :swap
 
 `);
 
@@ -217,6 +223,7 @@ TODO:
   - alloc?
   - don't put heap in an array to allow for JS GC?
   - Add in-line cache for method lookups
+  - Add a recursive array toString method
 
 ifelse is the same as ? ()
 a = { x: a b c | 234 x:ret }
