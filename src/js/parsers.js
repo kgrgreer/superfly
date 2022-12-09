@@ -176,10 +176,6 @@ result.toString print
 result.value
 */
 
-{ s f |
-  { ps | ps s () { | /* ps.value f () */ 'foobar ps.:value } { | ps } ifelse }
-} :xxxaction
-
 { v |
   v 0 @
   v 1 @ { | "  " v 1 @ 1 @ "  " v 1 @ 0 @ "  " + + + + + } if
@@ -188,8 +184,6 @@ result.value
 { ps f |
   ps { | ps.value f () ps.:value } { | ps } ifelse
 } :action // map a pstream's value (used to add semantic actions to parser methods)
-
-{ m super map | m { o | { ps | ps o m super () () () map action () } } } :a2
 
 { | FormulaParser () { super |
   { m | m switch

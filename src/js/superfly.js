@@ -193,6 +193,7 @@ scope.eval$(`
 
 /*
 TODO:
+  - letrec
   - fix 'nil to be falsey
   - maybe switch | symbol to / since it's faster to type and looks more like lambda?
   - make string function naming more consistent
