@@ -134,20 +134,23 @@ result.toString print
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
-{ | { m | m switch2
+{ | 0 { expr3 |
+  { o | [ o.number o.group ] alt () } :expr3
+
+  { m | m switch
   'test   { o | 'hello print }
   'call   { m o | o m o () () }
   'parse  { o | o.start }
   'start  { o | o.expr }
-  'expr   'expr1 " +-"  'expr  bin ()
-  'expr1  'expr2 " */%" 'expr1 bin ()
-  'expr2  'expr3 '^     'expr2 bin ()
-  'expr3  { o | [ o.number o.group ] alt () } factory ()
-  'group  { o | [ '( { | o.expr () } ') ] seq () } factory ()
-  'number { o | o.digit 1 repeat () } factory ()
-  'digit  { o | '0 '9 range () } factory ()
+  'expr   i[ 'expr1 " +-"  'expr  bin () emit ]
+  'expr1  i[ 'expr2 " */%" 'expr1 bin () emit ]
+  'expr2  i[ 'expr3 '^     'expr2 bin () emit ]
+  'expr3  { o | [ o.number o.group ] alt () }
+  'group  { o | [ '( { | o.expr () } ') ] seq () }
+  'number { o | o.digit 1 repeat () }
+  'digit  { o | '0 '9 range () }
   { o | " Formula Parser Unknown Method " m + print }
-end } } :FormulaParser
+end } } () } :FormulaParser
 
 // " 123*(456+56)/3^2 " 0 nil PStream () :ps
 " 5*2^(2+3)+100 " 0 nil PStream () :ps

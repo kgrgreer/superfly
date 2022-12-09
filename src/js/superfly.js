@@ -92,45 +92,6 @@ var scope = {
       return options[options.length-1]();
     });
   },
-  switch3: fn(() => { stack.push(__switchStart__); }),
-  end: fn(() => {
-    debugger;
-    var start = stack.length-1;
-    for ( ; start && stack[start] !== __switchStart__ ; start-- );
-    var a = new Array(stack.length-start-1);
-    for ( var i = a.length-1 ; i >= 0 ; i-- ) a[i] = stack.pop();
-    stack.pop();
-
-    var options = a;
-    debugger;
-    stack.push(function() {
-      var value = stack.pop();
-      for ( var i = 0 ; i < options.length ; i += 2 ) {
-        if ( value === options[i] ) {
-          options[i+1]();
-          return;
-        }
-      }
-      return options[options.length-1]();
-    });
-  }),
-  // version allows execution within definition for better meta-programming
-  switch2: function(code) {
-    var sp = stack.length, l;
-    while ( ( l = scope.readSym() ) != 'end' ) scope.evalSym(l, { push: f => f() });
-    var options = stack.slice(sp, stack.length);
-    stack.length = sp;
-    code.push(() => {
-      var value = stack.pop();
-      for ( var i = 0 ; i < options.length ; i += 2 ) {
-        if ( value === options[i] ) {
-          stack.push(options[i+1]);
-          return;
-        }
-      }
-      stack.push(options[options.length-1]);
-    });
-  },
   debugger:fn(() => { debugger; }),
   print:   fn(() => { console.log('' + stack.pop()); }),
   if:      fn(() => { var block = stack.pop(); var cond = stack.pop(); if ( cond ) block(); }),
