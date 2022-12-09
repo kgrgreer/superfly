@@ -189,10 +189,10 @@ result.value
   { m | m switch
     'test   { o | super.test 'there print }
     'super  { m o | o m super () () () }
-    'expr   { o | { ps | ps 'expr  o.super infix action () } }
-    'expr1  { o | { ps | ps 'expr1 o.super infix action () } }
-    'expr2  { o | { ps | ps 'expr2 o.super infix action () } }
-    'group  { o | { ps | ps 'group o.super  { a | a 1 @ } action () } }
+    'expr   { o | { ps | ps 'expr   o.super infix action () } }
+    'expr1  { o | { ps | ps 'expr1  o.super infix action () } }
+    'expr2  { o | { ps | ps 'expr2  o.super infix action () } }
+    'group  { o | { ps | ps 'group  o.super { a | a 1 @ } action () } }
     'number { o | { ps | ps 'number o.super { a | " " a { c | c + } forEach () } action () } }
     { o | o m super () () }
   end }
