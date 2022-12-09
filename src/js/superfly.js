@@ -152,8 +152,7 @@ scope.indexOf    = bfn((s, p) => s.indexOf(p));
 scope.len        = fn(() => { stack.push(stack.pop().length); });
 scope.input_     = fn(() => { stack.push(scope.input); });
 scope.ip_        = fn(() => { stack.push(scope.ip); });
-
-scope.emit = function() { var v = stack.pop(); outerCode.push(() => stack.push(v)); };
+scope.emit       = function() { var v = stack.pop(); outerCode.push(() => stack.push(v)); };
 
 
 // Language
@@ -193,8 +192,9 @@ scope.eval$(`
 
 /*
 TODO:
-  - cleanup parser action and bin
-  - letrec
+  - .methodname call
+  - cleanup parser bin
+  - letrec or let/define
   - fix 'nil to be falsey
   - maybe switch | symbol to / since it's faster to type and looks more like lambda?
   - make string function naming more consistent

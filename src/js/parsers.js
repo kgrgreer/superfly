@@ -155,10 +155,54 @@ result.toString print
   end }
 } () } :FormulaParser
 
-// " 123*(456+56)/3^2 " 0 nil PStream () :ps
-" 5*2^(2+3)+100 " 0 nil PStream () :ps
+{ v |
+  v 0 @
+  v 1 @ { | "  " v 1 @ 1 @ "  " v 1 @ 0 @ "  " + + + + + } if
+} :infix // convert an infix operator to postfix
+
+{ o m super f |
+  { ps | ps o m super () () () :ps ps { | ps.value f () ps.:value } { | ps } ifelse }
+} :action
+
+{ | FormulaParser () { super |
+  { m | m switch
+    'super  { m o | o m super () () () }
+    'expr   { | m super infix action ()  }
+    'expr1  { | m super infix action ()  }
+    'expr2  { | m super infix action ()  }
+    'group  { | m super { a | a 1 @ } action () }
+    'number { | m super { a | " " a { c | c + } forEach () } action () }
+    { o | o m super () () }
+  end }
+} () } :FormulaCompiler
+
+'compiler print
+
+{ code |
+  FormulaCompiler () { compiler | code compiler.parse$ } ()
+  { result |
+    " JS Code: " code   + print
+    " T0 Code: " result + print
+    result eval
+  } ()
+} :jsEval
+
+" Result: " " 5*2^(2+3)+100 " jsEval () + print
+
+
+
+
+
+
+
+
+
+
+
 
 /*
+" 5*2^(2+3)+100 " 0 nil PStream () :ps
+
 'a print
 'b print
 FormulaParser () :formulaparser
@@ -176,38 +220,5 @@ result.toString print
 result.value
 */
 
-{ v |
-  v 0 @
-  v 1 @ { | "  " v 1 @ 1 @ "  " v 1 @ 0 @ "  " + + + + + } if
-} :infix // convert an infix operator to postfix
-
-{ ps f |
-  ps { | ps.value f () ps.:value } { | ps } ifelse
-} :action // map a pstream's value (used to add semantic actions to parser methods)
-
-{ | FormulaParser () { super |
-  { m | m switch
-    'super  { m o | o m super () () () }
-    'expr   { o | { ps | ps 'expr   o.super infix action () } }
-    'expr1  { o | { ps | ps 'expr1  o.super infix action () } }
-    'expr2  { o | { ps | ps 'expr2  o.super infix action () } }
-    'group  { o | { ps | ps 'group  o.super { a | a 1 @ } action () } }
-    'number { o | { ps | ps 'number o.super { a | " " a { c | c + } forEach () } action () } }
-    { o | o m super () () }
-  end }
-} () } :FormulaCompiler
-
-'compiler print
-
-{ code |
-  FormulaCompiler () { compiler | code compiler.parse$ } ()
-  { result |
-    " JS Code: " code + print
-    " T0 Code: " result + print
-    result eval
-  } ()
-} :jsEval
-
-" Result: " " 5*2^(2+3)+100 " jsEval () + print
 
 `);
