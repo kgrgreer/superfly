@@ -126,9 +126,7 @@ result.toString print
 'Grammar section ()
 
 { l op r |
-  { this |
-    [ { | l this.call } () [ op anyChar () { | r this.call () } ] seq () optional () ] seq ()
-  }
+  { o | [ l o.call [ op anyChar () r o.call ] seq () optional () ] seq () }
 } :bin // binary operator, ie. expr +/0 expr2
 
 { v |
@@ -143,7 +141,8 @@ result.toString print
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
-{ | 0 0 0 0 { expr3 group number digit |
+{ | 0 0 0 0 0 { expr expr3 group number digit |
+  'expr1 " +-"  'expr  bin ()              :expr
   { o | [ o.number o.group ] alt () }      :expr3
   { o | [ '( { | o.expr () } ') ] seq () } :group
   { o | o.digit 1 repeat () }              :number
@@ -153,7 +152,7 @@ result.toString print
     'parse$ { s o | s 0 nil PStream () o.start () { r | r.value } () }
     'call   { m o | o m o () () }
     'start  { o | o.expr }
-    'expr   i[ 'expr1 " +-"  'expr  bin () emit ]
+    'expr   expr
     'expr1  i[ 'expr2 " */%" 'expr1 bin () emit ]
     'expr2  i[ 'expr3 '^     'expr2 bin () emit ]
     'expr3  expr3
@@ -162,7 +161,7 @@ result.toString print
     'digit  digit
     { o | " Formula Parser Unknown Method " m + print }
   end }
-} () } :FormulaParser
+} () } :FormulaParser // Just a Parser, validates but has no semantic actions
 
 
 { | FormulaParser () { super |
@@ -175,7 +174,7 @@ result.toString print
     'number { | m super { a | " " a { c | c + } forEach () } action () }
     { o | o m super () () }
   end }
-} () } :FormulaCompiler
+} () } :FormulaCompiler // Add semantic actions to parser to create a JS to T0 compiler
 
 
 { code |
