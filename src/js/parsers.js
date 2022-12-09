@@ -188,6 +188,7 @@ result.value
 { | FormulaParser () { super |
   { m | m switch
     'test   { o | super.test 'there print }
+    'parse$ { s o | s 0 nil PStream () o.start () { r | r.value } () }
     'super  { m o | o m super () () () }
     'expr   { o | { ps | ps 'expr   o.super infix action () } }
     'expr1  { o | { ps | ps 'expr1  o.super infix action () } }
@@ -198,18 +199,14 @@ result.value
   end }
 } () } :FormulaCompiler
 
-FormulaCompiler () :compiler
 'compiler print
 
 { code |
-  code 0 nil PStream ()
-  FormulaCompiler ()
-  0
-  { ps compiler result |
-    ps compiler.start () :result
+  FormulaCompiler () { compiler | code compiler.parse$ } ()
+  { result |
     " JS Code: " code + print
-    " T0 Code: " result.value + print
-    result.value eval
+    " T0 Code: " result + print
+    result eval
   } ()
 } :jsEval
 
