@@ -1,4 +1,4 @@
-var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__', outerCode;
+var stack = [], heap = [], hp, __arrayStart__ = '__arrayStart__', __switchStart__ = '__switchStart__', outerCode;
 function fn(f) { return code => code.push(f); }
 function bfn(f) { return fn(() => { var b = stack.pop(), a = stack.pop(); stack.push(f(a, b)); }); }
 var scope = {
@@ -92,6 +92,21 @@ var scope = {
       return options[options.length-1]();
     });
   },
+  switch3: function(code) {
+    var options = [], l;
+    while ( ( l = scope.readSym() ) != 'end' ) scope.evalSym(l, options);
+    for ( var i = 0 ; i < options.length-1 ; i += 2 ) { options[i](); options[i] = stack.pop(); }
+    code.push(function() {
+      var value = stack.pop();
+      for ( var i = 0 ; i < options.length ; i += 2 ) {
+        if ( value === options[i] ) {
+          options[i+1]();
+          return;
+        }
+      }
+      return options[options.length-1]();
+    });
+  },
   // version allows execution within definition for better meta-programming
   switch2: function(code) {
     var sp = stack.length, l;
@@ -163,13 +178,13 @@ var scope = {
 
 // Parser Support
 scope['string?'] = fn(() => { stack.push(typeof stack.pop() === 'string'); });
+scope['array?']  = fn(() => { stack.push(Array.isArray(stack.pop())); });
 scope.charAt     = bfn((s, i) => s.charAt(i));
 scope.indexOf    = bfn((s, p) => s.indexOf(p));
 scope.len        = fn(() => { stack.push(stack.pop().length); });
 scope.input_     = fn(() => { stack.push(scope.input); });
 scope.ip_        = fn(() => { stack.push(scope.ip); });
 
-// Doesn't work because it doesn't have access to the previous 'code'
 scope.emit = function() { var v = stack.pop(); outerCode.push(() => stack.push(v)); };
 
 
@@ -193,16 +208,17 @@ scope.eval$(`
   } ()
 } :factory
 
-{ a f | 0 a len 1 - { i | a i @ f () } for () } :forEach
+{ a f | 0 a len 1 - { i | a i @ f () } for () } :forEach // works as reduce also
 
 { a f | [ a f forEach () ] } :map
 
-// A helper function for displaying section titles
-{ t | " " print t print } :section
-
+// Standard Forth-like functions
 { v | v v } :dup
 { _ | } :drop
 { a b | b a } :swap
+
+// A helper function for displaying section titles
+{ t | " " print t print } :section
 
 `);
 

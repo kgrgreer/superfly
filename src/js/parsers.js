@@ -4,7 +4,7 @@ scope.eval$(`
 { str pos value |
   { m |
     m switch
-      'head { this | " head-> " str pos charAt + print str pos charAt }
+      'head { this | /* " head-> " str pos charAt + print */ str pos charAt }
       'tail { this | str pos 1 + this.head PStream () }
       'value { this | value }
       ':value { value this | str pos value PStream () }
@@ -12,12 +12,12 @@ scope.eval$(`
       { this | " PStream Unknown Method '" m + '' + print }
     end
   }
-} :PStream
+} :PStream // A Parser Stream - used as input for parsers
 
 " 01234" 3 charAt print
 
 // Access to current input:
-ip_ print
+// ip_ print
 // input_ print
 
 // Parse Combinators
@@ -135,7 +135,6 @@ result.toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 { | { m | m switch2
-  'name   { o | 'XXXParser }
   'test   { o | 'hello print }
   'call   { m o | o m o () () }
   'parse  { o | o.start }
@@ -145,13 +144,13 @@ result.toString print
   'expr2  'expr3 '^     'expr2 bin ()
   'expr3  { o | [ o.number o.group ] alt () } factory ()
   'group  { o | [ '( { | o.expr () } ') ] seq () } factory ()
-  'number { o | 'zzz print o.digit 1 repeat () } factory ()
+  'number { o | o.digit 1 repeat () } factory ()
   'digit  { o | '0 '9 range () } factory ()
   { o | " Formula Parser Unknown Method " m + print }
 end } } :FormulaParser
 
 // " 123*(456+56)/3^2 " 0 nil PStream () :ps
-" 1+2 " 0 nil PStream () :ps
+" 5*2^(2+3)+100 " 0 nil PStream () :ps
 
 /*
 'a print
@@ -171,55 +170,48 @@ result.toString print
 result.value
 */
 
-//     { v | v 0 @ "  " v 2 @ "  " v 1 @ "  " + + + + + } action ()
-
 { s f |
   { ps | ps s () { | /* ps.value f () */ 'foobar ps.:value } { | ps } ifelse }
 } :xxxaction
 
 { v |
-  'v0: v 0 @ + print
-  'v1: v 1 @ + print
-  debugger
-  v 0 @ "  " +
-  v 1 @
-    { |
-      'v0,1: v 1 @ 1 @ + print
-      'v0,0: v 1 @ 0 @ + print
-
-       v 1 @ 1 @ "  " v 1 @ 0 @ "  " + + + + }
-    if
-} :infix
+  v 0 @
+  v 1 @ { | "  " v 1 @ 1 @ "  " v 1 @ 0 @ "  " + + + + + } if
+} :infix // convert an infix operator to postfix
 
 { ps f |
   ps { | ps.value f () ps.:value } { | ps } ifelse
-} :action
+} :action // map a pstream's value (used to add semantic actions to parser methods)
+
+{ m super map | m { o | { ps | ps o m super () () () map action () } } } :a2
 
 { | FormulaParser () { super |
   { m | m switch
-    'name { o | 'XXXCompiler }
     'test   { o | super.test 'there print }
-    'expr   { o | { ps | ps super.expr () infix action () } }
-    'expr1  { o | { ps | ps super.expr1 () infix action () } }
-    'expr2  { o | { ps | ps super.expr2 () infix action () } }
-    'group  { o | { ps | ps super.group () { a | a 1 @ } action () } }
-    'number { o | { ps | ps super.number () { a | " " a { c | c + } forEach () } action () } }
-    { o | m print o m super () () }
+    'expr   { o | { ps | ps o 'expr  super () () () infix action () } }
+    'expr1  { o | { ps | ps o 'expr1 super () () () infix action () } }
+    'expr2  { o | { ps | ps o 'expr2 super () () () infix action () } }
+    'group  { o | { ps | ps o 'group super () () () { a | a 1 @ } action () } }
+    'number { o | { ps | ps o 'number super () () () { a | " " a { c | c + } forEach () } action () } }
+    { o | o m super () () }
   end }
 } () } :FormulaCompiler
 
 FormulaCompiler () :compiler
 'compiler print
 
-// compiler.number
-compiler.test
+{ code |
+  code 0 nil PStream ()
+  FormulaCompiler ()
+  0
+  { ps compiler result |
+    ps compiler.start () :result
+    " JS Code: " code + print
+    " T0 Code: " result.value + print
+    result.value eval
+  } ()
+} :jsEval
 
-'a print
-ps compiler.parse () :result
-'b print
-
-
-result.toString print
-
+" Result: " " 5*2^(2+3)+100 " jsEval () + print
 
 `);
