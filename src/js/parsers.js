@@ -141,19 +141,19 @@ result.toString print
   { o | '0 '9 range () }                   :digit
 
   { m | m switch
-  'test   { o | 'hello print }
-  'call   { m o | o m o () () }
-  'parse  { o | o.start }
-  'start  { o | o.expr }
-  'expr   i[ 'expr1 " +-"  'expr  bin () emit ]
-  'expr1  i[ 'expr2 " */%" 'expr1 bin () emit ]
-  'expr2  i[ 'expr3 '^     'expr2 bin () emit ]
-  'expr3  expr3
-  'group  group
-  'number number
-  'digit  digit
-  { o | " Formula Parser Unknown Method " m + print }
-end } } () } :FormulaParser
+    'parse$ { s o | s 0 nil PStream () o.start () { r | r.value } () }
+    'call   { m o | o m o () () }
+    'start  { o | o.expr }
+    'expr   i[ 'expr1 " +-"  'expr  bin () emit ]
+    'expr1  i[ 'expr2 " */%" 'expr1 bin () emit ]
+    'expr2  i[ 'expr3 '^     'expr2 bin () emit ]
+    'expr3  expr3
+    'group  group
+    'number number
+    'digit  digit
+    { o | " Formula Parser Unknown Method " m + print }
+  end }
+} () } :FormulaParser
 
 // " 123*(456+56)/3^2 " 0 nil PStream () :ps
 " 5*2^(2+3)+100 " 0 nil PStream () :ps
@@ -187,8 +187,6 @@ result.value
 
 { | FormulaParser () { super |
   { m | m switch
-    'test   { o | super.test 'there print }
-    'parse$ { s o | s 0 nil PStream () o.start () { r | r.value } () }
     'super  { m o | o m super () () () }
     'expr   { o | { ps | ps 'expr   o.super infix action () } }
     'expr1  { o | { ps | ps 'expr1  o.super infix action () } }
