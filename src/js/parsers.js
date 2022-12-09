@@ -188,11 +188,12 @@ result.value
 { | FormulaParser () { super |
   { m | m switch
     'test   { o | super.test 'there print }
-    'expr   { o | { ps | ps o 'expr  super () () () infix action () } }
-    'expr1  { o | { ps | ps o 'expr1 super () () () infix action () } }
-    'expr2  { o | { ps | ps o 'expr2 super () () () infix action () } }
-    'group  { o | { ps | ps o 'group super () () () { a | a 1 @ } action () } }
-    'number { o | { ps | ps o 'number super () () () { a | " " a { c | c + } forEach () } action () } }
+    'super  { m o | o m super () () () }
+    'expr   { o | { ps | ps 'expr  o.super infix action () } }
+    'expr1  { o | { ps | ps 'expr1 o.super infix action () } }
+    'expr2  { o | { ps | ps 'expr2 o.super infix action () } }
+    'group  { o | { ps | ps 'group o.super  { a | a 1 @ } action () } }
+    'number { o | { ps | ps 'number o.super { a | " " a { c | c + } forEach () } action () } }
     { o | o m super () () }
   end }
 } () } :FormulaCompiler

@@ -92,11 +92,18 @@ var scope = {
       return options[options.length-1]();
     });
   },
-  switch3: function(code) {
-    var options = [], l;
-    while ( ( l = scope.readSym() ) != 'end' ) scope.evalSym(l, options);
-    for ( var i = 0 ; i < options.length-1 ; i += 2 ) { options[i](); options[i] = stack.pop(); }
-    code.push(function() {
+  switch3: fn(() => { stack.push(__switchStart__); }),
+  end: fn(() => {
+    debugger;
+    var start = stack.length-1;
+    for ( ; start && stack[start] !== __switchStart__ ; start-- );
+    var a = new Array(stack.length-start-1);
+    for ( var i = a.length-1 ; i >= 0 ; i-- ) a[i] = stack.pop();
+    stack.pop();
+
+    var options = a;
+    debugger;
+    stack.push(function() {
       var value = stack.pop();
       for ( var i = 0 ; i < options.length ; i += 2 ) {
         if ( value === options[i] ) {
@@ -106,7 +113,7 @@ var scope = {
       }
       return options[options.length-1]();
     });
-  },
+  }),
   // version allows execution within definition for better meta-programming
   switch2: function(code) {
     var sp = stack.length, l;
