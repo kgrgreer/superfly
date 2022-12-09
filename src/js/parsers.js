@@ -131,6 +131,15 @@ result.toString print
   }
 } :bin // binary operator, ie. expr +/0 expr2
 
+{ v |
+  v 0 @
+  v 1 @ { | "  " v 1 @ 1 @ "  " v 1 @ 0 @ + + + + } if
+} :infix // convert an infix operator to postfix
+
+{ o m super f |
+  { ps | ps o m super () () () :ps ps { | ps.value f () ps.:value } { | ps } ifelse }
+} :action
+
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
@@ -155,14 +164,6 @@ result.toString print
   end }
 } () } :FormulaParser
 
-{ v |
-  v 0 @
-  v 1 @ { | "  " v 1 @ 1 @ "  " v 1 @ 0 @ "  " + + + + + } if
-} :infix // convert an infix operator to postfix
-
-{ o m super f |
-  { ps | ps o m super () () () :ps ps { | ps.value f () ps.:value } { | ps } ifelse }
-} :action
 
 { | FormulaParser () { super |
   { m | m switch
@@ -176,19 +177,23 @@ result.toString print
   end }
 } () } :FormulaCompiler
 
-'compiler print
 
 { code |
   FormulaCompiler () { compiler | code compiler.parse$ } ()
   { result |
+    " " print
     " JS Code: " code   + print
     " T0 Code: " result + print
-    result eval
+    result eval { v |
+      " Result: " v + print
+      v
+    } ()
   } ()
 } :jsEval
 
-" Result: " " 5*2^(2+3)+100 " jsEval () + print
 
+" 1+2*3 "         jsEval ()
+" 5*2^(2+3)+100 " jsEval ()
 
 
 
