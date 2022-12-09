@@ -134,8 +134,11 @@ result.toString print
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
-{ | 0 { expr3 |
-  { o | [ o.number o.group ] alt () } :expr3
+{ | 0 0 0 0 { expr3 group number digit |
+  { o | [ o.number o.group ] alt () }      :expr3
+  { o | [ '( { | o.expr () } ') ] seq () } :group
+  { o | o.digit 1 repeat () }              :number
+  { o | '0 '9 range () }                   :digit
 
   { m | m switch
   'test   { o | 'hello print }
@@ -145,10 +148,10 @@ result.toString print
   'expr   i[ 'expr1 " +-"  'expr  bin () emit ]
   'expr1  i[ 'expr2 " */%" 'expr1 bin () emit ]
   'expr2  i[ 'expr3 '^     'expr2 bin () emit ]
-  'expr3  { o | [ o.number o.group ] alt () }
-  'group  { o | [ '( { | o.expr () } ') ] seq () }
-  'number { o | o.digit 1 repeat () }
-  'digit  { o | '0 '9 range () }
+  'expr3  expr3
+  'group  group
+  'number number
+  'digit  digit
   { o | " Formula Parser Unknown Method " m + print }
 end } } () } :FormulaParser
 
