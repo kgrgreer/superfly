@@ -65,6 +65,7 @@ var scope = {
       stack.push((function() {
         var p = hp;
         var f = function() {
+          // console.log('executing: ', src);
           var old = hp;
           hp = heap.length;
           heap.push(p);
@@ -116,7 +117,7 @@ var scope = {
     for ( ; start && stack[start] !== __arrayStart__ ; start-- );
     var a = new Array(stack.length-start-1);
     for ( var i = a.length-1 ; i >= 0 ; i-- ) a[i] = stack.pop();
-    stack.pop();
+    stack.pop(); // remove arrayStart
     stack.push(a);
   }),
   'i[':   code => { outerCode = code; var s = '', c; while ( (c = scope.readChar()) != ']' ) s += c; scope.eval$(s); },
@@ -178,6 +179,8 @@ scope.eval$(`
 { a f | 0 a len 1 - { i | a i @ f () } for () } :forEach // works as reduce also
 
 { a f | [ a f forEach () ] } :map
+
+{ a | " " a { c | c + } forEach () } :join
 
 // Standard Forth-like functions
 { v | v v } :dup

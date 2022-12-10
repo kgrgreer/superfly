@@ -4,7 +4,7 @@ scope.eval$(`
 { str pos value |
   { m |
     m switch
-      'head { this | /* " head-> " str pos charAt + print */ str pos charAt }
+      'head { this | " head-> " str pos charAt + print  str pos charAt }
       'tail { this | str pos 1 + this.head PStream () }
       'value { this | value }
       ':value { value this | str pos value PStream () }
@@ -22,10 +22,12 @@ scope.eval$(`
 
 // Parse Combinators
 
-{ str | { ps | 0 { i |
+{ str v | { ps | /* 'literal: str + print */ 0 { i |
   { | ps.head str i charAt = } { | ps.tail :ps  i 1 + :i } while
-  str len i = { | str ps.:value } { | false } ifelse
-} () } } :literal
+  str len i = { | v ps.:value } { | false } ifelse
+} () } } :literalMap
+
+{ str | str str literalMap () } :literal
 
 { start end c | c start >=  c end <= & } :inRange
 { start end | { ps |
@@ -126,8 +128,8 @@ result.toString print
 'Grammar section ()
 
 { l op r |
-  { o | [ l o.call [ op anyChar () r o.call ] seq () optional () ] seq () }
-} :bin // binary operator, ie. expr +/0 expr2
+  { o | [ l o.call [ op r o.call ] seq () optional () ] seq () }
+} :bin // binary operator, ie. expr +/0 expr13
 
 { v |
   v 0 @
@@ -141,40 +143,68 @@ result.toString print
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
-{ | 0 0 0 0 0 { expr expr3 group number digit |
-  'expr1 " +-"  'expr  bin ()              :expr
-  { o | [ o.number o.group ] alt () }      :expr3
-  { o | [ '( { | o.expr () } ') ] seq () } :group
-  { o | o.digit 1 repeat () }              :number
-  { o | '0 '9 range () }                   :digit
+// Just a Parser, validates but has no semantic actions
+{ | 1 16 { | } for () { equality inequality expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr18 group number digit bool and or |
+  [ '== '= literalMap () '!= ] alt ()                          :equality
+  [ '<= '< '>= '> ] alt ()                    :inequality
+  '&& literal ()                              :and
+  '|| literal ()                              :or
+  'expr4 or 'expr3  bin ()                    :expr3
+  'expr5 and 'expr4 bin ()                    :expr4
+  'expr9 equality 'expr8  bin ()              :expr8
+  'expr10 inequality 'expr9  bin ()           :expr9
+  'expr12 '+- anyChar () 'expr11  bin ()      :expr11
+  'expr13 '*/%  anyChar () 'expr12  bin ()    :expr12
+  'expr14 '** '^ literalMap () 'expr13 bin () :expr13 // TODO: fix, I think it should be right-associative
+  { o | [ o.number o.bool o.group ] alt () }  :expr18
+  { o | [ '( o.expr ') ] seq () }             :group
+  { o | o.digit 1 repeat () }                 :number
+  { o | '0 '9 range () }                      :digit
+  { o | [ 'true 'false ] alt () }             :bool
 
   { m | m switch
-    'parse$ { s o | s 0 nil PStream () o.start () { r | r.value } () }
-    'call   { m o | o m o () () }
-    'start  { o | o.expr }
-    'expr   expr
-    'expr1  i[ 'expr2 " */%" 'expr1 bin () emit ]
-    'expr2  i[ 'expr3 '^     'expr2 bin () emit ]
-    'expr3  expr3
-    'group  group
-    'number number
-    'digit  digit
+    'parse$  { s o | s 0 nil PStream () o.start () { r | r.value } () }
+    'call    { m o | o m o () () }
+    'start   { o | o.expr }
+    'expr    { o | o.expr3 }
+    'expr3   expr3
+    'expr4   expr4
+    'expr5   { o | o.expr8 }
+    'expr8   expr8
+    'expr9   expr9
+    'expr10  { o | o.expr11 }
+    'expr11  expr11
+    'expr12  expr12
+    'expr13  expr13
+    'expr14  { o | o.expr18 }
+    'expr18  expr18
+    'group   group
+    'number  number
+    'bool    bool
+    'digit   digit
+    'inequality inequality
+    'equality equality
     { o | " Formula Parser Unknown Method " m + print }
   end }
-} () } :FormulaParser // Just a Parser, validates but has no semantic actions
+} () } :FormulaParser
 
 
+// Add semantic actions to parser to create a JS to T0 compiler
 { | FormulaParser () { super |
-  { m | m switch
+  { m | '****: m + print m switch
     'super  { m o | o m super () () () }
-    'expr   { | m super infix action ()  }
-    'expr1  { | m super infix action ()  }
-    'expr2  { | m super infix action ()  }
+    'expr3  { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
+    'expr4  { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
+    'expr8  { | m super infix action () }
+    'expr9  { | m super infix action () }
+    'expr11 { | m super infix action () }
+    'expr12 { | m super infix action () }
+    'expr13 { | m super infix action () }
     'group  { | m super { a | a 1 @ } action () }
-    'number { | m super { a | " " a { c | c + } forEach () } action () }
+    'number { | m super join action () }
     { o | o m super () () }
   end }
-} () } :FormulaCompiler // Add semantic actions to parser to create a JS to T0 compiler
+} () } :FormulaCompiler
 
 
 { code |
@@ -191,12 +221,12 @@ result.toString print
 } :jsEval
 
 
-" 1+2*3 "         jsEval ()
-" 5*2^(2+3)+100 " jsEval ()
-
-
-
-
+" 1+2*3 "          jsEval ()
+" 5*2**(2+3)+100 " jsEval ()
+" 1<2 "            jsEval ()
+" 1>2 "            jsEval ()
+" 1>2||1<2 "       jsEval ()
+" 1>2||1<2&&5==3 "       jsEval ()
 
 
 
