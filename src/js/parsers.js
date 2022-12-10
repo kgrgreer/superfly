@@ -14,8 +14,6 @@ scope.eval$(`
   }
 } :PStream // A Parser Stream - used as input for parsers
 
-" 01234" 3 charAt print
-
 // Access to current input:
 // ip_ print
 // input_ print
@@ -43,6 +41,10 @@ scope.eval$(`
   parsers len i = { a | a ps.:value } { _ | false } ifelse
 } () } } :seq
 
+{ parsers i |
+  parsers { a | a i @ } mapp ()
+} :seq1
+
 { parsers | parsers prepare () :parsers { ps | 0 false { i ret |
   { | i parsers len < { | ps parsers i @ () :ret ret not } && } { | i 1 + :i } while
   ret
@@ -52,6 +54,11 @@ scope.eval$(`
   [ { | ps :ret  ps parser () :ps ps } { | i 1 + :i ps.value } while ]
   i min >=  { a | a ret.:value } { _ | false } ifelse
 } () } } :repeat
+
+{ parser delim |
+  [ [ parser delim ] 0 seq1 () 0 repeat () parser optional () ] seq ()
+  { a | a debugger } mapp ()
+} :delim
 
 { parser | { ps | ps { ret |
   ps parser () :ret
@@ -145,7 +152,7 @@ result.toString print
 
 // Just a Parser, validates but has no semantic actions
 { | 1 17 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr18 group number digit bool and or |
-  [ '== '= literalMap () '!= ] alt ()                          :equality
+  [ '== '= literalMap () '!= ] alt ()         :equality
   [ '<= '< '>= '> ] alt ()                    :inequality
   '&& literal ()                              :and
   '|| literal ()                              :or
