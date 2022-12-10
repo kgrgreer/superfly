@@ -57,7 +57,7 @@ scope.eval$(`
 
 { parser delim |
   [ [ parser delim ] 0 seq1 () 0 repeat () parser optional () ] seq ()
-  { a | a debugger } mapp ()
+  { a | [ a 0 @  { e | e } forEach () a 1 @ ] } mapp ()
 } :delim
 
 { parser | { ps | ps { ret |
@@ -153,7 +153,7 @@ result.toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 17 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr18 group number digit bool and or |
+{ | 1 18 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr18 group number digit bool and or array | // Improve with 'let' support
   [ '== '= literalMap () '!= ] alt ()         :equality
   [ '<= '< '>= '> ] alt ()                    :inequality
   '&& literal ()                              :and
@@ -166,11 +166,13 @@ result.toString print
   'expr12 '+- anyChar () 'expr11  bin ()      :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()    :expr12
   'expr14 '** '^ literalMap () 'expr13 bin () :expr13 // TODO: fix, I think it should be right-associative
-  { o | [ o.number o.bool o.group ] alt () }  :expr18
+  { o | [ o.number o.bool o.group o.array ] alt () }  :expr18
   { o | [ '( o.expr ') ] 1 seq1 () }          :group
   { o | o.digit 1 repeat () }                 :number
   { o | '0 '9 range () }                      :digit
   { o | [ 'true 'false ] alt () }             :bool
+  { o | [ '[ o.expr ', literal () delim () '] ] 1 seq1 () }       :array
+
 
   { m | m switch
     'parse$  { s o | s 0 nil PStream () o.start () { r | r.value } () }
@@ -191,6 +193,7 @@ result.toString print
     'expr18  expr18
     'group   group
     'number  number
+    'array   array
     'bool    bool
     'digit   digit
     'inequality inequality
@@ -213,6 +216,7 @@ result.toString print
     'expr12 { | m super infix action () }
     'expr13 { | m super infix action () }
     'number { | m super join  action () }
+    'array { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + }   action () }
     { o | o m super () () }
   end }
 } () } :FormulaCompiler
@@ -232,12 +236,14 @@ result.toString print
 } :jsEval
 
 
+
 " 1+2*3 "          jsEval ()
 " 5*2**(2+3)+100 " jsEval ()
 " 1<2 "            jsEval ()
 " 1>2 "            jsEval ()
 " 1>2||1<2 "       jsEval ()
 " ((99<=99?1:0)+1)>2||1<2&&5==3 " jsEval ()
+" [1,2,3] " jsEval ()
 
 
 
