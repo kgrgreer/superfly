@@ -164,6 +164,7 @@ result.toString print
   'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
   'expr14 '** '^ literalMap () 'expr13 bin ()               :expr13 // TODO: fix, I think it should be right-associative
+  { o | [ '! literal () optional () o.expr15 ] seq () }                :expr14
   { o | [ o.expr18 [ '[ o.expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
   { o | [ o.number o.bool o.group o.array ] alt () }        :expr18
   { o | [ '( o.expr ') ] 1 seq1 () }                        :group
@@ -188,7 +189,8 @@ result.toString print
     'expr11     expr11
     'expr12     expr12
     'expr13     expr13
-    'expr14     { o | o.expr17 }
+    'expr14     expr14
+    'expr15     { o | o.expr17 }
     'expr17     expr17
     'expr18     expr18
     'group      group
@@ -216,6 +218,7 @@ result.toString print
     'expr11 { | m super infix action () }
     'expr12 { | m super infix action () }
     'expr13 { | m super infix action () }
+    'expr14 { | m super { a | a 1 @ a 0 @ { | "  not" + } if } action () }
     'expr17 { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
     'number { | m super join  action () }
     'array { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
@@ -245,7 +248,7 @@ result.toString print
 " 1>2 "            jsEval ()
 " 1>2||1<2 "       jsEval ()
 " [1,[1,2],3][1][0] " jsEval ()
-" [[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&true " jsEval ()
+" [[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&!true " jsEval ()
 
 
 
