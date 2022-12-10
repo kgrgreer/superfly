@@ -145,9 +145,7 @@ result.toString print
   v 1 @ { | "  " v 1 @ 1 @ "  " v 1 @ 0 @ + + + + } if
 } :infix // convert an infix operator to postfix
 
-{ o m super f |
-  { ps | ps o m super () () () :ps ps { | ps.value f () ps.:value } { | false } ifelse }
-} :action
+{ o m super f | { ps | ps o m super () () f mapp () () } } :action
 
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
@@ -216,7 +214,7 @@ result.toString print
     'expr12 { | m super infix action () }
     'expr13 { | m super infix action () }
     'number { | m super join  action () }
-    'array { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + }   action () }
+    'array { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
     { o | o m super () () }
   end }
 } () } :FormulaCompiler
