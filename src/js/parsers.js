@@ -151,7 +151,7 @@ result.toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 18 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr18 group number digit bool and or array | // Improve with 'let' support
+{ | 1 19 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr17 expr18 group number digit bool and or array | // Improve with 'let' support
   [ '== '= literalMap () '!= ] alt ()         :equality
   [ '<= '< '>= '> ] alt ()                    :inequality
   '&& literal ()                              :and
@@ -164,6 +164,7 @@ result.toString print
   'expr12 '+- anyChar () 'expr11  bin ()      :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()    :expr12
   'expr14 '** '^ literalMap () 'expr13 bin () :expr13 // TODO: fix, I think it should be right-associative
+  { o | [ o.expr18 [ '[ o.expr '] ] 1 seq1 () 1 repeat () optional () ] seq () }              :expr17
   { o | [ o.number o.bool o.group o.array ] alt () }  :expr18
   { o | [ '( o.expr ') ] 1 seq1 () }          :group
   { o | o.digit 1 repeat () }                 :number
@@ -187,7 +188,8 @@ result.toString print
     'expr11  expr11
     'expr12  expr12
     'expr13  expr13
-    'expr14  { o | o.expr18 }
+    'expr14  { o | o.expr17 }
+    'expr17  expr17
     'expr18  expr18
     'group   group
     'number  number
@@ -203,6 +205,7 @@ result.toString print
 
 // Add semantic actions to parser to create a JS to T0 compiler
 { | FormulaParser () { super |
+  // TODO: factor out common actions
   { m | '****: m + print m switch
     'super  { m o | o m super () () () }
     'expr2  { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse " ] join () } { | a 0  @ } ifelse }  action () }
@@ -213,6 +216,7 @@ result.toString print
     'expr11 { | m super infix action () }
     'expr12 { | m super infix action () }
     'expr13 { | m super infix action () }
+    'expr17 { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
     'number { | m super join  action () }
     'array { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
     { o | o m super () () }
@@ -240,8 +244,8 @@ result.toString print
 " 1<2 "            jsEval ()
 " 1>2 "            jsEval ()
 " 1>2||1<2 "       jsEval ()
-" ((99<=99?1:0)+1)>2||1<2&&5==3 " jsEval ()
-" [1,2,3] " jsEval ()
+" [1,[1,2],3][1][0] " jsEval ()
+" [[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3 " jsEval ()
 
 
 
