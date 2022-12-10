@@ -151,13 +151,14 @@ result.toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 20 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr17 expr18 group number digit bool and or ternary array | // Improve with 'let' support
+{ | 1 22 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr17 expr18 group number digit bool and or ternary assignment array lhs | // Improve with 'let' support
   [ '== '= literalMap () '!= ] alt ()                       :equality
   [ '<= '< '>= '> ] alt ()                                  :inequality
   '&& literal ()                                            :and
   '|| literal ()                                            :or
   { o | [ o.expr3 [ '? o.expr3 ': o.expr3 ] seq () optional () ] seq () } :ternary  // TODO: what should the second two expressions be?
-  { o | o.ternary }                                         :expr2
+  { o | [ o.lhs [ '= o.expr ] 1 seq1 () optional () ] seq () } :assignment
+  { o | [ o.assignment o.ternary ] alt () }                 :expr2
   'expr4 or 'expr3  bin ()                                  :expr3
   'expr5 and 'expr4 bin ()                                  :expr4
   'expr9 equality 'expr8  bin ()                            :expr8
@@ -165,7 +166,7 @@ result.toString print
   'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
   'expr14 '** '^ literalMap () 'expr13 bin ()               :expr13 // TODO: fix, I think it should be right-associative
-  { o | [ '! literal () optional () o.expr15 ] seq () }                :expr14
+  { o | [ '! literal () optional () o.expr15 ] seq () }     :expr14
   { o | [ o.expr18 [ '[ o.expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
   { o | [ o.number o.bool o.group o.array ] alt () }        :expr18
   { o | [ '( o.expr ') ] 1 seq1 () }                        :group
@@ -173,7 +174,10 @@ result.toString print
   { o | '0 '9 range () }                                    :digit
   { o | [ 'true 'false ] alt () }                           :bool
   { o | [ '[ o.expr ', literal () delim () '] ] 1 seq1 () } :array
-
+  { o | [
+      [ '_ 'a 'z' range () 'A 'Z range () ] alt ()
+      [ '_ 'a 'z' range () 'A 'Z range () '0 '9 range () ] alt () 0 repeat () join mapp ()
+    ] seq () join mapp () }                                              :lhs
 
   { m | m switch
     'parse$     { s o | s 0 nil PStream () o.start () { r | r.value } () }
@@ -195,6 +199,8 @@ result.toString print
     'expr17     expr17
     'expr18     expr18
     'ternary    ternary
+    'assignment assignment
+    'lhs        lhs
     'group      group
     'number     number
     'array      array
@@ -211,19 +217,20 @@ result.toString print
 { | FormulaParser () { super |
   // TODO: factor out common actions
   { m | '****: m + print m switch
-    'super   { m o | o m super () () () }
-    'ternary { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse" ] join () } { | a 0  @ } ifelse }  action () }
-    'expr3   { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
-    'expr4   { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
-    'expr8   { | m super infix action () }
-    'expr9   { | m super infix action () }
-    'expr11  { | m super infix action () }
-    'expr12  { | m super infix action () }
-    'expr13  { | m super infix action () }
-    'expr14  { | m super { a | a 1 @ a 0 @ { | "  not" + } if } action () }
-    'expr17  { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
-    'number  { | m super join  action () }
-    'array   { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
+    'super      { m o | o m super () () () }
+    'ternary    { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse" ] join () } { | a 0  @ } ifelse }  action () }
+    'assignment { | m super { a | a 1 @ "  :" a 0 @ + + } action () }
+    'expr3      { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
+    'expr4      { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
+    'expr8      { | m super infix action () }
+    'expr9      { | m super infix action () }
+    'expr11     { | m super infix action () }
+    'expr12     { | m super infix action () }
+    'expr13     { | m super infix action () }
+    'expr14     { | m super { a | a 1 @ a 0 @ { | "  not" + } if } action () }
+    'expr17     { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
+    'number     { | m super join  action () }
+    'array      { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
     { o | o m super () () }
   end }
 } () } :FormulaCompiler
@@ -250,7 +257,8 @@ result.toString print
 " 1>2 "            jsEval ()
 " 1>2||1<2 "       jsEval ()
 " [1,[1,2],3][1][0] " jsEval ()
-" [[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&!true " jsEval ()
+" answer=42 " jsEval ()
+" answer=[[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&!true " jsEval ()
 
 
 
