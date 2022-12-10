@@ -42,7 +42,7 @@ scope.eval$(`
 } () } } :seq
 
 { parsers i |
-  parsers { a | a i @ } mapp ()
+  parsers seq () { a | a i @ } mapp ()
 } :seq1
 
 { parsers | parsers prepare () :parsers { ps | 0 false { i ret |
@@ -73,7 +73,9 @@ scope.eval$(`
   str ps.head indexOf -1 > { | ps.tail } { | false } ifelse
 } } :anyChar
 
-
+{ p f |
+  { ps | ps p () :ps ps { | ps.value f () ps.:value } { | false } ifelse }
+} :mapp
 
 
 // ///////////////////////////////////////////////////////////// Parser Tests
@@ -144,7 +146,7 @@ result.toString print
 } :infix // convert an infix operator to postfix
 
 { o m super f |
-  { ps | ps o m super () () () :ps ps { | ps.value f () ps.:value } { | ps } ifelse }
+  { ps | ps o m super () () () :ps ps { | ps.value f () ps.:value } { | false } ifelse }
 } :action
 
 
@@ -165,7 +167,7 @@ result.toString print
   'expr13 '*/%  anyChar () 'expr12  bin ()    :expr12
   'expr14 '** '^ literalMap () 'expr13 bin () :expr13 // TODO: fix, I think it should be right-associative
   { o | [ o.number o.bool o.group ] alt () }  :expr18
-  { o | [ '( o.expr ') ] seq () }             :group
+  { o | [ '( o.expr ') ] 1 seq1 () }          :group
   { o | o.digit 1 repeat () }                 :number
   { o | '0 '9 range () }                      :digit
   { o | [ 'true 'false ] alt () }             :bool
@@ -210,8 +212,7 @@ result.toString print
     'expr11 { | m super infix action () }
     'expr12 { | m super infix action () }
     'expr13 { | m super infix action () }
-    'group  { | m super { a | a 1 @ } action () }
-    'number { | m super join action () }
+    'number { | m super join  action () }
     { o | o m super () () }
   end }
 } () } :FormulaCompiler
