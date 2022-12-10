@@ -157,47 +157,47 @@ result.toString print
   '&& literal ()                              :and
   '|| literal ()                              :or
   { o | [ o.expr3 [ '? o.expr3 ': o.expr3 ] seq () optional () ] seq () } :expr2 // TODO: what should the second two expressions be?
-  'expr4 or 'expr3  bin ()                    :expr3
-  'expr5 and 'expr4 bin ()                    :expr4
-  'expr9 equality 'expr8  bin ()              :expr8
-  'expr10 inequality 'expr9  bin ()           :expr9
-  'expr12 '+- anyChar () 'expr11  bin ()      :expr11
-  'expr13 '*/%  anyChar () 'expr12  bin ()    :expr12
-  'expr14 '** '^ literalMap () 'expr13 bin () :expr13 // TODO: fix, I think it should be right-associative
-  { o | [ o.expr18 [ '[ o.expr '] ] 1 seq1 () 1 repeat () optional () ] seq () }              :expr17
-  { o | [ o.number o.bool o.group o.array ] alt () }  :expr18
-  { o | [ '( o.expr ') ] 1 seq1 () }          :group
-  { o | o.digit 1 repeat () }                 :number
-  { o | '0 '9 range () }                      :digit
-  { o | [ 'true 'false ] alt () }             :bool
-  { o | [ '[ o.expr ', literal () delim () '] ] 1 seq1 () }       :array
+  'expr4 or 'expr3  bin ()                                  :expr3
+  'expr5 and 'expr4 bin ()                                  :expr4
+  'expr9 equality 'expr8  bin ()                            :expr8
+  'expr10 inequality 'expr9  bin ()                         :expr9
+  'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
+  'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
+  'expr14 '** '^ literalMap () 'expr13 bin ()               :expr13 // TODO: fix, I think it should be right-associative
+  { o | [ o.expr18 [ '[ o.expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
+  { o | [ o.number o.bool o.group o.array ] alt () }        :expr18
+  { o | [ '( o.expr ') ] 1 seq1 () }                        :group
+  { o | o.digit 1 repeat () }                               :number
+  { o | '0 '9 range () }                                    :digit
+  { o | [ 'true 'false ] alt () }                           :bool
+  { o | [ '[ o.expr ', literal () delim () '] ] 1 seq1 () } :array
 
 
   { m | m switch
-    'parse$  { s o | s 0 nil PStream () o.start () { r | r.value } () }
-    'call    { m o | o m o () () }
-    'start   { o | o.expr }
-    'expr    { o | o.expr2 }
-    'expr2   expr2
-    'expr3   expr3
-    'expr4   expr4
-    'expr5   { o | o.expr8 }
-    'expr8   expr8
-    'expr9   expr9
-    'expr10  { o | o.expr11 }
-    'expr11  expr11
-    'expr12  expr12
-    'expr13  expr13
-    'expr14  { o | o.expr17 }
-    'expr17  expr17
-    'expr18  expr18
-    'group   group
-    'number  number
-    'array   array
-    'bool    bool
-    'digit   digit
+    'parse$     { s o | s 0 nil PStream () o.start () { r | r.value } () }
+    'call       { m o | o m o () () }
+    'start      { o | o.expr }
+    'expr       { o | o.expr2 }
+    'expr2      expr2
+    'expr3      expr3
+    'expr4      expr4
+    'expr5      { o | o.expr8 }
+    'expr8      expr8
+    'expr9      expr9
+    'expr10     { o | o.expr11 }
+    'expr11     expr11
+    'expr12     expr12
+    'expr13     expr13
+    'expr14     { o | o.expr17 }
+    'expr17     expr17
+    'expr18     expr18
+    'group      group
+    'number     number
+    'array      array
+    'bool       bool
+    'digit      digit
     'inequality inequality
-    'equality equality
+    'equality   equality
     { o | " Formula Parser Unknown Method " m + print }
   end }
 } () } :FormulaParser
@@ -245,7 +245,7 @@ result.toString print
 " 1>2 "            jsEval ()
 " 1>2||1<2 "       jsEval ()
 " [1,[1,2],3][1][0] " jsEval ()
-" [[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3 " jsEval ()
+" [[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&true " jsEval ()
 
 
 
