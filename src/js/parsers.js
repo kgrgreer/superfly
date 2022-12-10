@@ -144,11 +144,12 @@ result.toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 16 { | } for () { equality inequality expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr18 group number digit bool and or |
+{ | 1 17 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr18 group number digit bool and or |
   [ '== '= literalMap () '!= ] alt ()                          :equality
   [ '<= '< '>= '> ] alt ()                    :inequality
   '&& literal ()                              :and
   '|| literal ()                              :or
+  { o | [ o.expr3 [ '? o.expr3 ': o.expr3 ] seq () optional () ] seq () } :expr2 // TODO: what should the second two expressions be?
   'expr4 or 'expr3  bin ()                    :expr3
   'expr5 and 'expr4 bin ()                    :expr4
   'expr9 equality 'expr8  bin ()              :expr8
@@ -166,7 +167,8 @@ result.toString print
     'parse$  { s o | s 0 nil PStream () o.start () { r | r.value } () }
     'call    { m o | o m o () () }
     'start   { o | o.expr }
-    'expr    { o | o.expr3 }
+    'expr    { o | o.expr2 }
+    'expr2   expr2
     'expr3   expr3
     'expr4   expr4
     'expr5   { o | o.expr8 }
@@ -193,6 +195,7 @@ result.toString print
 { | FormulaParser () { super |
   { m | '****: m + print m switch
     'super  { m o | o m super () () () }
+    'expr2  { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse " ] join () } { | a 0  @ } ifelse }  action () }
     'expr3  { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
     'expr4  { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
     'expr8  { | m super infix action () }
@@ -226,7 +229,7 @@ result.toString print
 " 1<2 "            jsEval ()
 " 1>2 "            jsEval ()
 " 1>2||1<2 "       jsEval ()
-" 1>2||1<2&&5==3 "       jsEval ()
+" ((99<=99?1:0)+1)>2||1<2&&5==3 " jsEval ()
 
 
 
