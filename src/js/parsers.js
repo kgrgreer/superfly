@@ -151,12 +151,13 @@ result.toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 19 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr17 expr18 group number digit bool and or array | // Improve with 'let' support
-  [ '== '= literalMap () '!= ] alt ()         :equality
-  [ '<= '< '>= '> ] alt ()                    :inequality
-  '&& literal ()                              :and
-  '|| literal ()                              :or
-  { o | [ o.expr3 [ '? o.expr3 ': o.expr3 ] seq () optional () ] seq () } :expr2 // TODO: what should the second two expressions be?
+{ | 1 20 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr17 expr18 group number digit bool and or ternary array | // Improve with 'let' support
+  [ '== '= literalMap () '!= ] alt ()                       :equality
+  [ '<= '< '>= '> ] alt ()                                  :inequality
+  '&& literal ()                                            :and
+  '|| literal ()                                            :or
+  { o | [ o.expr3 [ '? o.expr3 ': o.expr3 ] seq () optional () ] seq () } :ternary  // TODO: what should the second two expressions be?
+  { o | o.ternary }                                         :expr2
   'expr4 or 'expr3  bin ()                                  :expr3
   'expr5 and 'expr4 bin ()                                  :expr4
   'expr9 equality 'expr8  bin ()                            :expr8
@@ -193,6 +194,7 @@ result.toString print
     'expr15     { o | o.expr17 }
     'expr17     expr17
     'expr18     expr18
+    'ternary    ternary
     'group      group
     'number     number
     'array      array
@@ -209,19 +211,19 @@ result.toString print
 { | FormulaParser () { super |
   // TODO: factor out common actions
   { m | '****: m + print m switch
-    'super  { m o | o m super () () () }
-    'expr2  { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse" ] join () } { | a 0  @ } ifelse }  action () }
-    'expr3  { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
-    'expr4  { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
-    'expr8  { | m super infix action () }
-    'expr9  { | m super infix action () }
-    'expr11 { | m super infix action () }
-    'expr12 { | m super infix action () }
-    'expr13 { | m super infix action () }
-    'expr14 { | m super { a | a 1 @ a 0 @ { | "  not" + } if } action () }
-    'expr17 { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
-    'number { | m super join  action () }
-    'array { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
+    'super   { m o | o m super () () () }
+    'ternary { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse" ] join () } { | a 0  @ } ifelse }  action () }
+    'expr3   { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
+    'expr4   { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
+    'expr8   { | m super infix action () }
+    'expr9   { | m super infix action () }
+    'expr11  { | m super infix action () }
+    'expr12  { | m super infix action () }
+    'expr13  { | m super infix action () }
+    'expr14  { | m super { a | a 1 @ a 0 @ { | "  not" + } if } action () }
+    'expr17  { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
+    'number  { | m super join  action () }
+    'array   { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
     { o | o m super () () }
   end }
 } () } :FormulaCompiler
