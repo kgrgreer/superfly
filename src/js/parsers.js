@@ -4,7 +4,7 @@ scope.eval$(`
 { str pos value |
   { m |
     m switch
-      'head { this | " head-> " str pos charAt + print  str pos charAt }
+      'head { this | /* " head-> " str pos charAt + print */ str pos charAt }
       'tail { this | str pos 1 + this.head PStream () }
       'value { this | value }
       ':value { value this | str pos value PStream () }
@@ -86,52 +86,47 @@ scope.eval$(`
 ps 'this literal () () print
 'that print
 ps 'that literal () () print
-ps 'this literal () () :result
-result.toString print
+ps 'this literal () () .toString print
 
 
 " Seq Parser" section ()
 [ 'this 'then 'that ] seq () :seqparser
-ps seqparser () :result
-result.toString print
+ps seqparser ()  .toString print
 
 
 " Alt Parser" section ()
 [ 'think 'this ] alt () :altparser
-ps altparser () :result
-result.toString print
+ps altparser ()  .toString print
 
 
 " Range Parser" section ()
 '0 '9 range  () :rangeparser
 ps rangeparser () print
 'a 'z range  () :rangeparser
-ps rangeparser () :result
-result.toString print
+ps rangeparser ()  .toString print
+
 
 " Repeat Parser" section ()
 'a 'z range () 1 repeat () :repeatparser
-ps repeatparser () :result
-result.toString print
+ps repeatparser ()  .toString print
 
 
 " Optional Parser" section ()
 'this print
-ps 'this literal () optional () () :result
-result.toString print
+ps 'this literal () optional () ()  .toString print
+
 
 'that print
-ps [ 'that literal () optional () 'this ] seq () () :result
-result.toString print
+ps [ 'that literal () optional () 'this ] seq () () .toString print
+
 
 'thisthen print
-ps [ 'this literal () optional () 'then ] seq () () :result
-result.toString print
+ps [ 'this literal () optional () 'then ] seq () () .toString print
 
 
 " NotChars Parser" section ()
-ps " 0123456789" notChars () 0 repeat () () :result
-result.toString print
+ps " 0123456789" notChars () 0 repeat () () .toString print
+
 
 
 'Grammar section ()
@@ -180,7 +175,7 @@ result.toString print
     ] seq () join mapp () }                                              :lhs
 
   { m | m switch
-    'parse$     { s o | s 0 nil PStream () o .start () { r | r.value } () }
+    'parse$     { s o | s 0 nil PStream () o .start () .value }
     'call       { m o | o m o () () }
     'start      { o | o .expr }
     'expr       { o | o .expr2 }
@@ -216,7 +211,7 @@ result.toString print
 // Add semantic actions to parser to create a JS to T0 compiler
 { | FormulaParser () { super |
   // TODO: factor out common actions
-  { m | '****: m + print m switch
+  { m | m switch
     'super      { m o | o m super () () () }
     'ternary    { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse" ] join () } { | a 0  @ } ifelse }  action () }
     'assignment { | m super { a | a 1 @ "  dup :" a 0 @ + + } action () }
@@ -237,7 +232,7 @@ result.toString print
 
 
 { code |
-  FormulaCompiler () { compiler | code compiler.parse$ } ()
+  code FormulaCompiler () .parse$
   { result |
     " " print
     " JS Code: " code   + print
@@ -279,8 +274,7 @@ FormulaParser () :formulaparser
 // ps formulaparser.number () print
 'e print
 'b print
-ps formulaparser.parse () :result
-result.toString print
+ps formulaparser.parse () .toString print
 
 // ps 'test formulaparser.call () print
 result.value
