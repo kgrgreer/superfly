@@ -153,7 +153,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   '|| literal ()                                            :or
   { o | [ o .expr3 [ '? o .expr3 ': o .expr3 ] seq () optional () ] seq () } :ternary  // TODO: what should the second two expressions be?
   { o | [ o .lhs [ '= o .expr ] 1 seq1 () optional () ] seq () } :assignment
-  { o | [ o .assignment o .ternary ] alt () }                 :expr2
+  { o | [ o .assignment o .ternary ] alt () }               :expr2
   'expr4 or 'expr3  bin ()                                  :expr3
   'expr5 and 'expr4 bin ()                                  :expr4
   'expr9 equality 'expr8  bin ()                            :expr8
@@ -161,11 +161,11 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
   'expr14 '** '^ literalMap () 'expr13 bin ()               :expr13 // TODO: fix, I think it should be right-associative
-  { o | [ '! literal () optional () o .expr15 ] seq () }     :expr14
+  { o | [ '! literal () optional () o .expr15 ] seq () }    :expr14
   { o | [ o .expr18 [ '[ o .expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
-  { o | [ o .number o .bool o .group o .array ] alt () }        :expr18
-  { o | [ '( o .expr ') ] 1 seq1 () }                        :group
-  { o | o .digit 1 repeat () }                               :number
+  { o | [ o .number o .bool o .group o .array ] alt () }    :expr18
+  { o | [ '( o .expr ') ] 1 seq1 () }                       :group
+  { o | o .digit 1 repeat () }                              :number
   { o | '0 '9 range () }                                    :digit
   { o | [ 'true 'false ] alt () }                           :bool
   { o | [ '[ o .expr ', literal () delim () '] ] 1 seq1 () } :array
