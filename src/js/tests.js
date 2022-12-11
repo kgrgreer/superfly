@@ -10,7 +10,7 @@ scope.eval$(`
         }
         'test { script answer this |
           " Expect: " script "  -> " answer "  " + + + +
-          script eval answer = this.score + print
+          script eval answer = this .score + print
         }
         'report { this |
           " " print
@@ -149,30 +149,30 @@ counter () print
 } :Ball
 
 5 4 3 Ball () :b1
-b1.x print
-'x b1.call print
-b1.toString print
+b1 .x print
+'x b1 .call print
+b1 .toString print
 
-'toString b1.call print
+'toString b1 .call print
 
 10 19 5 Ball () :b2
-b2.toString print
+b2 .toString print
 
 { c | Ball () { super |
   { m | m switch
     'class { this | ColourBall }
     'c { this | c } ':c { v | v :c }
-    'toString { this | super.toString ', c + + }
+    'toString { this | super .toString ', c + + }
     { | m super () () }
   end }
 } () } :ColourBall // This would also work and be faster:   } () } 'ColourBall const
 
 6 5 2 'red ColourBall () :b3
-b3.c print
-b3.toString print
+b3 .c print
+b3 .toString print
 
-7 7 1 'green b3.class () :b4
-b4.toString print
+7 7 1 'green b3 .class () :b4
+b4 .toString print
 
 /*
 // The above code is the equivalent to this in a more regular syntax:
@@ -181,11 +181,11 @@ class ColourBall extends Ball {
   var c;
   ColourBall(..., c) {
     super(...);
-    this.c = c;
+    this .c = c;
   }
   getC() { return c; }
   setC(v) { c = v; }
-  toString() { return super.toString() + ", " + c_; }
+  toString() { return super .toString() + ", " + c_; }
 }
 */
 
