@@ -197,12 +197,10 @@ scope.eval$(`
 
 /*
 TODO:
-  - .methodname call
   - letrec or let/define
   - fix 'nil to be falsey
   - maybe switch | symbol to / since it's faster to type and looks more like lambda?
   - make string function naming more consistent
-  - add OO 'call' function
   - have functions auto-call and use quoting to reference without calling?
   - return statement & recursive calls
   - optimize forward references

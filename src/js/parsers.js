@@ -146,14 +146,14 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 25 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr15 expr17 expr18 notPrefix incrPrefix group number digit bool and or ternary assignment array lhs | // Improve with 'let' support
+{ | 1 25 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr15 expr17 expr18 notPrefix iPrefix group number digit bool and or ternary assignment array lhs | // Improve with 'let' support
   [ '== '= litMap () '!= ] alt ()                           :equality
   [ '<= '< '>= '> ] alt ()                                  :inequality
   '&& lit ()                                                :and
   '|| lit ()                                                :or
   { o | [ o .expr3 [ '? o .expr3 ': o .expr3 ] seq () opt () ] seq () } :ternary  // TODO: what should the second two expressions be?
-  { o | [ o .lhs [ '= o .expr ] 1 seq1 () opt () ] seq () } :assignment
-  { o | [ o .assignment o .ternary ] alt () }               :expr2
+  { o | [ o .lhs '= o .expr ] seq () }                      :assignment
+  { o | [ o .assignment o .ternary o .expr3 ] alt () }      :expr2
   'expr4 or 'expr3  bin ()                                  :expr3
   'expr5 and 'expr4 bin ()                                  :expr4
   'expr9 equality 'expr8  bin ()                            :expr8
@@ -164,14 +164,14 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 //  { o | [ '! lit () opt () o .expr15 ] seq () }           :expr14
   { o | [
     o .notPrefix
-    o .incrPrefix
+    o .iPrefix
     o .expr15
   ] alt () }                                                :expr14
-  { o | [ o .expr16 [ '++ '-- ] alt () opt () ] seq () } :expr15
+  { o | [ o .expr16 [ '++ '-- ] alt () opt () ] seq () }    :expr15
   { o | [ o .expr18 [ '[ o .expr '] ] 1 seq1 () 1 repeat () opt () ] seq () } :expr17
-  { o | [ o .number o .bool o .group o .array ] alt () }    :expr18
-  { o | [ '! o .expr15 ] seq () }                           :notPrefix
-  { o | [ [ '-- '++ ] alt () o .expr15 ] seq () }           :incrPrefix
+  { o | [ o .lhs o .number o .bool o .group o .array ] alt () }    :expr18
+  { o | [ '! o .expr15 ] 1 seq1 () }                        :notPrefix
+  { o | [ [ '-- '++ ] alt () o .expr15 ] seq () }           :iPrefix
   { o | [ '( o .expr ') ] 1 seq1 () }                       :group
   { o | o .digit 1 repeat () }                              :number
   { o | '0 '9 range () }                                    :digit
@@ -206,7 +206,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
     'assignment assignment
     'lhs        lhs
     'notPrefix  notPrefix
-    'incrPrefix incrPrefix
+    'iPrefix iPrefix
     'group      group
     'number     number
     'array      array
@@ -225,7 +225,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   { m | m switch
     'super      { m o | o m super () () () }
     'ternary    { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse" ] join () } { | a 0  @ } ifelse }  action () }
-    'assignment { | m super { a | a 1 @ "  dup :" a 0 @ + + } action () }
+    'assignment { | m super { a | a 2 @ "  dup :" a 0 @ + + } action () }
     'expr3      { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
     'expr4      { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
     'expr8      { | m super infix action () }
@@ -233,10 +233,10 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
     'expr11     { | m super infix action () }
     'expr12     { | m super infix action () }
     'expr13     { | m super infix action () }
-    'notPrefix  { | m super { a | a 1 @ "  not" + } action () }
-    'incrPrefix { | m super { a | a 1 @ a 0 @ + "  " a 1 @ + + } action () }
-    'expr15     { | m super { a | a 0 @ a 1 @ { | dup "  " a 1 @  + + + } if } action () }
+    'expr15     { | m super { a | a 0 @ a 1 @ { | "  " a 0 @ a 1 @ + + + } if } action () }
     'expr17     { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
+    'notPrefix  { | m super { | "  not" + } action () }
+    'iPrefix { | m super { a | a 1 @ a 0 @ + "  " a 1 @ + + } action () }
     'number     { | m super join  action () }
     'array      { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
     { o | o m super () () }
@@ -268,6 +268,17 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 " answer=42 " jsEval ()
 " answer=[[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&!true " jsEval ()
 
+1 { i |
+  i i++ print
+  i++ i print
+  " i=5  " jsEval ()
+  " i    " jsEval ()
+  " i+1  " jsEval ()
+  /* Next two compile correctly but don't run because there is no 'i' in their scope.
+  " ++i  " jsEval ()
+  " i++  " jsEval ()
+  */
+} ()
 
 
 
