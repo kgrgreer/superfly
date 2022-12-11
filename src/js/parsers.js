@@ -20,12 +20,12 @@ scope.eval$(`
 
 // Parse Combinators
 
-{ str v | { ps | /* 'literal: str + print */ 0 { i |
+{ str v | { ps | /* 'lit: str + print */ 0 { i |
   { | ps .head str i charAt = } { | ps .tail :ps  i++ } while
   str len i = { | v ps .:value } { | false } ifelse
-} () } } :literalMap
+} () } } :litMap
 
-{ str | str str literalMap () } :literal
+{ str | str str litMap () } :lit
 
 { start end c | c start >=  c end <= & } :inRange
 { start end | { ps |
@@ -33,7 +33,7 @@ scope.eval$(`
 } } :range
 
 { parsers |
-  parsers { p | p string? { | p literal () } { | p } ifelse } map ()
+  parsers { p | p string? { | p lit () } { | p } ifelse } map ()
 } :prepare
 
 { parsers | parsers prepare () :parsers { ps | 0 { i |
@@ -56,14 +56,14 @@ scope.eval$(`
 } () } } :repeat
 
 { parser delim |
-  [ [ parser delim ] 0 seq1 () 0 repeat () parser optional () ] seq ()
+  [ [ parser delim ] 0 seq1 () 0 repeat () parser opt () ] seq ()
   { a | [ a 0 @  { e | e } forEach () a 1 @ ] } mapp ()
 } :delim
 
 { parser | { ps | ps { ret |
   ps parser () :ret
   ret { | ret } { | false ps .:value } ifelse
-} () } } :optional
+} () } } :opt
 
 { str | { ps |
   str ps .head indexOf -1 = { | ps .tail } { | false } ifelse
@@ -83,10 +83,10 @@ scope.eval$(`
 " thisthenthat0123 " 0 nil PStream () :ps
 
 " Literal Parser" section ()
-ps 'this literal () () print
+ps 'this lit () () print
 'that print
-ps 'that literal () () print
-ps 'this literal () () .toString print
+ps 'that lit () () print
+ps 'this lit () () .toString print
 
 
 " Seq Parser" section ()
@@ -113,15 +113,15 @@ ps repeatparser ()  .toString print
 
 " Optional Parser" section ()
 'this print
-ps 'this literal () optional () ()  .toString print
+ps 'this lit () opt () ()  .toString print
 
 
 'that print
-ps [ 'that literal () optional () 'this ] seq () () .toString print
+ps [ 'that lit () opt () 'this ] seq () () .toString print
 
 
 'thisthen print
-ps [ 'this literal () optional () 'then ] seq () () .toString print
+ps [ 'this lit () opt () 'then ] seq () () .toString print
 
 
 " NotChars Parser" section ()
@@ -132,7 +132,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 'Grammar section ()
 
 { l op r |
-  { o | [ l o .call [ op r o .call ] seq () optional () ] seq () }
+  { o | [ l o .call [ op r o .call ] seq () opt () ] seq () }
 } :bin // binary operator, ie. expr +/0 expr13
 
 { v |
@@ -147,12 +147,12 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 
 // Just a Parser, validates but has no semantic actions
 { | 1 25 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr15 expr17 expr18 notPrefix incrPrefix group number digit bool and or ternary assignment array lhs | // Improve with 'let' support
-  [ '== '= literalMap () '!= ] alt ()                       :equality
+  [ '== '= litMap () '!= ] alt ()                           :equality
   [ '<= '< '>= '> ] alt ()                                  :inequality
-  '&& literal ()                                            :and
-  '|| literal ()                                            :or
-  { o | [ o .expr3 [ '? o .expr3 ': o .expr3 ] seq () optional () ] seq () } :ternary  // TODO: what should the second two expressions be?
-  { o | [ o .lhs [ '= o .expr ] 1 seq1 () optional () ] seq () } :assignment
+  '&& lit ()                                                :and
+  '|| lit ()                                                :or
+  { o | [ o .expr3 [ '? o .expr3 ': o .expr3 ] seq () opt () ] seq () } :ternary  // TODO: what should the second two expressions be?
+  { o | [ o .lhs [ '= o .expr ] 1 seq1 () opt () ] seq () } :assignment
   { o | [ o .assignment o .ternary ] alt () }               :expr2
   'expr4 or 'expr3  bin ()                                  :expr3
   'expr5 and 'expr4 bin ()                                  :expr4
@@ -160,15 +160,15 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   'expr10 inequality 'expr9  bin ()                         :expr9
   'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
-  'expr14 '** '^ literalMap () 'expr13 bin ()               :expr13 // TODO: fix, I think it should be right-associative
-//  { o | [ '! literal () optional () o .expr15 ] seq () }    :expr14
+  'expr14 '** '^ litMap () 'expr13 bin ()                   :expr13 // TODO: fix, I think it should be right-associative
+//  { o | [ '! lit () opt () o .expr15 ] seq () }           :expr14
   { o | [
     o .notPrefix
     o .incrPrefix
     o .expr15
-  ] alt () }                                                  :expr14
-  { o | [ o .expr16 [ '++ '-- ] alt () optional () ] seq () } :expr15
-  { o | [ o .expr18 [ '[ o .expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
+  ] alt () }                                                :expr14
+  { o | [ o .expr16 [ '++ '-- ] alt () opt () ] seq () } :expr15
+  { o | [ o .expr18 [ '[ o .expr '] ] 1 seq1 () 1 repeat () opt () ] seq () } :expr17
   { o | [ o .number o .bool o .group o .array ] alt () }    :expr18
   { o | [ '! o .expr15 ] seq () }                           :notPrefix
   { o | [ [ '-- '++ ] alt () o .expr15 ] seq () }           :incrPrefix
@@ -176,11 +176,11 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   { o | o .digit 1 repeat () }                              :number
   { o | '0 '9 range () }                                    :digit
   { o | [ 'true 'false ] alt () }                           :bool
-  { o | [ '[ o .expr ', literal () delim () '] ] 1 seq1 () } :array
+  { o | [ '[ o .expr ', lit () delim () '] ] 1 seq1 () }    :array
   { o | [
       [ '_ 'a 'z' range () 'A 'Z range () ] alt ()
       [ '_ 'a 'z' range () 'A 'Z range () '0 '9 range () ] alt () 0 repeat () join mapp ()
-    ] seq () join mapp () }                                              :lhs
+    ] seq () join mapp () }                                 :lhs
 
   { m | m switch
     'parse$     { s o | s 0 nil PStream () o .start () .value }
@@ -267,8 +267,6 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 " [1,[1,2],3][1][0] " jsEval ()
 " answer=42 " jsEval ()
 " answer=[[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&!true " jsEval ()
-
-
 
 
 
