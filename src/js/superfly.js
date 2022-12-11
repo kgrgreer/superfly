@@ -24,17 +24,27 @@ var scope = {
   evalSym: function(line, code) {
     var sym = scope[line];
     if ( sym ) { sym(code); }
-    else if ( line.startsWith(':') ) {
+    else if ( line.startsWith('.') ) {
+      var m = line.substring(1);
+      code.push(function() {
+        stack.push(stack[stack.length-1]);
+        stack.push(stack[stack.length-1]);
+        stack[stack.length-2] = m;
+      });
+      this.evalSym('()', code);
+      this.evalSym('()', code);
+    } else if ( line.startsWith(':') ) {
       var sym = line.substring(1);
       code.push(function() { var value = stack.pop(); scope[sym] = function(code) { code.push(function() { stack.push(value); }); } });
     } else if ( line.charAt(0) >= '0' && line.charAt(0) <= '9' || ( line.charAt(0) == '-' && line.length > 1 ) ) {
       code.push(function() { stack.push(Number.parseFloat(line)); });
     } else if ( line.indexOf('.') != -1 ) { // Macro for OO calling convention
+      console.log('************** deprecated: ', line);
       // TODO: add an in-ilne cache here when class can be determined cheaply
-      var [obj, meth] = line.split('.');
+      var [obj, m] = line.split('.');
       // TODO: The next five lines could be combined into one function: o m o () ()
       this.evalSym(obj, code);
-      code.push(function() { stack.push(meth); });
+      code.push(function() { stack.push(m); });
       this.evalSym(obj, code);
       this.evalSym('()', code);
       this.evalSym('()', code);

@@ -137,7 +137,7 @@ result.toString print
 'Grammar section ()
 
 { l op r |
-  { o | [ l o.call [ op r o.call ] seq () optional () ] seq () }
+  { o | [ l o .call [ op r o .call ] seq () optional () ] seq () }
 } :bin // binary operator, ie. expr +/0 expr13
 
 { v |
@@ -156,9 +156,9 @@ result.toString print
   [ '<= '< '>= '> ] alt ()                                  :inequality
   '&& literal ()                                            :and
   '|| literal ()                                            :or
-  { o | [ o.expr3 [ '? o.expr3 ': o.expr3 ] seq () optional () ] seq () } :ternary  // TODO: what should the second two expressions be?
-  { o | [ o.lhs [ '= o.expr ] 1 seq1 () optional () ] seq () } :assignment
-  { o | [ o.assignment o.ternary ] alt () }                 :expr2
+  { o | [ o .expr3 [ '? o .expr3 ': o .expr3 ] seq () optional () ] seq () } :ternary  // TODO: what should the second two expressions be?
+  { o | [ o .lhs [ '= o .expr ] 1 seq1 () optional () ] seq () } :assignment
+  { o | [ o .assignment o .ternary ] alt () }                 :expr2
   'expr4 or 'expr3  bin ()                                  :expr3
   'expr5 and 'expr4 bin ()                                  :expr4
   'expr9 equality 'expr8  bin ()                            :expr8
@@ -166,36 +166,36 @@ result.toString print
   'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
   'expr14 '** '^ literalMap () 'expr13 bin ()               :expr13 // TODO: fix, I think it should be right-associative
-  { o | [ '! literal () optional () o.expr15 ] seq () }     :expr14
-  { o | [ o.expr18 [ '[ o.expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
-  { o | [ o.number o.bool o.group o.array ] alt () }        :expr18
-  { o | [ '( o.expr ') ] 1 seq1 () }                        :group
-  { o | o.digit 1 repeat () }                               :number
+  { o | [ '! literal () optional () o .expr15 ] seq () }     :expr14
+  { o | [ o .expr18 [ '[ o .expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
+  { o | [ o .number o .bool o .group o .array ] alt () }        :expr18
+  { o | [ '( o .expr ') ] 1 seq1 () }                        :group
+  { o | o .digit 1 repeat () }                               :number
   { o | '0 '9 range () }                                    :digit
   { o | [ 'true 'false ] alt () }                           :bool
-  { o | [ '[ o.expr ', literal () delim () '] ] 1 seq1 () } :array
+  { o | [ '[ o .expr ', literal () delim () '] ] 1 seq1 () } :array
   { o | [
       [ '_ 'a 'z' range () 'A 'Z range () ] alt ()
       [ '_ 'a 'z' range () 'A 'Z range () '0 '9 range () ] alt () 0 repeat () join mapp ()
     ] seq () join mapp () }                                              :lhs
 
   { m | m switch
-    'parse$     { s o | s 0 nil PStream () o.start () { r | r.value } () }
+    'parse$     { s o | s 0 nil PStream () o .start () { r | r.value } () }
     'call       { m o | o m o () () }
-    'start      { o | o.expr }
-    'expr       { o | o.expr2 }
+    'start      { o | o .expr }
+    'expr       { o | o .expr2 }
     'expr2      expr2
     'expr3      expr3
     'expr4      expr4
-    'expr5      { o | o.expr8 }
+    'expr5      { o | o .expr8 }
     'expr8      expr8
     'expr9      expr9
-    'expr10     { o | o.expr11 }
+    'expr10     { o | o .expr11 }
     'expr11     expr11
     'expr12     expr12
     'expr13     expr13
     'expr14     expr14
-    'expr15     { o | o.expr17 }
+    'expr15     { o | o .expr17 }
     'expr17     expr17
     'expr18     expr18
     'ternary    ternary
@@ -219,7 +219,7 @@ result.toString print
   { m | '****: m + print m switch
     'super      { m o | o m super () () () }
     'ternary    { | m super { a | a 1 @ { | [ a 0 @ "  { | " a 1 @ 1 @ "  } { | " a 1 @ 3 @ "  } ifelse" ] join () } { | a 0  @ } ifelse }  action () }
-    'assignment { | m super { a | a 1 @ "  :" a 0 @ + + } action () }
+    'assignment { | m super { a | a 1 @ "  dup :" a 0 @ + + } action () }
     'expr3      { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
     'expr4      { | m super { a | a 1 @ { | [ a 0 @ [ a 1 @ 0 @ " { | " a 1 @ 1 @ "  }" + + ] ] } { | a } ifelse  infix () }  action () }
     'expr8      { | m super infix action () }
