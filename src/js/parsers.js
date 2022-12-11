@@ -5,7 +5,7 @@ scope.eval$(`
   { m |
     m switch
       'head { this | /* " head-> " str pos charAt + print */ str pos charAt }
-      'tail { this | str pos 1 + this.head PStream () }
+      'tail { this | str pos 1 + this .head PStream () }
       'value { this | value }
       ':value { value this | str pos value PStream () }
       'toString { this | " PStream: " pos " , '" value '' + + + + }
@@ -52,7 +52,7 @@ scope.eval$(`
 
 { parser min | { ps | 0 false { i ret |
   [ { | ps :ret  ps parser () :ps ps } { | i 1 + :i ps .value } while ]
-  i min >=  { a | a ret.:value } { _ | false } ifelse
+  i min >=  { a | a ret .:value } { _ | false } ifelse
 } () } } :repeat
 
 { parser delim |
