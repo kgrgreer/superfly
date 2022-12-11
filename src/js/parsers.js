@@ -21,15 +21,15 @@ scope.eval$(`
 // Parse Combinators
 
 { str v | { ps | /* 'literal: str + print */ 0 { i |
-  { | ps.head str i charAt = } { | ps.tail :ps  i 1 + :i } while
-  str len i = { | v ps.:value } { | false } ifelse
+  { | ps .head str i charAt = } { | ps .tail :ps  i 1 + :i } while
+  str len i = { | v ps .:value } { | false } ifelse
 } () } } :literalMap
 
 { str | str str literalMap () } :literal
 
 { start end c | c start >=  c end <= & } :inRange
 { start end | { ps |
-  start end ps.head inRange () { | ps.tail } { | false } ifelse
+  start end ps .head inRange () { | ps .tail } { | false } ifelse
 } } :range
 
 { parsers |
@@ -37,8 +37,8 @@ scope.eval$(`
 } :prepare
 
 { parsers | parsers prepare () :parsers { ps | 0 { i |
-  [ { | i parsers len < { | ps parsers i @ () :ps ps } && } { | i 1 + :i ps.value } while ]
-  parsers len i = { a | a ps.:value } { _ | false } ifelse
+  [ { | i parsers len < { | ps parsers i @ () :ps ps } && } { | i 1 + :i ps .value } while ]
+  parsers len i = { a | a ps .:value } { _ | false } ifelse
 } () } } :seq
 
 { parsers i |
@@ -51,7 +51,7 @@ scope.eval$(`
 } () } } :alt
 
 { parser min | { ps | 0 false { i ret |
-  [ { | ps :ret  ps parser () :ps ps } { | i 1 + :i ps.value } while ]
+  [ { | ps :ret  ps parser () :ps ps } { | i 1 + :i ps .value } while ]
   i min >=  { a | a ret.:value } { _ | false } ifelse
 } () } } :repeat
 
@@ -62,19 +62,19 @@ scope.eval$(`
 
 { parser | { ps | ps { ret |
   ps parser () :ret
-  ret { | ret } { | false ps.:value } ifelse
+  ret { | ret } { | false ps .:value } ifelse
 } () } } :optional
 
 { str | { ps |
-  str ps.head indexOf -1 = { | ps.tail } { | false } ifelse
+  str ps .head indexOf -1 = { | ps .tail } { | false } ifelse
 } } :notChars
 
 { str | { ps |
-  str ps.head indexOf -1 > { | ps.tail } { | false } ifelse
+  str ps .head indexOf -1 > { | ps .tail } { | false } ifelse
 } } :anyChar
 
 { p f |
-  { ps | ps p () :ps ps { | ps.value f () ps.:value } { | false } ifelse }
+  { ps | ps p () :ps ps { | ps .value f () ps .:value } { | false } ifelse }
 } :mapp
 
 

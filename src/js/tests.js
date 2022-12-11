@@ -30,55 +30,55 @@ Tester () :t
 
 
 'Arithmetic section ()
-" 1 1 +" 2 t.test
-" 0 1 +" 1 t.test
-" 2 1 -" 1 t.test
-" 0 6 -" -6 t.test
-" 4 2 *" 8 t.test
-" 4 2 /" 2 t.test
-" 10 3 mod" 1 t.test
-" 2 8 ^" 256 t.test
-" 15 %" 0.15 t.test
-" 15 10 10 ^ *" 150000000000 t.test // scientific notation, distance from earth to sun in meters
-" 5 neg ()" -5 t.test // it's inconsistent that some operators require () and others don't
+" 1 1 +" 2 t .test
+" 0 1 +" 1 t .test
+" 2 1 -" 1 t .test
+" 0 6 -" -6 t .test
+" 4 2 *" 8 t .test
+" 4 2 /" 2 t .test
+" 10 3 mod" 1 t .test
+" 2 8 ^" 256 t .test
+" 15 %" 0.15 t .test
+" 15 10 10 ^ *" 150000000000 t .test // scientific notation, distance from earth to sun in meters
+" 5 neg ()" -5 t .test // it's inconsistent that some operators require () and others don't
 
 
 'Comparators section ()
-" 1 1 ="  true  t.test
-" 1 2 ="  false t.test
-" 1 1 !=" false t.test
-" 1 2 !=" true  t.test
-" 1 2 < " true  t.test
-" 2 1 < " false t.test
-" 2 2 <=" true  t.test
-" 2 3 <=" true  t.test
+" 1 1 ="  true  t .test
+" 1 2 ="  false t .test
+" 1 1 !=" false t .test
+" 1 2 !=" true  t .test
+" 1 2 < " true  t .test
+" 2 1 < " false t .test
+" 2 2 <=" true  t .test
+" 2 3 <=" true  t .test
 
 
 'Logic section ()
-" false not" true  t.test
-" true not"  false t.test
+" false not" true  t .test
+" true not"  false t .test
 
-" false false |"  false t.test
-" false true  |"  true  t.test
-" true  false |"  true  t.test
-" true  true  |"  true  t.test
+" false false |"  false t .test
+" false true  |"  true  t .test
+" true  false |"  true  t .test
+" true  true  |"  true  t .test
 
-" false false &"  false t.test
-" false true  &"  false t.test
-" true  false &"  false t.test
-" true  true  &"  true  t.test
+" false false &"  false t .test
+" false true  &"  false t .test
+" true  false &"  false t .test
+" true  true  &"  true  t .test
 
-" false { | false } &&"  false t.test
-" false { | true }  &&"  false t.test
-" true  { | false } &&"  false t.test
-" true  { | true }  &&"  true  t.test
+" false { | false } &&"  false t .test
+" false { | true }  &&"  false t .test
+" true  { | false } &&"  false t .test
+" true  { | true }  &&"  true  t .test
 
-" false { | false } ||"  false t.test
-" false { | true }  ||"  true  t.test
-" true  { | false } ||"  true  t.test
-" true  { | true }  ||"  true  t.test
+" false { | false } ||"  false t .test
+" false { | true }  ||"  true  t .test
+" true  { | false } ||"  true  t .test
+" true  { | true }  ||"  true  t .test
 
-" true false | true false & |" true t.test
+" true false | true false & |" true t .test
 
 
 'Functions section ()
@@ -192,12 +192,12 @@ class ColourBall extends Ball {
 
 'Recursion section ()
 { n | n 1 <= { | 1 } { | n n 1 - fact () * } ifelse } :fact
-" 20 fact ()" 2432902008176640000 t.test
+" 20 fact ()" 2432902008176640000 t .test
 
 { f | { x | { y | y x x () () } f () } { x | x x () } () } :Y // y-combinator
 { f | { n | n 1 <= { | 1 } { | n n 1 - f () * } ifelse } } Y () :fact2
 
-" 10 fact2 ()" 3628800 t.test
+" 10 fact2 ()" 3628800 t .test
 
 " Lexical Scoping" section ()
 1 { a | { | a print } () } ()
@@ -254,8 +254,8 @@ false { | " if true" print } { | " if false" print } ifelse
 
 
 'Nil section ()
-" nil nil =" true  t.test
-" nil 5   =" false t.test
+" nil nil =" true  t .test
+" nil 5   =" false t .test
 
 
 'Switch section ()
@@ -280,7 +280,7 @@ end () print
 
 'Const section ()
 3.1415926 'PI const
-" PI" 3.1415926 t.test
+" PI" 3.1415926 t .test
 PI print
 
 
@@ -316,5 +316,5 @@ foo () print
 [ 1 2 3 ] { v | v v * } map () print
 
 
-t.report
+t .report
 `);
