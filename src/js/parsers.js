@@ -146,7 +146,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 22 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr17 expr18 group number digit bool and or ternary assignment array lhs | // Improve with 'let' support
+{ | 1 25 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr15 expr17 expr18 notPrefix incrPrefix group number digit bool and or ternary assignment array lhs | // Improve with 'let' support
   [ '== '= literalMap () '!= ] alt ()                       :equality
   [ '<= '< '>= '> ] alt ()                                  :inequality
   '&& literal ()                                            :and
@@ -161,9 +161,17 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
   'expr14 '** '^ literalMap () 'expr13 bin ()               :expr13 // TODO: fix, I think it should be right-associative
-  { o | [ '! literal () optional () o .expr15 ] seq () }    :expr14
+//  { o | [ '! literal () optional () o .expr15 ] seq () }    :expr14
+  { o | [
+    o .notPrefix
+    o .incrPrefix
+    o .expr15
+  ] alt () }                                                  :expr14
+  { o | [ o .expr16 [ '++ '-- ] alt () optional () ] seq () } :expr15
   { o | [ o .expr18 [ '[ o .expr '] ] 1 seq1 () 1 repeat () optional () ] seq () } :expr17
   { o | [ o .number o .bool o .group o .array ] alt () }    :expr18
+  { o | [ '! o .expr15 ] seq () }                           :notPrefix
+  { o | [ [ '-- '++ ] alt () o .expr15 ] seq () }           :incrPrefix
   { o | [ '( o .expr ') ] 1 seq1 () }                       :group
   { o | o .digit 1 repeat () }                              :number
   { o | '0 '9 range () }                                    :digit
@@ -190,12 +198,15 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
     'expr12     expr12
     'expr13     expr13
     'expr14     expr14
-    'expr15     { o | o .expr17 }
+    'expr15     expr15
+    'expr16     { o | o .expr17 }
     'expr17     expr17
     'expr18     expr18
     'ternary    ternary
     'assignment assignment
     'lhs        lhs
+    'notPrefix  notPrefix
+    'incrPrefix incrPrefix
     'group      group
     'number     number
     'array      array
@@ -222,7 +233,9 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
     'expr11     { | m super infix action () }
     'expr12     { | m super infix action () }
     'expr13     { | m super infix action () }
-    'expr14     { | m super { a | a 1 @ a 0 @ { | "  not" + } if } action () }
+    'notPrefix  { | m super { a | a 1 @ "  not" + } action () }
+    'incrPrefix { | m super { a | a 1 @ a 0 @ + "  " a 1 @ + + } action () }
+    'expr15     { | m super { a | a 0 @ a 1 @ { | dup "  " a 1 @  + + + } if } action () }
     'expr17     { | m super  { a | a 0 @ a 1 @ { | "  " + a 1 @ { e |  e + "  @ " + } forEach () } if } action () }
     'number     { | m super join  action () }
     'array      { | m super  { a | " [" a { e | "  " + e + } forEach () "  ]" + } action () }
