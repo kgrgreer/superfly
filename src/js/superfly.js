@@ -145,7 +145,8 @@ var scope = {
   '()':   fn(() => { var f = stack.pop(); /*console.log('running: ', f.toString());*/ f(); })
 };
 
-// Parser Support
+
+// Parser Helpers
 scope['string?'] = fn(() => { stack.push(typeof stack.pop() === 'string'); });
 scope['array?']  = fn(() => { stack.push(Array.isArray(stack.pop())); });
 scope.charAt     = bfn((s, i) => s.charAt(i));
@@ -189,7 +190,6 @@ scope.eval$(`
 
 // A helper function for displaying section titles
 { t | " " print t print } :section
-
 `);
 
 
