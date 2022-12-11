@@ -54,8 +54,10 @@ var scope = {
     function moveUp(d) { var p = hp; for ( var i = 0 ; i < d ; i++ ) p = heap[p]; return p; }
     for ( let i = 0 ; i < vars.length ; i++ ) {
       let index = vars.length-i;
-      scope[vars[i]]       = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); stack.push(heap[p+index]); }); };
-      scope[':' + vars[i]] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index] = stack.pop(); }); };
+      scope[vars[i]]        = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); stack.push(heap[p+index]); }); };
+      scope[':' + vars[i]]  = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index] = stack.pop(); }); };
+      scope[vars[i] + '++'] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index]++; }); };
+      scope[vars[i] + '--'] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index]--; }); };
     }
     while ( ( l = scope.readSym() ) != '}' ) scope.evalSym(l, fncode);
     oldScope.ip = scope.ip;
@@ -165,7 +167,7 @@ scope.eval$(`
 { n | 0 n - } :neg // negate
 
 { start end block |
-  { | start end <= } { | start block () start 1 + :start } while
+  { | start end <= } { | start block () start++ } while
 } :for
 
 { f |

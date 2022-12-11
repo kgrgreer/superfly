@@ -21,7 +21,7 @@ scope.eval$(`
 // Parse Combinators
 
 { str v | { ps | /* 'literal: str + print */ 0 { i |
-  { | ps .head str i charAt = } { | ps .tail :ps  i 1 + :i } while
+  { | ps .head str i charAt = } { | ps .tail :ps  i++ } while
   str len i = { | v ps .:value } { | false } ifelse
 } () } } :literalMap
 
@@ -37,7 +37,7 @@ scope.eval$(`
 } :prepare
 
 { parsers | parsers prepare () :parsers { ps | 0 { i |
-  [ { | i parsers len < { | ps parsers i @ () :ps ps } && } { | i 1 + :i ps .value } while ]
+  [ { | i parsers len < { | ps parsers i @ () :ps ps } && } { | i++ ps .value } while ]
   parsers len i = { a | a ps .:value } { _ | false } ifelse
 } () } } :seq
 
@@ -46,12 +46,12 @@ scope.eval$(`
 } :seq1
 
 { parsers | parsers prepare () :parsers { ps | 0 false { i ret |
-  { | i parsers len < { | ps parsers i @ () :ret ret not } && } { | i 1 + :i } while
+  { | i parsers len < { | ps parsers i @ () :ret ret not } && } { | i++ } while
   ret
 } () } } :alt
 
 { parser min | { ps | 0 false { i ret |
-  [ { | ps :ret  ps parser () :ps ps } { | i 1 + :i ps .value } while ]
+  [ { | ps :ret  ps parser () :ps ps } { | i++ ps .value } while ]
   i min >=  { a | a ret .:value } { _ | false } ifelse
 } () } } :repeat
 
