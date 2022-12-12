@@ -59,14 +59,14 @@ var scope = {
       scope[v + '--'] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index]--; }); };
     }
 
-    while ( ( l = scope.readSym() ) != '|' && l != ':' ) vars.push(l); // read var names
+    while ( ( l = scope.readSym() ) != '|' && l != 'let' ) vars.push(l); // read var names
     for ( let i = 0 ; i < vars.length ; i++ ) {
       let index = vars.length-i;
       defineVar(vars[i], index);
     }
     paramCount = vars.length;
 
-    if ( l === ':' ) { // handle local variables
+    if ( l === 'let' ) { // handle local variables
       outer: while ( l !== '|' ) {
         while ( ! ( l = scope.readSym() ).startsWith(':') ) {
           if ( l == '|' ) break outer;
@@ -74,7 +74,7 @@ var scope = {
         }
         var n = l.substring(1);
         vars.push(n);
-        defineVar(n, vars.length-1)
+        defineVar(n, vars.length);
         scope.evalSym(l, fncode);
       }
     }
@@ -190,16 +190,15 @@ scope.eval$(`
   { | start end <= } { | start block () start++ } while
 } :for
 
-{ f |
-  0 false { v created |
-    { this |
-      created not { | true :created  this f () :v } if
-      v
-    }
-  } ()
+{ f let 0 :v false :created |
+  { this |
+    created not { | true :created  this f () :v } if
+    v
+  }
 } :factory
 
 { a f | 0 a len 1 - { i | a i @ f () } for () } :forEach // works as reduce also
+
 
 { a f | [ a f forEach () ] } :map
 
@@ -217,31 +216,18 @@ scope.eval$(`
 
 /*
 TODO:
-  - letrec or let/define
   - fix 'nil to be falsey
-  - maybe switch | symbol to / since it's faster to type and looks more like lambda?
   - make string function naming more consistent
   - have functions auto-call and use quoting to reference without calling?
   - return statement & recursive calls
   - optimize forward references
   - symbols
-  - function return values?
   - readSym() and readChar() should be callable from scripts
   - make eval() be the real method and eval$ call it
   - alloc?
   - don't put heap in an array to allow for JS GC?
-  - Add in-line cache for method lookups
+  - Add in-line cache for method lookups, needs faster access to an object's class
   - Add a recursive array toString method
 
-ifelse is the same as ? ()
-a = { x: a b c | 234 x:ret }
-
-  {
-     expr if: {
-       a map { }
-     } else: {  }
-     map { }
-
-  }
-
+  - ifelse is the same as ? ()
 */

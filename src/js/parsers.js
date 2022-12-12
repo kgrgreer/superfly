@@ -146,7 +146,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ :
+{ let
   [ '== '= litMap () '!= ] alt ()                           :equality
   [ '<= '< '>= '> ] alt ()                                  :inequality
   '&& lit ()                                                :and
@@ -205,7 +205,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
     'assignment assignment
     'lhs        lhs
     'notPrefix  notPrefix
-    'iPrefix iPrefix
+    'iPrefix    iPrefix
     'group      group
     'number     number
     'array      array
@@ -219,7 +219,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 
 
 // Add semantic actions to parser to create a JS to T0 compiler
-{ | { : FormulaParser () :super |
+{ | { let FormulaParser () :super |
   // TODO: factor out common actions
   { m | m switch
     'super      { m o | o m super () () () }
@@ -244,11 +244,11 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 
 
 { code |
-  { : code FormulaCompiler () .parse$ :result |
+  { let code FormulaCompiler () .parse$ :result |
     " " print
     " JS Code: " code   + print
     " T0 Code: " result + print
-    { : result eval :v |
+    { let result eval :v |
       " Result: " v + print
       v
     } ()
@@ -266,7 +266,8 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 " answer=42 " jsEval ()
 " answer=[[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&!true " jsEval ()
 
-1 2 3 { : 1 :a 2 :b 3 :c | '****** a '- b '- c + + + + + print } ()
+{ let 1 :a 2 :b 3 :c | [ '****** a '- b '- c ] join () print } ()
+4 { z let 1 :a 2 :b 3 :c | [ '****** z a '- b '- c '- z ] join () print } () // TODO: fix
 
 1 { i |
   i i++ print
