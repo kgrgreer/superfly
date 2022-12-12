@@ -146,7 +146,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 
 // Just a Parser, validates but has no semantic actions
-{ | 1 25 { | } for () { equality inequality expr2 expr3 expr4 expr8 expr9 expr11 expr12 expr13 expr15 expr17 expr18 notPrefix iPrefix group number digit bool and or ternary assignment array lhs | // Improve with 'let' support
+{ :
   [ '== '= litMap () '!= ] alt ()                           :equality
   [ '<= '< '>= '> ] alt ()                                  :inequality
   '&& lit ()                                                :and
@@ -161,7 +161,6 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   'expr12 '+- anyChar () 'expr11  bin ()                    :expr11
   'expr13 '*/%  anyChar () 'expr12  bin ()                  :expr12
   'expr14 '** '^ litMap () 'expr13 bin ()                   :expr13 // TODO: fix, I think it should be right-associative
-//  { o | [ '! lit () opt () o .expr15 ] seq () }           :expr14
   { o | [
     o .notPrefix
     o .iPrefix
@@ -181,7 +180,7 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
       [ '_ 'a 'z' range () 'A 'Z range () ] alt ()
       [ '_ 'a 'z' range () 'A 'Z range () '0 '9 range () ] alt () 0 repeat () join mapp ()
     ] seq () join mapp () }                                 :lhs
-
+  |
   { m | m switch
     'parse$     { s o | s 0 nil PStream () o .start () .value }
     'call       { m o | o m o () () }
@@ -216,11 +215,11 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
     'equality   equality
     { o | " Formula Parser Unknown Method " m + print }
   end }
-} () } :FormulaParser
+} :FormulaParser
 
 
 // Add semantic actions to parser to create a JS to T0 compiler
-{ | FormulaParser () { super |
+{ | { : FormulaParser () :super |
   // TODO: factor out common actions
   { m | m switch
     'super      { m o | o m super () () () }
@@ -245,12 +244,11 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 
 
 { code |
-  code FormulaCompiler () .parse$
-  { result |
+  { : code FormulaCompiler () .parse$ :result |
     " " print
     " JS Code: " code   + print
     " T0 Code: " result + print
-    result eval { v |
+    { : result eval :v |
       " Result: " v + print
       v
     } ()
@@ -268,6 +266,8 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
 " answer=42 " jsEval ()
 " answer=[[1,0],[0,1]][1][1]+((99<=99?1:0)+1)>2||1<2&&5==3&&!true " jsEval ()
 
+1 2 3 { : 1 :a 2 :b 3 :c | '****** a '- b '- c + + + + + print } ()
+
 1 { i |
   i i++ print
   i++ i print
@@ -279,7 +279,6 @@ ps " 0123456789" notChars () 0 repeat () () .toString print
   " i++  " jsEval ()
   */
 } ()
-
 
 
 

@@ -47,18 +47,38 @@ var scope = {
     }
   },
   '{': function(code) {
-    var start = scope.ip, oldScope = scope, vars = [], fncode = [];
+    var start = scope.ip, oldScope = scope, vars = [], fncode = [], paramCount;
     var curScope = scope = Object.create(scope);
-    while ( ( l = scope.readSym() ) != '|' ) vars.push(l); // read var names
+
     function countDepth() { var d = 0, s = scope; while ( s !== curScope ) { s = s.__proto__; d++; } return d; }
     function moveUp(d) { var p = hp; for ( var i = 0 ; i < d ; i++ ) p = heap[p]; return p; }
+    function defineVar(v, index) {
+      scope[v]        = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); stack.push(heap[p+index]); }); };
+      scope[':' + v]  = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index] = stack.pop(); }); };
+      scope[v + '++'] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index]++; }); };
+      scope[v + '--'] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index]--; }); };
+    }
+
+    while ( ( l = scope.readSym() ) != '|' && l != ':' ) vars.push(l); // read var names
     for ( let i = 0 ; i < vars.length ; i++ ) {
       let index = vars.length-i;
-      scope[vars[i]]        = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); stack.push(heap[p+index]); }); };
-      scope[':' + vars[i]]  = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index] = stack.pop(); }); };
-      scope[vars[i] + '++'] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index]++; }); };
-      scope[vars[i] + '--'] = function(code) { var d = countDepth(); code.push(() => { var p = moveUp(d); heap[p+index]--; }); };
+      defineVar(vars[i], index);
     }
+    paramCount = vars.length;
+
+    if ( l === ':' ) { // handle local variables
+      outer: while ( l !== '|' ) {
+        while ( ! ( l = scope.readSym() ).startsWith(':') ) {
+          if ( l == '|' ) break outer;
+          scope.evalSym(l, fncode);
+        }
+        var n = l.substring(1);
+        vars.push(n);
+        defineVar(n, vars.length-1)
+        scope.evalSym(l, fncode);
+      }
+    }
+
     while ( ( l = scope.readSym() ) != '}' ) scope.evalSym(l, fncode);
     oldScope.ip = scope.ip;
     scope = oldScope;
@@ -71,7 +91,7 @@ var scope = {
           var old = hp;
           hp = heap.length;
           heap.push(p);
-          for ( var i = 0 ; i < vars.length   ; i++ ) heap.push(stack.pop());
+          for ( var i = 0 ; i < paramCount ; i++ ) heap.push(stack.pop());
           for ( var i = 0 ; i < fncode.length ; i++ ) fncode[i]();
           hp = old;
         };
