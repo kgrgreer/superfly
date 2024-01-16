@@ -318,7 +318,7 @@ CLASS({
 
     function symbol() {
       return this.action(
-        this.repeat(this.alphaNum()),
+        this.toStr(this.repeat(this.alphaNum())),
         function(s) { return VAR(s); });
     },
 
@@ -350,6 +350,13 @@ CLASS({
       );
     },
 
+
+    function print() {
+      return this.action(
+        this.seq('print'),
+        function() { return FN('s', PRINT(VAR('s'))); });
+    },
+
     function notOp() {
       return this.action(
         this.seq('!', this.whitespace(), this.expr()),
@@ -363,6 +370,7 @@ CLASS({
           this.notOp(),
           this.fn(),
           this.let(),
+          this.print(),
           this.number(),
           this.string(),
           this.block(),
@@ -385,7 +393,8 @@ CLASS({
         this.literal('<',  LT),
         this.literal('>',  GT),
         this.literal('<=', LTE),
-        this.literal('>=', GTE)
+        this.literal('>=', GTE),
+        this.literal('.',  APPLY)
       );
     },
 
@@ -446,6 +455,7 @@ CLASS({
       this.doTest('let expr', "{let x = 5,x}");
       this.doTest('let expr', "{let x = 5,x + x}");
       this.doTest('fn expr', "fn square(x){x * x}");
+      this.doTest('fn apply', "fn square(x){x * x} . 8");
       this.doTest('not expr', "! 1 = 1");
       this.doTest('not expr', "! 1 = 2");
       this.doTest('not expr', "! 1 != 1");
